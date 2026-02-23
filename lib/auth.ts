@@ -125,23 +125,15 @@ export interface PendingRitual {
 
 export interface ModerationCase {
   id: number
-  ritual: {
-    id: number
-    title: string
-    description: string
-    creator: User
-    care_level: "level1" | "level2" | "level3"
-    tags: Array<{ id: number; name: string }>
-    cultural_declaration: string
-    audio_file?: string
-    duration_seconds?: number
-  }
-  case_type: string
-  description: string
-  severity: "low" | "medium" | "high" | "urgent"
-  assigned_moderator: User | null
-  status: "open" | "in_progress" | "resolved" | "closed"
-  resolution_notes?: string
+  ritual: number | null
+  ritual_title?: string
+  emotional_state?: number | null
+  flagged_by_ai: boolean
+  flagged_reason?: string
+  severity: "low" | "medium" | "high"
+  assigned_moderator?: number | null
+  assigned_moderator_email?: string
+  status: "open" | "assigned" | "resolved" | "closed"
   created_at: string
   updated_at: string
   history: Array<{
@@ -167,15 +159,22 @@ export interface ReviewResponse {
 export interface CareFeedItem {
   id: number
   type: "blessing" | "feedback" | "case"
-  ritual: {
-    id: number
-    title: string
-    creator: User
-  }
-  content: string
-  created_at: string
-  priority?: "low" | "medium" | "high" | "urgent"
+  ritual?: number | null
+  ritual_title?: string
+  user?: number | null
+  giver_email?: string
+  feedback_text?: string
+  is_anonymous?: boolean
+  emotional_state?: number | null
+  flagged_by_ai?: boolean
+  flagged_reason?: string
+  severity?: "low" | "medium" | "high"
+  assigned_moderator?: number | null
+  assigned_moderator_email?: string
   status?: string
+  created_at?: string
+  updated_at?: string
+  history?: Array<Record<string, any>>
 }
 
 class AuthService {
@@ -676,7 +675,6 @@ class AuthService {
       },
       body: JSON.stringify({
         status,
-        ...(notes && { resolution_notes: notes }),
       }),
     })
 
@@ -688,7 +686,6 @@ class AuthService {
   }
 
   async assignCase(caseId: number): Promise<ModerationCase> {
-    const user = await this.getProfile()
     const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, {
       method: "PATCH",
       headers: {
@@ -696,8 +693,7 @@ class AuthService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        assigned_moderator: user.email,
-        status: "in_progress",
+        status: "assigned",
       }),
     })
 

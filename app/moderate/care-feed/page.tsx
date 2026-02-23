@@ -62,17 +62,15 @@ export default function CareFeed() {
       case "case":
         return <AlertTriangle className="w-4 h-4 text-orange-500" />
       default:
-        return <MessageSquare className="w-4 h-4 text-gray-500" />
+        return <MessageSquare className="w-4 h-4 text-muted-foreground" />
     }
   }
 
-  const getPriorityColor = (priority?: string) => {
-    if (!priority) return ""
-    switch (priority) {
-      case "urgent":
-        return "border-l-red-500"
+  const getSeverityBorderColor = (severity?: string) => {
+    if (!severity) return ""
+    switch (severity) {
       case "high":
-        return "border-l-orange-500"
+        return "border-l-red-500"
       case "medium":
         return "border-l-yellow-500"
       case "low":
@@ -80,6 +78,19 @@ export default function CareFeed() {
       default:
         return ""
     }
+  }
+
+  const getItemContent = (item: CareFeedItem): string => {
+    if (item.type === "feedback" && item.feedback_text) {
+      return item.feedback_text
+    }
+    if (item.type === "case" && item.flagged_reason) {
+      return item.flagged_reason
+    }
+    if (item.type === "blessing") {
+      return "A blessing was given to this ritual"
+    }
+    return "No additional details"
   }
 
   if (loading) {
@@ -124,31 +135,29 @@ export default function CareFeed() {
           ) : (
             feedItems.map((item) => (
               <Card
-                key={item.id}
-                className={`border-l-4 ${getPriorityColor(item.priority)} hover:shadow-md transition-shadow`}
+                key={`${item.type}-${item.id}`}
+                className={`border-l-4 ${getSeverityBorderColor(item.severity)} hover:shadow-md transition-shadow`}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1">{getItemIcon(item.type)}</div>
 
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {item.type.toUpperCase()}
                         </Badge>
-                        {item.priority && (
+                        {item.severity && (
                           <Badge
                             className={
-                              item.priority === "urgent"
+                              item.severity === "high"
                                 ? "bg-red-100 text-red-800"
-                                : item.priority === "high"
-                                  ? "bg-orange-100 text-orange-800"
-                                  : item.priority === "medium"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-green-100 text-green-800"
+                                : item.severity === "medium"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
                             }
                           >
-                            {item.priority.toUpperCase()}
+                            {item.severity.toUpperCase()}
                           </Badge>
                         )}
                         {item.status && (
@@ -156,27 +165,49 @@ export default function CareFeed() {
                             {item.status.replace("_", " ").toUpperCase()}
                           </Badge>
                         )}
+                        {item.is_anonymous && (
+                          <Badge variant="outline" className="text-xs">
+                            ANONYMOUS
+                          </Badge>
+                        )}
+                        {item.flagged_by_ai && (
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                            AI FLAGGED
+                          </Badge>
+                        )}
                       </div>
 
-                      <h4 className="font-medium text-primary mb-2">{item.ritual.title}</h4>
+                      {item.ritual_title && (
+                        <h4 className="font-medium text-primary mb-2">{item.ritual_title}</h4>
+                      )}
 
-                      <p className="text-muted-foreground mb-3">{item.content}</p>
+                      <p className="text-muted-foreground mb-3">{getItemContent(item)}</p>
 
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <UserIcon className="w-4 h-4" />
-                          {item.ritual.creator.first_name} {item.ritual.creator.last_name}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </div>
+                        {item.giver_email && (
+                          <div className="flex items-center gap-1">
+                            <UserIcon className="w-4 h-4" />
+                            {item.giver_email}
+                          </div>
+                        )}
+                        {item.assigned_moderator_email && (
+                          <div className="flex items-center gap-1">
+                            <UserIcon className="w-4 h-4" />
+                            Assigned: {item.assigned_moderator_email}
+                          </div>
+                        )}
+                        {item.created_at && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="flex-shrink-0">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={item.type === "case" ? "/moderate/cases" : `/ritual/${item.ritual.id}`}>
+                        <Link href={item.type === "case" ? "/moderate/cases" : `/member/ritual/${item.ritual}`}>
                           {item.type === "case" ? "View Case" : "View Ritual"}
                         </Link>
                       </Button>

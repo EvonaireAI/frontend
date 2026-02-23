@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { authService, type ModerationCase } from "@/lib/auth"
-import { ArrowLeft, User, FileText, Clock, AlertTriangle, CheckCircle, Play, Pause } from "lucide-react"
+import { ArrowLeft, FileText, Clock, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
 
 interface CaseDetailProps {
@@ -18,22 +18,19 @@ interface CaseDetailProps {
 
 export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetailProps) {
   const [newStatus, setNewStatus] = useState(moderationCase.status)
-  const [resolutionNotes, setResolutionNotes] = useState(moderationCase.resolution_notes || "")
+  const [resolutionNotes, setResolutionNotes] = useState("")
   const [updating, setUpdating] = useState(false)
-  const [audioPlaying, setAudioPlaying] = useState(false)
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "urgent":
-        return "bg-red-100 text-red-800 border-red-200"
       case "high":
-        return "bg-orange-100 text-orange-800 border-orange-200"
+        return "bg-red-100 text-red-800 border-red-200"
       case "medium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "low":
         return "bg-green-100 text-green-800 border-green-200"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
@@ -41,14 +38,14 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
     switch (status) {
       case "open":
         return "bg-blue-100 text-blue-800"
-      case "in_progress":
+      case "assigned":
         return "bg-yellow-100 text-yellow-800"
       case "resolved":
         return "bg-green-100 text-green-800"
       case "closed":
-        return "bg-gray-100 text-gray-800"
+        return "bg-muted text-muted-foreground"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-muted text-muted-foreground"
     }
   }
 
@@ -80,10 +77,6 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
     }
   }
 
-  const toggleAudio = () => {
-    setAudioPlaying(!audioPlaying)
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/5">
       <div className="container mx-auto px-4 py-8">
@@ -111,25 +104,44 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                     </CardTitle>
                     <div className="flex gap-2">
                       <Badge className={getSeverityColor(moderationCase.severity)}>
-                        {moderationCase.severity.toUpperCase()}
+                        {moderationCase.severity?.toUpperCase() || "UNKNOWN"}
                       </Badge>
                       <Badge className={getStatusColor(moderationCase.status)}>
-                        {moderationCase.status.replace("_", " ").toUpperCase()}
+                        {moderationCase.status?.replace("_", " ").toUpperCase() || "UNKNOWN"}
                       </Badge>
+                      {moderationCase.flagged_by_ai && (
+                        <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                          AI FLAGGED
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-muted-foreground bg-muted p-3 rounded">{moderationCase.description}</p>
-                </div>
+                {moderationCase.ritual_title && (
+                  <div>
+                    <h4 className="font-medium mb-2">Related Ritual</h4>
+                    <p className="text-foreground bg-muted p-3 rounded">
+                      {moderationCase.ritual_title}
+                      {moderationCase.ritual && (
+                        <span className="text-muted-foreground ml-2">(ID: {moderationCase.ritual})</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {moderationCase.flagged_reason && (
+                  <div>
+                    <h4 className="font-medium mb-2">Flagged Reason</h4>
+                    <p className="text-muted-foreground bg-muted p-3 rounded">{moderationCase.flagged_reason}</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Case Type:</span>
-                    <p className="text-muted-foreground">{moderationCase.case_type.replace("_", " ")}</p>
+                    <span className="font-medium">Severity:</span>
+                    <p className="text-muted-foreground capitalize">{moderationCase.severity || "N/A"}</p>
                   </div>
                   <div>
                     <span className="font-medium">Created:</span>
@@ -142,100 +154,41 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                   <div>
                     <span className="font-medium">Assigned Moderator:</span>
                     <p className="text-muted-foreground">
-                      {moderationCase.assigned_moderator
-                        ? `${moderationCase.assigned_moderator.first_name} ${moderationCase.assigned_moderator.last_name}`
-                        : "Unassigned"}
+                      {moderationCase.assigned_moderator_email || "Unassigned"}
                     </p>
                   </div>
                 </div>
-
-                {moderationCase.resolution_notes && (
-                  <div>
-                    <h4 className="font-medium mb-2">Resolution Notes</h4>
-                    <p className="text-muted-foreground bg-muted p-3 rounded">{moderationCase.resolution_notes}</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-            {/* Ritual Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5" />
-                  Related Ritual
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-lg mb-2">{moderationCase.ritual.title}</h4>
-                  <p className="text-muted-foreground mb-3">{moderationCase.ritual.description}</p>
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      {moderationCase.ritual.creator.first_name} {moderationCase.ritual.creator.last_name}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {moderationCase.ritual.duration_seconds
-                        ? `${Math.floor(moderationCase.ritual.duration_seconds / 60)}:${(moderationCase.ritual.duration_seconds % 60).toString().padStart(2, "0")}`
-                        : "Unknown duration"}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mb-4">
-                    <Badge
-                      className={
-                        moderationCase.ritual.care_level === "level3"
-                          ? "bg-red-100 text-red-800"
-                          : moderationCase.ritual.care_level === "level2"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                      }
-                    >
-                      {moderationCase.ritual.care_level.replace("level", "Level ")}
-                    </Badge>
-                    {moderationCase.ritual.tags.map((tag) => (
-                      <Badge key={tag.id} variant="secondary">
-                        {tag.name}
-                      </Badge>
+            {/* Case History */}
+            {moderationCase.history && moderationCase.history.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Case History
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {moderationCase.history.map((entry, index) => (
+                      <div key={index} className="flex items-start gap-3 text-sm border-b border-border pb-3 last:border-0 last:pb-0">
+                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground">{entry.event}</p>
+                          <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                            <span>By: {entry.by}</span>
+                            <span>-</span>
+                            <span>{new Date(entry.at).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-
-                  {moderationCase.ritual.cultural_declaration && (
-                    <div>
-                      <h5 className="font-medium mb-2">Cultural Declaration</h5>
-                      <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                        {moderationCase.ritual.cultural_declaration}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {moderationCase.ritual.audio_file && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={toggleAudio}>
-                        {audioPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </Button>
-                      <span className="text-sm font-medium">Audio Preview</span>
-                    </div>
-
-                    {audioPlaying && (
-                      <audio
-                        controls
-                        className="w-full"
-                        src={authService.getRitualStreamUrl(moderationCase.ritual.id)}
-                        onEnded={() => setAudioPlaying(false)}
-                      >
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Actions Panel */}
@@ -262,7 +215,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="assigned">Assigned</SelectItem>
                       <SelectItem value="resolved">Resolved</SelectItem>
                       <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
@@ -270,9 +223,9 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Resolution Notes</label>
+                  <label className="text-sm font-medium mb-2 block">Notes</label>
                   <Textarea
-                    placeholder="Add notes about the resolution or current status..."
+                    placeholder="Add notes about this case..."
                     value={resolutionNotes}
                     onChange={(e) => setResolutionNotes(e.target.value)}
                     rows={4}
