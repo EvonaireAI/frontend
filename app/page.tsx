@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Shield, Heart, Sparkles } from "lucide-react"
 
 export default function LandingPage() {
@@ -28,13 +27,13 @@ export default function LandingPage() {
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 -mt-20">
         {/* Logo */}
         <div className="mb-8 animate-float">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.svg"
             alt="Evonaire Logo"
             width={180}
             height={180}
             className="drop-shadow-[0_0_30px_rgba(217,181,116,0.3)]"
-            priority
           />
         </div>
 
@@ -117,7 +116,8 @@ export default function LandingPage() {
       <footer className="relative z-10 py-8 border-t border-gold/10">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Evonaire" width={32} height={32} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="Evonaire" width={32} height={32} />
             <span className="text-cream/60 text-sm">Evonaire</span>
           </div>
           <p className="text-cream/40 text-xs">A sanctuary for rituals and reflections.</p>
