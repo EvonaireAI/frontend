@@ -1,141 +1,191 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { authService, type User } from "@/lib/auth"
-import { Loader2, Shield, Eye, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
+import { Shield, Heart, Sparkles } from "lucide-react"
 
-export default function ModerateDashboard() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        if (!authService.isAuthenticated()) {
-          router.push("/auth/login")
-          return
-        }
-
-        const userData = await authService.getProfile()
-        if (userData.role !== "moderator") {
-          router.push("/dashboard")
-          return
-        }
-
-        setUser(userData)
-      } catch (err) {
-        console.error("Failed to load user:", err)
-        router.push("/auth/login")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadUser()
-  }, [router])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/5">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Prism Circle</h1>
-            <p className="text-muted-foreground">Guardian of cultural safety and emotional protection</p>
-          </div>
-          <div className="flex gap-3">
-            <Button asChild variant="outline">
-              <Link href="/member">
-                <Eye className="w-4 h-4 mr-2" />
-                Sacred Library
-              </Link>
-            </Button>
-          </div>
+    <div className="min-h-screen bg-dark-navy relative overflow-hidden">
+      {/* Starfield background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="stars" />
+        <div className="stars2" />
+        <div className="stars3" />
+      </div>
+
+      {/* Top navigation */}
+      <nav className="relative z-10 flex justify-end p-6">
+        <Link
+          href="#features"
+          className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
+        >
+          Learn More
+        </Link>
+      </nav>
+
+      {/* Hero section */}
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 -mt-20">
+        {/* Logo */}
+        <div className="mb-8 animate-float">
+          <Image
+            src="/logo.svg"
+            alt="Evonaire Logo"
+            width={180}
+            height={180}
+            className="drop-shadow-[0_0_30px_rgba(217,181,116,0.3)]"
+            priority
+          />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-2 hover:border-primary/30 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                Pending Reviews
-              </CardTitle>
-              <CardDescription>Rituals awaiting cultural and emotional safety review</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-6">
-                <p className="text-2xl font-bold text-primary mb-2">0</p>
-                <p className="text-sm text-muted-foreground">No pending reviews</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Headline */}
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-cream text-center mb-6 tracking-wide">
+          Welcome To Evonaire
+        </h1>
 
-          <Card className="border-2 hover:border-primary/30 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
-                Community Guidelines
-              </CardTitle>
-              <CardDescription>Review and update safety protocols</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-6">
-                <Button variant="outline" className="w-full bg-transparent">
-                  View Guidelines
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Subtitle */}
+        <p className="text-cream/70 text-center max-w-2xl mx-auto text-base md:text-lg leading-relaxed mb-12 px-4">
+          A secure platform where creators and community members share and experience content with care, consent, and
+          privacy at the center. A protected space for your voice, rituals, and creative offerings.
+        </p>
 
-          <Card className="border-2 hover:border-primary/30 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-accent" />
-                Moderation History
-              </CardTitle>
-              <CardDescription>Track your moderation activities</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-6">
-                <p className="text-2xl font-bold text-accent mb-2">0</p>
-                <p className="text-sm text-muted-foreground">Reviews completed</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          <Link
+            href="/auth/register"
+            className="w-44 h-12 flex items-center justify-center rounded-full bg-dark-navy border-2 border-gold text-cream font-medium text-sm hover:bg-gold/10 transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.15)]"
+          >
+            Sign Up
+          </Link>
+          <Link
+            href="/auth/login"
+            className="w-44 h-12 flex items-center justify-center rounded-full bg-gold text-dark-navy font-medium text-sm hover:bg-gold-muted transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.3)]"
+          >
+            Log In
+          </Link>
         </div>
+      </main>
 
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Moderation Tools</CardTitle>
-            <CardDescription>Tools for maintaining our sacred community standards</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Moderation Features Coming Soon</h3>
-              <p className="text-muted-foreground">
-                Advanced moderation tools for reviewing sensitive rituals and ensuring cultural safety
+      {/* Features Section */}
+      <section id="features" className="relative z-10 py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">Built for Creators & Members</h2>
+          <p className="text-cream/60 text-center max-w-xl mx-auto mb-16">
+            Everything you need to share and experience sacred rituals in a protected environment.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
+              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
+                <Shield className="w-6 h-6 text-gold" />
+              </div>
+              <h3 className="text-xl font-semibold text-cream mb-3">NeuroPrivacy First</h3>
+              <p className="text-cream/60 text-sm leading-relaxed">
+                Your emotional and somatic data is protected with industry-leading privacy protocols. Share with
+                confidence.
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            {/* Feature 2 */}
+            <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
+              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
+                <Heart className="w-6 h-6 text-gold" />
+              </div>
+              <h3 className="text-xl font-semibold text-cream mb-3">Sacred Sanctuaries</h3>
+              <p className="text-cream/60 text-sm leading-relaxed">
+                Create or join private communities. Experience rituals together in curated, invitation-only spaces.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
+              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
+                <Sparkles className="w-6 h-6 text-gold" />
+              </div>
+              <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
+              <p className="text-cream/60 text-sm leading-relaxed">
+                Upload rituals, track engagement, manage your RTS score, and build a thriving community around your
+                offerings.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 py-8 border-t border-gold/10">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="Evonaire" width={32} height={32} />
+            <span className="text-cream/60 text-sm">Evonaire</span>
+          </div>
+          <p className="text-cream/40 text-xs">A sanctuary for rituals and reflections.</p>
+        </div>
+      </footer>
+
+      {/* Inline styles for starfield animation */}
+      <style jsx>{`
+        .stars,
+        .stars2,
+        .stars3 {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+
+        .stars {
+          background: transparent
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%23d9b574' stroke-width='1'%3E%3Ccircle cx='100' cy='100' r='1' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='200' cy='50' r='0.5' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='300' cy='150' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='400' cy='80' r='0.5' fill='%23d9b574' opacity='0.6'/%3E%3Ccircle cx='500' cy='200' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='600' cy='120' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='700' cy='180' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='150' cy='300' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='250' cy='350' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='350' cy='280' r='0.5' fill='%23d9b574' opacity='0.6'/%3E%3Ccircle cx='450' cy='400' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='550' cy='320' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='650' cy='380' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='750' cy='300' r='0.5' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='50' cy='450' r='1' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='180' cy='500' r='0.5' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='280' cy='480' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='420' cy='550' r='0.5' fill='%23d9b574' opacity='0.6'/%3E%3Ccircle cx='520' cy='480' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='620' cy='520' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='720' cy='450' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='80' cy='600' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='200' cy='650' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='320' cy='620' r='0.5' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='460' cy='680' r='1' fill='%23d9b574' opacity='0.6'/%3E%3Ccircle cx='580' cy='620' r='0.5' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='680' cy='660' r='1' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='780' cy='600' r='0.5' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='120' cy='750' r='1' fill='%23d9b574' opacity='0.5'/%3E%3Ccircle cx='240' cy='720' r='0.5' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='380' cy='780' r='1' fill='%23d9b574' opacity='0.4'/%3E%3Ccircle cx='500' cy='750' r='0.5' fill='%23d9b574' opacity='0.6'/%3E%3Ccircle cx='640' cy='720' r='1' fill='%23d9b574' opacity='0.3'/%3E%3Ccircle cx='760' cy='780' r='0.5' fill='%23d9b574' opacity='0.5'/%3E%3C/g%3E%3C/svg%3E")
+            repeat top center;
+          animation: twinkle 4s ease-in-out infinite;
+        }
+
+        .stars2 {
+          background: transparent
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cg fill='%23d9b574'%3E%3Ccircle cx='50' cy='50' r='0.8' opacity='0.4'/%3E%3Ccircle cx='150' cy='120' r='0.6' opacity='0.3'/%3E%3Ccircle cx='250' cy='80' r='0.8' opacity='0.5'/%3E%3Ccircle cx='350' cy='150' r='0.6' opacity='0.4'/%3E%3Ccircle cx='450' cy='100' r='0.8' opacity='0.3'/%3E%3Ccircle cx='550' cy='180' r='0.6' opacity='0.5'/%3E%3Ccircle cx='100' cy='250' r='0.8' opacity='0.4'/%3E%3Ccircle cx='200' cy='300' r='0.6' opacity='0.3'/%3E%3Ccircle cx='300' cy='220' r='0.8' opacity='0.5'/%3E%3Ccircle cx='400' cy='280' r='0.6' opacity='0.4'/%3E%3Ccircle cx='500' cy='350' r='0.8' opacity='0.3'/%3E%3Ccircle cx='50' cy='400' r='0.6' opacity='0.5'/%3E%3Ccircle cx='150' cy='450' r='0.8' opacity='0.4'/%3E%3Ccircle cx='250' cy='380' r='0.6' opacity='0.3'/%3E%3Ccircle cx='350' cy='420' r='0.8' opacity='0.5'/%3E%3Ccircle cx='450' cy='500' r='0.6' opacity='0.4'/%3E%3Ccircle cx='550' cy='450' r='0.8' opacity='0.3'/%3E%3Ccircle cx='100' cy='550' r='0.6' opacity='0.5'/%3E%3Ccircle cx='200' cy='520' r='0.8' opacity='0.4'/%3E%3Ccircle cx='300' cy='580' r='0.6' opacity='0.3'/%3E%3Ccircle cx='400' cy='550' r='0.8' opacity='0.5'/%3E%3Ccircle cx='500' cy='520' r='0.6' opacity='0.4'/%3E%3C/g%3E%3C/svg%3E")
+            repeat top center;
+          animation: twinkle 6s ease-in-out infinite;
+          animation-delay: -2s;
+        }
+
+        .stars3 {
+          background: transparent
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cg fill='%23f3e5c8'%3E%3Ccircle cx='80' cy='80' r='0.5' opacity='0.2'/%3E%3Ccircle cx='180' cy='140' r='0.4' opacity='0.3'/%3E%3Ccircle cx='280' cy='60' r='0.5' opacity='0.2'/%3E%3Ccircle cx='380' cy='120' r='0.4' opacity='0.3'/%3E%3Ccircle cx='480' cy='80' r='0.5' opacity='0.2'/%3E%3Ccircle cx='40' cy='200' r='0.4' opacity='0.3'/%3E%3Ccircle cx='140' cy='260' r='0.5' opacity='0.2'/%3E%3Ccircle cx='240' cy='180' r='0.4' opacity='0.3'/%3E%3Ccircle cx='340' cy='240' r='0.5' opacity='0.2'/%3E%3Ccircle cx='440' cy='200' r='0.4' opacity='0.3'/%3E%3Ccircle cx='60' cy='320' r='0.5' opacity='0.2'/%3E%3Ccircle cx='160' cy='380' r='0.4' opacity='0.3'/%3E%3Ccircle cx='260' cy='340' r='0.5' opacity='0.2'/%3E%3Ccircle cx='360' cy='400' r='0.4' opacity='0.3'/%3E%3Ccircle cx='460' cy='360' r='0.5' opacity='0.2'/%3E%3Ccircle cx='100' cy='440' r='0.4' opacity='0.3'/%3E%3Ccircle cx='200' cy='480' r='0.5' opacity='0.2'/%3E%3Ccircle cx='300' cy='420' r='0.4' opacity='0.3'/%3E%3Ccircle cx='400' cy='460' r='0.5' opacity='0.2'/%3E%3Ccircle cx='480' cy='440' r='0.4' opacity='0.3'/%3E%3C/g%3E%3C/svg%3E")
+            repeat top center;
+          animation: twinkle 8s ease-in-out infinite;
+          animation-delay: -4s;
+        }
+
+        @keyframes twinkle {
+          0%,
+          100% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   )
 }
