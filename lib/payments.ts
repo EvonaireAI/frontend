@@ -1,9 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 const TIER_PRICE_MAP: Record<string, string> = {
-  evocore: "price_1SOkvQPQ0i07tXXWqL2ucrSf", // Update this with your actual price ID from Stripe
-  evobloom: "price_1SOkguPQ0i07tXXW85W3BCmJ", // Update this with your actual price ID from Stripe
-  eivoluxe: "price_1SOkvQPQ0i07tXXWFISgGgtr", // Update this with your actual price ID from Stripe
+  evocore: process.env.NEXT_PUBLIC_STRIPE_PRICE_EVOCORE || "price_1SOkvQPQ0i07tXXWqL2ucrSf", // Update this with your actual price ID from Stripe
+  evobloom: process.env.NEXT_PUBLIC_STRIPE_PRICE_EVOBLOOM || "price_1SOkguPQ0i07tXXW85W3BCmJ", // Update this with your actual price ID from Stripe
+  eivoluxe: process.env.NEXT_PUBLIC_STRIPE_PRICE_EIVOLUXE || "price_1SOkvQPQ0i07tXXWFISgGgtr", // Update this with your actual price ID from Stripe
 }
 
 export interface PaymentConfig {
