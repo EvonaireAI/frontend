@@ -79,7 +79,10 @@ export function Navigation() {
         )
         break
       case "member":
-        items.push({ href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> })
+        items.push(
+          { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/member/my-space", label: "My Space", icon: <Sparkles className="w-4 h-4" /> }
+        )
         break
       case "admin":
         items.push(

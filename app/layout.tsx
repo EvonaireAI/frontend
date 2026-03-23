@@ -4,6 +4,8 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/lib/auth-context"
 import { Navigation } from "@/components/navigation"
+import { ConsentGuard } from "@/components/consent-guard"
+import { Footer } from "@/components/footer"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -32,8 +34,13 @@ html {
       </head>
       <body>
         <AuthProvider>
-          <Navigation />
-          {children}
+          <ConsentGuard>
+            <div className="min-h-screen flex flex-col">
+              <Navigation />
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
+          </ConsentGuard>
         </AuthProvider>
       </body>
     </html>

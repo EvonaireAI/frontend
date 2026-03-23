@@ -9,7 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { authService, type User, type Ritual, type PlaySession } from "@/lib/auth"
-import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle } from "lucide-react"
+import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle, Flag } from "lucide-react"
+import { ReportModal } from "@/components/report-modal"
 
 export default function RitualPlayer() {
   const [user, setUser] = useState<User | null>(null)
@@ -284,11 +285,22 @@ export default function RitualPlayer() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 lg:py-12 max-w-4xl">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center justify-between mb-8">
           <Button variant="outline" onClick={() => router.back()} className="bg-transparent border-border text-foreground hover:bg-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Library
           </Button>
+          <ReportModal
+            contentType="ritual"
+            contentId={ritualId}
+            contentTitle={ritual.title}
+            trigger={
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                <Flag className="w-4 h-4 mr-2" />
+                Report
+              </Button>
+            }
+          />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">

@@ -7,12 +7,19 @@ export interface User {
   role: "member" | "creator" | "moderator" | "admin"
   profile_picture?: string
   date_joined: string
+  consent_privacy_policy?: boolean
+  consent_terms_of_service?: boolean
+  consent_accepted_at?: string | null
+  consents_accepted?: boolean
 }
 
 export interface LoginResponse {
   refresh: string
   access: string
   role: string
+  consent_privacy_policy?: boolean
+  consent_terms_of_service?: boolean
+  consents_accepted?: boolean
 }
 
 export interface RoleRequest {
@@ -127,13 +134,17 @@ export interface ModerationCase {
   id: number
   ritual: number | null
   ritual_title?: string
+  reporter?: number | null
+  reporter_email?: string
   emotional_state?: number | null
   flagged_by_ai: boolean
+  violation_type?: string
   flagged_reason?: string
   severity: "low" | "medium" | "high"
   assigned_moderator?: number | null
   assigned_moderator_email?: string
   status: "open" | "assigned" | "resolved" | "closed"
+  crisis_escalated?: boolean
   created_at: string
   updated_at: string
   history: Array<{
@@ -557,6 +568,144 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return !!localStorage.getItem("access_token")
+  }
+
+  // Consent API
+  async acceptConsent(privacyPolicy: boolean, termsOfService: boolean): Promise<{
+    message: string
+    consents_accepted: boolean
+    consent_accepted_at: string
+  }> {
+    const response = await fetch(`${API_BASE_URL}/auth/consent/`, {
+      method: "POST",
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        privacy_policy: privacyPolicy,
+        terms_of_service: termsOfService,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to accept consent")
+    }
+
+    return response.json()
+  }
+
+  // Report API
+  async submitReport(data: {
+    content_type: "ritual" | "sanctuary" | "user"
+    content_id: number
+    violation_type: "cultural_harm" | "safety_risk" | "misinformation" | "inappropriate_content" | "spam" | "other"
+    description: string
+  }): Promise<{ detail: string; case_id: number }> {
+    const response = await fetch(`${API_BASE_URL}/moderations/report/`, {
+      method: "POST",
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to submit report")
+    }
+
+    return response.json()
+  }
+
+  // Member Dashboard APIs
+  async getMyPlayHistory(): Promise<Array<{
+    id: number
+    ritual: number
+    ritual_title: string
+    ritual_care_level: string
+    started_at: string
+    completed_at: string | null
+    progress_seconds: number
+    is_completed: boolean
+  }>> {
+    const response = await fetch(`${API_BASE_URL}/analytics/me/plays/`, {
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch play history")
+    }
+
+    return response.json()
+  }
+
+  async getMyBlessings(): Promise<Array<{
+    id: number
+    ritual: number
+    ritual_title: string
+    ritual_care_level: string
+    created_at: string
+  }>> {
+    const response = await fetch(`${API_BASE_URL}/analytics/me/blessings/`, {
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch blessings")
+    }
+
+    return response.json()
+  }
+
+  async getJoinedSanctuaries(): Promise<Array<{
+    id: number
+    sanctuary_id: number
+    title: string
+    description: string
+    privacy: string
+    sanctuary_status: string
+    active_members_count: number
+    status: string
+    member_since: string
+    requested_at: string
+  }>> {
+    const response = await fetch(`${API_BASE_URL}/sanctuaries/joined/`, {
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch joined sanctuaries")
+    }
+
+    return response.json()
+  }
+
+  // Crisis Escalation
+  async escalateCase(caseId: number, notes: string): Promise<{
+    detail: string
+    case_id: number
+    severity: string
+    crisis_escalated: boolean
+    intervention_id: number
+  }> {
+    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/escalate/`, {
+      method: "POST",
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notes }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to escalate case")
+    }
+
+    return response.json()
   }
 
   async getModerationStats(): Promise<{

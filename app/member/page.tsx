@@ -12,7 +12,8 @@ import { useAuth } from "@/lib/auth-context"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { SanctuaryCard } from "@/components/sanctuaries/sanctuary-card"
 import { JoinRequestForm } from "@/components/sanctuaries/join-request-form"
-import { Loader2, Search, Heart, Play, Filter, Eye, Users } from "lucide-react"
+import { Loader2, Search, Heart, Play, Filter, Eye, Users, Flag } from "lucide-react"
+import { ReportModal } from "@/components/report-modal"
 import Link from "next/link"
 import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -371,8 +372,15 @@ export default function MemberDashboard() {
                           <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
                             {getCareLevel(ritual.care_level)}
                           </Badge>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(ritual.created_at).toLocaleDateString()}
+                          <div className="flex items-center gap-2">
+                            <ReportModal
+                              contentType="ritual"
+                              contentId={ritual.id}
+                              contentTitle={ritual.title}
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(ritual.created_at).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
                         <CardTitle className="text-lg group-hover:text-primary transition-colors text-foreground">
