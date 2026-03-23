@@ -23,8 +23,13 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
     try {
-      await login(email, password)
-      router.push("/dashboard")
+      const loginResponse = await login(email, password)
+      // Check if user needs to accept consent
+      if (!loginResponse.consents_accepted) {
+        router.push("/consent")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {

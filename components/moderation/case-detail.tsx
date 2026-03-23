@@ -6,8 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { authService, type ModerationCase } from "@/lib/auth"
-import { ArrowLeft, FileText, Clock, CheckCircle } from "lucide-react"
+import { ArrowLeft, FileText, Clock, CheckCircle, AlertTriangle, User, Flag, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface CaseDetailProps {
@@ -16,10 +27,21 @@ interface CaseDetailProps {
   onUpdate: () => void
 }
 
+const VIOLATION_TYPE_LABELS: Record<string, string> = {
+  cultural_harm: "Cultural Harm",
+  safety_risk: "Safety Risk",
+  misinformation: "Misinformation",
+  inappropriate_content: "Inappropriate Content",
+  spam: "Spam",
+  other: "Other",
+}
+
 export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetailProps) {
   const [newStatus, setNewStatus] = useState(moderationCase.status)
   const [resolutionNotes, setResolutionNotes] = useState("")
   const [updating, setUpdating] = useState(false)
+  const [escalationNotes, setEscalationNotes] = useState("")
+  const [escalating, setEscalating] = useState(false)
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -77,6 +99,26 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
     }
   }
 
+  const handleEscalate = async () => {
+    if (!escalationNotes.trim()) {
+      toast.error("Please provide escalation notes")
+      return
+    }
+
+    setEscalating(true)
+    try {
+      await authService.escalateCase(moderationCase.id, escalationNotes.trim())
+      toast.success("Case escalated to crisis team")
+      setEscalationNotes("")
+      onUpdate()
+    } catch (error) {
+      console.error("Failed to escalate case:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to escalate case")
+    } finally {
+      setEscalating(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/5">
       <div className="container mx-auto px-4 py-8">
@@ -85,8 +127,15 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Cases
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Case #{moderationCase.id}</h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground">Case #{moderationCase.id}</h1>
+              {moderationCase.crisis_escalated && (
+                <Badge className="bg-red-600 text-white border-0 animate-pulse">
+                  CRISIS ESCALATED
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">Moderation case details and actions</p>
           </div>
         </div>
@@ -102,7 +151,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                       <FileText className="w-5 h-5" />
                       Case Information
                     </CardTitle>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Badge className={getSeverityColor(moderationCase.severity)}>
                         {moderationCase.severity?.toUpperCase() || "UNKNOWN"}
                       </Badge>
@@ -114,11 +163,40 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                           AI FLAGGED
                         </Badge>
                       )}
+                      {moderationCase.crisis_escalated && (
+                        <Badge className="bg-red-600 text-white border-0">
+                          CRISIS
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Reporter Info */}
+                {moderationCase.reporter_email && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Reported By
+                    </h4>
+                    <p className="text-sm text-foreground">{moderationCase.reporter_email}</p>
+                  </div>
+                )}
+
+                {/* Violation Type */}
+                {moderationCase.violation_type && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Flag className="w-4 h-4" />
+                      Violation Type
+                    </h4>
+                    <Badge variant="outline" className="border-red-300 text-red-700">
+                      {VIOLATION_TYPE_LABELS[moderationCase.violation_type] || moderationCase.violation_type}
+                    </Badge>
+                  </div>
+                )}
+
                 {moderationCase.ritual_title && (
                   <div>
                     <h4 className="font-medium mb-2">Related Ritual</h4>
@@ -133,7 +211,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
 
                 {moderationCase.flagged_reason && (
                   <div>
-                    <h4 className="font-medium mb-2">Flagged Reason</h4>
+                    <h4 className="font-medium mb-2">Flagged Reason / Description</h4>
                     <p className="text-muted-foreground bg-muted p-3 rounded">{moderationCase.flagged_reason}</p>
                   </div>
                 )}
@@ -193,6 +271,85 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
 
           {/* Actions Panel */}
           <div className="space-y-6">
+            {/* Crisis Escalation */}
+            {!moderationCase.crisis_escalated && (
+              <Card className="border-red-200 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <AlertTriangle className="w-5 h-5" />
+                    Crisis Escalation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    If this case involves immediate danger or urgent distress, escalate to the crisis team.
+                  </p>
+                  <Textarea
+                    placeholder="Describe why this needs urgent attention..."
+                    value={escalationNotes}
+                    onChange={(e) => setEscalationNotes(e.target.value)}
+                    rows={3}
+                    className="bg-white dark:bg-background"
+                  />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        disabled={!escalationNotes.trim() || escalating}
+                      >
+                        {escalating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Escalating...
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-4 h-4 mr-2" />
+                            Escalate to Crisis
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="w-5 h-5" />
+                          Confirm Crisis Escalation
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will immediately escalate the case to the crisis intervention team. 
+                          This action cannot be undone. Are you sure this case requires urgent attention?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleEscalate}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Yes, Escalate Now
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardContent>
+              </Card>
+            )}
+
+            {moderationCase.crisis_escalated && (
+              <Card className="border-red-600 bg-red-600/10">
+                <CardContent className="py-6 text-center">
+                  <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-red-600 mb-1">Crisis Escalated</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This case has been escalated to the crisis intervention team.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Regular Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
