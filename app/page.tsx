@@ -120,6 +120,20 @@ export default function LandingPage() {
             <img src="/logo.svg" alt="Evonaire" width={32} height={32} />
             <span className="text-cream/60 text-sm">Evonaire</span>
           </div>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/privacy"
+              className="text-cream/50 hover:text-gold text-xs transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-cream/50 hover:text-gold text-xs transition-colors"
+            >
+              Terms of Service
+            </Link>
+          </div>
           <p className="text-cream/40 text-xs">A sanctuary for rituals and reflections.</p>
         </div>
       </footer>
