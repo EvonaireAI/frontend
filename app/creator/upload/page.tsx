@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
 import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, Loader2 } from "lucide-react"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 export default function RitualUpload() {
   const [user, setUser] = useState<User | null>(null)
@@ -306,7 +307,10 @@ export default function RitualUpload() {
               </div>
 
               <div>
-                <Label htmlFor="care_level">Care Level</Label>
+                <Label htmlFor="care_level" className="inline-flex items-center gap-1.5">
+                  Care Level
+                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel="About care level" />
+                </Label>
                 <Select
                   value={formData.care_level}
                   onValueChange={(value: "level1" | "level2" | "level3") =>
@@ -325,7 +329,10 @@ export default function RitualUpload() {
               </div>
 
               <div>
-                <Label htmlFor="tags">Tags</Label>
+                <Label htmlFor="tags" className="inline-flex items-center gap-1.5">
+                  Tags
+                  <GaiaInfoTip infoKey="creator.tags" ariaLabel="About tags" />
+                </Label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     id="tags"
@@ -348,7 +355,10 @@ export default function RitualUpload() {
               </div>
 
               <div>
-                <Label htmlFor="cultural_declaration">Cultural Declaration</Label>
+                <Label htmlFor="cultural_declaration" className="inline-flex items-center gap-1.5">
+                  Cultural Declaration
+                  <GaiaInfoTip infoKey="creator.declaration" ariaLabel="About cultural declaration" />
+                </Label>
                 <Textarea
                   id="cultural_declaration"
                   value={formData.cultural_declaration}
@@ -360,24 +370,27 @@ export default function RitualUpload() {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={uploading || !formData.title || !formData.description || (!recordedBlob && !uploadedFile)}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                "Upload Ritual"
-              )}
-            </Button>
+            <div className="flex-1 flex items-center gap-2">
+              <Button
+                type="submit"
+                disabled={uploading || !formData.title || !formData.description || (!recordedBlob && !uploadedFile)}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  "Upload Ritual"
+                )}
+              </Button>
+              <GaiaInfoTip infoKey="creator.upload" ariaLabel="About uploading a ritual" />
+            </div>
           </div>
         </form>
       </div>

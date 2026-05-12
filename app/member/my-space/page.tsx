@@ -20,6 +20,7 @@ import {
   Music,
   ArrowRight,
 } from "lucide-react"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 interface PlayHistoryItem {
   id: number
@@ -142,7 +143,10 @@ export default function MySpacePage() {
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Header */}
         <div className="mb-8">
-          <p className="text-sm uppercase tracking-widest text-gold-muted mb-2">My Space</p>
+          <p className="text-sm uppercase tracking-widest text-gold-muted mb-2 inline-flex items-center gap-2">
+            My Space
+            <GaiaInfoTip infoKey="member.my_space" ariaLabel="About My Space" side="bottom" />
+          </p>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             Welcome back, {user.first_name}
           </h1>
