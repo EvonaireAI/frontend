@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
+import { gatewayQuizService } from "@/lib/gateway-quiz"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, CheckCircle2, ScrollText } from "lucide-react"
@@ -26,7 +27,8 @@ export default function ConsentPage() {
   const privacyScrollRef = useRef<HTMLDivElement>(null)
   const termsScrollRef = useRef<HTMLDivElement>(null)
 
-  // Redirect if already consented
+  // Redirect if already consented — the GatewayQuizGuard will forward
+  // unfinished quiz takers from /dashboard onward.
   useEffect(() => {
     if (!loading && consentsAccepted) {
       router.push("/dashboard")
@@ -66,6 +68,16 @@ export default function ConsentPage() {
     try {
       await acceptConsent(true, true)
       toast.success("Welcome to Evonaire!")
+      // Send them to the Gateway Quiz next if it hasn't been completed.
+      try {
+        const quizStatus = await gatewayQuizService.getStatus()
+        if (quizStatus.status !== "completed") {
+          router.push("/gateway-quiz")
+          return
+        }
+      } catch {
+        // Fall through to the dashboard; the guard will catch any gap.
+      }
       router.push("/dashboard")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save consent")

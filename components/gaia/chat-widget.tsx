@@ -34,12 +34,14 @@ export function GaiaChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null)
   const idRef = useRef(1)
 
-  // Hide on landing, auth screens, and the activate code page (covers /activate/*).
+  // Hide on landing, auth screens, the activate code page (covers /activate/*),
+  // and the immersive Gateway Quiz flow.
   const hideOnRoute =
     !pathname ||
     HIDDEN_ROUTES.has(pathname) ||
     pathname.startsWith("/auth/") ||
-    pathname.startsWith("/activate")
+    pathname.startsWith("/activate") ||
+    pathname.startsWith("/gateway-quiz")
 
   useEffect(() => {
     if (!open) return

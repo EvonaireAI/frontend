@@ -101,8 +101,14 @@ export function Navigation() {
     return items
   }
 
-  // Don't show navigation on auth pages or landing page
-  if (pathname?.startsWith("/auth") || pathname === "/" || pathname === "/activate") {
+  // Don't show navigation on auth pages, landing page, or the Gateway Quiz
+  // (the quiz uses its own immersive header).
+  if (
+    pathname?.startsWith("/auth") ||
+    pathname === "/" ||
+    pathname === "/activate" ||
+    pathname?.startsWith("/gateway-quiz")
+  ) {
     return null
   }
 

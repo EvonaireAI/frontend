@@ -6,8 +6,14 @@ import { usePathname } from "next/navigation"
 export function Footer() {
   const pathname = usePathname()
 
-  // Don't show footer on landing page (it has its own), consent page, privacy, or terms pages
-  if (pathname === "/" || pathname === "/consent" || pathname === "/privacy" || pathname === "/terms") {
+  // Don't show footer on landing page (it has its own), consent page, privacy, terms, or Gateway Quiz
+  if (
+    pathname === "/" ||
+    pathname === "/consent" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
+    pathname?.startsWith("/gateway-quiz")
+  ) {
     return null
   }
 
