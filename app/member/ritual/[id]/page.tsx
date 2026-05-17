@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider"
 import { authService, type User, type Ritual, type PlaySession } from "@/lib/auth"
 import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle, Flag } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 export default function RitualPlayer() {
   const [user, setUser] = useState<User | null>(null)
@@ -308,10 +309,11 @@ export default function RitualPlayer() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-card border-border">
               <CardHeader className="text-center pb-6">
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center items-center gap-2 mb-4">
                   <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
                     {getCareLevel(ritual.care_level)} Practice
                   </Badge>
+                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel="About care level" />
                 </div>
                 <CardTitle className="text-3xl mb-2 text-foreground">{ritual.title}</CardTitle>
                 <CardDescription className="text-base">
@@ -389,15 +391,18 @@ export default function RitualPlayer() {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-4 items-center">
-                  <Button
-                    onClick={handleBless}
-                    variant={isBlessed ? "default" : "outline"}
-                    disabled={isBlessed}
-                    className="flex items-center gap-2"
-                  >
-                    <Heart className={`w-4 h-4 ${isBlessed ? "fill-current" : ""}`} />
-                    {isBlessed ? "Blessed" : "Bless This Ritual"}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleBless}
+                      variant={isBlessed ? "default" : "outline"}
+                      disabled={isBlessed}
+                      className="flex items-center gap-2"
+                    >
+                      <Heart className={`w-4 h-4 ${isBlessed ? "fill-current" : ""}`} />
+                      {isBlessed ? "Blessed" : "Bless This Ritual"}
+                    </Button>
+                    <GaiaInfoTip infoKey="ritual.bless" ariaLabel="About blessing a creator" />
+                  </div>
                   {blessError && <p className="text-sm text-muted-foreground text-center">{blessError}</p>}
                 </div>
               </CardContent>
@@ -409,6 +414,7 @@ export default function RitualPlayer() {
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <MessageSquare className="w-5 h-5 text-primary" />
                   Share Your Reflection
+                  <GaiaInfoTip infoKey="ritual.feedback" ariaLabel="About leaving feedback" />
                 </CardTitle>
                 <CardDescription>Your thoughts help creators understand the impact of their work</CardDescription>
               </CardHeader>
@@ -429,8 +435,9 @@ export default function RitualPlayer() {
                     />
                     <div className="flex items-center space-x-2">
                       <Checkbox id="anonymous" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
-                      <label htmlFor="anonymous" className="text-sm">
+                      <label htmlFor="anonymous" className="text-sm inline-flex items-center gap-1.5">
                         Submit anonymously
+                        <GaiaInfoTip infoKey="ritual.feedback_anonymous" ariaLabel="About anonymous feedback" />
                       </label>
                     </div>
                     <Button

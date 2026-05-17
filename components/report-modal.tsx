@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label"
 import { authService } from "@/lib/auth"
 import { Flag, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 type ViolationType = "cultural_harm" | "safety_risk" | "misinformation" | "inappropriate_content" | "spam" | "other"
 type ContentType = "ritual" | "sanctuary" | "user"
@@ -120,6 +121,11 @@ export function ReportModal({ contentType, contentId, contentTitle, trigger }: R
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <AlertTriangle className="w-5 h-5 text-destructive" />
             Report {getContentLabel()}
+            <GaiaInfoTip
+              infoKey={contentType === "sanctuary" ? "sanctuary.report" : "ritual.report"}
+              ariaLabel="About reporting"
+              side="bottom"
+            />
           </DialogTitle>
           <DialogDescription>
             {contentTitle ? (

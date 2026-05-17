@@ -6,6 +6,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import { Navigation } from "@/components/navigation"
 import { ConsentGuard } from "@/components/consent-guard"
 import { Footer } from "@/components/footer"
+import { GaiaChatWidget } from "@/components/gaia/chat-widget"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ html {
               <div className="flex-1">{children}</div>
               <Footer />
             </div>
+            <GaiaChatWidget />
           </ConsentGuard>
         </AuthProvider>
       </body>

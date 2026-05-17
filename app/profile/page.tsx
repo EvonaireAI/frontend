@@ -14,6 +14,7 @@ import { authService } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
 import { Loader2, ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 export default function ProfilePage() {
   const { user, loading: authLoading, refreshUser } = useAuth()
@@ -106,7 +107,10 @@ export default function ProfilePage() {
               Back to Dashboard
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white inline-flex items-center gap-2">
+            Profile Settings
+            <GaiaInfoTip infoKey="profile.picture" ariaLabel="About profile settings" side="bottom" />
+          </h1>
         </div>
 
         <Card>

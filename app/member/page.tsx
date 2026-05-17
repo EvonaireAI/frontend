@@ -17,6 +17,7 @@ import { ReportModal } from "@/components/report-modal"
 import Link from "next/link"
 import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
 export default function MemberDashboard() {
   const { user, loading: authLoading } = useAuth()
@@ -202,8 +203,9 @@ export default function MemberDashboard() {
         {/* Hero header */}
         <div className="text-center mb-10">
           <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">Welcome Back</p>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance">
-            {user ? `Hi, ${user.first_name}` : "Sacred Library"}
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance inline-flex items-center gap-2 justify-center flex-wrap">
+            <span>{user ? `Hi, ${user.first_name}` : "Sacred Library"}</span>
+            <GaiaInfoTip infoKey="member.library" ariaLabel="About the library" side="bottom" />
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
             Discover and experience transformative rituals and sanctuaries
@@ -238,6 +240,7 @@ export default function MemberDashboard() {
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Search className="w-5 h-5 text-primary" />
                   Discover Sanctuaries
+                  <GaiaInfoTip infoKey="sanctuary.privacy" ariaLabel="About sanctuary privacy" />
                 </CardTitle>
                 <CardDescription>Find communities aligned with your spiritual practice</CardDescription>
               </CardHeader>
@@ -300,6 +303,7 @@ export default function MemberDashboard() {
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Search className="w-5 h-5 text-primary" />
                   Find Your Practice
+                  <GaiaInfoTip infoKey="ritual.search" ariaLabel="About searching rituals" />
                 </CardTitle>
                 <CardDescription>Search rituals and filter by practice type</CardDescription>
               </CardHeader>
@@ -321,7 +325,10 @@ export default function MemberDashboard() {
 
                 {allTags.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium mb-2 text-foreground">Filter by practice type:</p>
+                    <p className="text-sm font-medium mb-2 text-foreground inline-flex items-center gap-1.5">
+                      Filter by practice type:
+                      <GaiaInfoTip infoKey="ritual.tags" ariaLabel="About tag filters" />
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {allTags.map((tag) => (
                         <Badge
