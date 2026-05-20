@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/lib/auth-context"
 import { Navigation } from "@/components/navigation"
 import { ConsentGuard } from "@/components/consent-guard"
+import { GatewayQuizGuard } from "@/components/gateway-quiz-guard"
 import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
 import "./globals.css"
@@ -36,12 +37,14 @@ html {
       <body>
         <AuthProvider>
           <ConsentGuard>
-            <div className="min-h-screen flex flex-col">
-              <Navigation />
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </div>
-            <GaiaChatWidget />
+            <GatewayQuizGuard>
+              <div className="min-h-screen flex flex-col">
+                <Navigation />
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </div>
+              <GaiaChatWidget />
+            </GatewayQuizGuard>
           </ConsentGuard>
         </AuthProvider>
       </body>

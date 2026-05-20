@@ -8,6 +8,7 @@ const protectedRoutes = [
   "/moderate",
   "/profile",
   "/dashboard",
+  "/gateway-quiz",
 ]
 
 export function middleware(request: NextRequest) {
@@ -36,5 +37,6 @@ export const config = {
     "/moderate/:path*",
     "/profile/:path*",
     "/dashboard/:path*",
+    "/gateway-quiz/:path*",
   ],
 }
