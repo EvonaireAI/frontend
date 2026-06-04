@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye } from "lucide-react"
+import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText } from "lucide-react"
 
 export function Navigation() {
   const { user, loading, logout } = useAuth()
@@ -81,7 +81,10 @@ export function Navigation() {
       case "member":
         items.push(
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
-          { href: "/member/my-space", label: "My Space", icon: <Sparkles className="w-4 h-4" /> }
+          { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
+          { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
+          { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
+          { href: "/member/billing", label: "Billing", icon: <CreditCard className="w-4 h-4" /> },
         )
         break
       case "admin":

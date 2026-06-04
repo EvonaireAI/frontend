@@ -1,5 +1,27 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
+export type SubscriptionPlan = "free" | "evocore" | "evobloom" | "evoluxe"
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete"
+
+export const PAID_PLANS: SubscriptionPlan[] = ["evocore", "evobloom", "evoluxe"]
+
+export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = {
+  free: "Free",
+  evocore: "EVOcore",
+  evobloom: "EVObloom",
+  evoluxe: "EVOluxe",
+}
+
+export function getSubscriptionAccess(plan?: SubscriptionPlan, status?: SubscriptionStatus) {
+  const isPaidActive =
+    !!plan &&
+    PAID_PLANS.includes(plan) &&
+    (status === "active" || status === "trialing")
+  const isPastDue = !!plan && PAID_PLANS.includes(plan) && status === "past_due"
+  const isFree = !isPaidActive
+  return { isPaidActive, isPastDue, isFree }
+}
+
 export interface User {
   email: string
   first_name: string
@@ -11,6 +33,8 @@ export interface User {
   consent_terms_of_service?: boolean
   consent_accepted_at?: string | null
   consents_accepted?: boolean
+  subscription_plan?: SubscriptionPlan
+  subscription_status?: SubscriptionStatus
 }
 
 export interface LoginResponse {
@@ -20,6 +44,8 @@ export interface LoginResponse {
   consent_privacy_policy?: boolean
   consent_terms_of_service?: boolean
   consents_accepted?: boolean
+  subscription_plan?: SubscriptionPlan
+  subscription_status?: SubscriptionStatus
 }
 
 export interface RoleRequest {
@@ -555,6 +581,39 @@ class AuthService {
       throw new Error("Failed to fetch creator feedback")
     }
 
+    return response.json()
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    })
+    if (!response.ok) {
+      throw new Error("Unable to process request. Please try again.")
+    }
+    return response.json()
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, new_password: newPassword, confirm_password: confirmPassword }),
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(
+        error.detail ||
+          (Array.isArray(error.confirm_password) ? error.confirm_password[0] : undefined) ||
+          "Failed to reset password",
+      )
+    }
     return response.json()
   }
 

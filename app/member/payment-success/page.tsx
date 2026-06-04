@@ -1,53 +1,166 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { CheckCircle, Loader2, Sparkles } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { fetchSubscription, PLAN_DISPLAY } from "@/lib/subscription"
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")
+  const { refreshUser } = useAuth()
+
+  const [state, setState] = useState<"polling" | "success" | "pending">("polling")
+  const [activePlan, setActivePlan] = useState<string | null>(null)
+  const attemptRef = useRef(0)
+  const MAX_ATTEMPTS = 5
 
   useEffect(() => {
-    // Auto-redirect after 5 seconds if they don't click the button
-    const timer = setTimeout(() => {
-      router.push("/member")
-    }, 5000)
+    let timer: ReturnType<typeof setTimeout>
 
+    async function poll() {
+      attemptRef.current += 1
+      try {
+        const sub = await fetchSubscription()
+        if (sub.plan !== "free" && sub.status === "active") {
+          // Webhook fired — plan is active
+          await refreshUser()
+          setActivePlan(sub.plan)
+          setState("success")
+
+          // Auto-redirect after 6 seconds
+          timer = setTimeout(() => router.push("/member"), 6000)
+          return
+        }
+      } catch {
+        // ignore individual poll errors
+      }
+
+      if (attemptRef.current >= MAX_ATTEMPTS) {
+        setState("pending")
+        return
+      }
+
+      // Retry in 2 seconds
+      timer = setTimeout(poll, 2000)
+    }
+
+    // Start first poll after 2 seconds (give webhook time to fire)
+    timer = setTimeout(poll, 2000)
     return () => clearTimeout(timer)
-  }, [router])
+  }, [router, refreshUser])
+
+  const planName = activePlan ? (PLAN_DISPLAY[activePlan]?.name ?? activePlan) : null
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="max-w-md w-full bg-card border-border">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="h-16 w-16 text-primary" />
-          </div>
-          <CardTitle className="text-foreground">Payment Successful!</CardTitle>
-          <CardDescription>Thank you for upgrading to premium</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-secondary p-4 rounded-lg">
+      <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 shadow-[0_8px_40px_rgba(0,0,0,0.4)] text-center">
+
+        {state === "polling" && (
+          <>
+            <div className="flex justify-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Setting up your subscription…
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Your premium subscription is now active. You have full access to all premium features.
+              Activating your plan. This takes just a moment.
             </p>
-            {sessionId && <p className="text-xs text-muted-foreground mt-2">Session: {sessionId}</p>}
-          </div>
+          </>
+        )}
 
-          <div className="flex gap-3 pt-4">
-            <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted">
-              <Link href="/member">Return to Dashboard</Link>
-            </Button>
-          </div>
+        {state === "success" && (
+          <>
+            <div className="flex justify-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-primary" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-serif text-foreground mb-2">
+              Welcome to {planName}!
+            </h2>
+            <p className="text-sm text-muted-foreground mb-8">
+              Your {planName} plan is now active. Enjoy full access to all premium rituals and
+              features.
+            </p>
 
-          <p className="text-xs text-muted-foreground text-center">Redirecting automatically in 5 seconds...</p>
-        </CardContent>
-      </Card>
+            {sessionId && (
+              <p className="text-xs text-muted-foreground/50 font-mono mb-6">
+                Ref: {sessionId.slice(0, 24)}…
+              </p>
+            )}
+
+            <div className="space-y-3">
+              <Link
+                href="/member"
+                className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
+              >
+                <Sparkles className="w-4 h-4" />
+                Explore Sanctuaries →
+              </Link>
+              <Link
+                href="/member/billing"
+                className="w-full h-11 rounded-xl bg-transparent border border-border text-foreground font-medium text-sm hover:bg-secondary transition-colors flex items-center justify-center"
+              >
+                View Billing
+              </Link>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-6">
+              Redirecting to your library shortly…
+            </p>
+          </>
+        )}
+
+        {state === "pending" && (
+          <>
+            <div className="flex justify-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-muted-foreground" />
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Payment received</h2>
+            <p className="text-sm text-muted-foreground mb-8">
+              Your payment was received. Your account will be updated shortly — check your billing
+              page to confirm once it&apos;s active.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href="/member/billing"
+                className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                Go to Billing
+              </Link>
+              <Link
+                href="/member"
+                className="w-full h-11 rounded-xl bg-transparent border border-border text-foreground font-medium text-sm hover:bg-secondary transition-colors flex items-center justify-center"
+              >
+                Back to Library
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
     </div>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }

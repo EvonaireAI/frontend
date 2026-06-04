@@ -125,7 +125,13 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-gold/70 hover:text-gold transition-colors"
+                >
+                  Forgot password?
+                </Link>
                 <Link
                   href="/auth/resend-activation"
                   className="text-xs text-gold/70 hover:text-gold transition-colors"

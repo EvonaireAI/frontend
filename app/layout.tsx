@@ -8,6 +8,7 @@ import { ConsentGuard } from "@/components/consent-guard"
 import { GatewayQuizGuard } from "@/components/gateway-quiz-guard"
 import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ html {
                 <Footer />
               </div>
               <GaiaChatWidget />
+              <Toaster richColors position="top-right" />
             </GatewayQuizGuard>
           </ConsentGuard>
         </AuthProvider>

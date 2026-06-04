@@ -12,13 +12,68 @@ import { useAuth } from "@/lib/auth-context"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { SanctuaryCard } from "@/components/sanctuaries/sanctuary-card"
 import { JoinRequestForm } from "@/components/sanctuaries/join-request-form"
-import { Loader2, Search, Heart, Play, Filter, Eye, Users, Flag } from "lucide-react"
+import { Loader2, Search, Heart, Play, Filter, Eye, Users, AlertTriangle } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
 import Link from "next/link"
 import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { isPaidActive } from "@/lib/subscription"
 
+// ── Subscription badge ─────────────────────────────────────────────────────────
+const PLAN_NAMES: Record<string, string> = {
+  free: "Free Plan",
+  evocore: "EVOcore",
+  evobloom: "EVObloom",
+  evoluxe: "EVOluxe ✦",
+}
+
+function SubscriptionBadge({
+  plan,
+  status,
+}: {
+  plan?: string
+  status?: string
+}) {
+  const p = plan ?? "free"
+  const s = status ?? "active"
+  const paid = isPaidActive(p, s)
+  const pastDue = !paid && ["evocore", "evobloom", "evoluxe"].includes(p) && s === "past_due"
+  const name = PLAN_NAMES[p] ?? "Free Plan"
+
+  const glowClass =
+    p === "evoluxe"
+      ? "shadow-[0_0_10px_rgba(217,181,116,0.35)]"
+      : p === "evobloom"
+      ? "shadow-[0_0_7px_rgba(217,181,116,0.2)]"
+      : ""
+
+  return (
+    <>
+      <Link
+        href="/member/billing"
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-opacity hover:opacity-80 ${
+          paid
+            ? `border border-primary/50 text-primary bg-primary/10 ${glowClass}`
+            : "border border-border text-muted-foreground bg-secondary"
+        }`}
+      >
+        {name}
+      </Link>
+      {pastDue && (
+        <Link
+          href="/member/billing"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-yellow-500/40 text-yellow-300 bg-yellow-900/20 hover:opacity-80 transition-opacity"
+        >
+          <AlertTriangle className="w-3 h-3" />
+          Payment Issue
+        </Link>
+      )}
+    </>
+  )
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const { user, loading: authLoading } = useAuth()
   const [rituals, setRituals] = useState<Ritual[]>([])
@@ -207,6 +262,15 @@ export default function MemberDashboard() {
             <span>{user ? `Hi, ${user.first_name}` : "Sacred Library"}</span>
             <GaiaInfoTip infoKey="member.library" ariaLabel="About the library" side="bottom" />
           </h1>
+          {/* Subscription badge */}
+          {user && (
+            <div className="flex items-center justify-center gap-2 mt-2 mb-3">
+              <SubscriptionBadge
+                plan={user.subscription_plan}
+                status={user.subscription_status}
+              />
+            </div>
+          )}
           <p className="text-muted-foreground max-w-md mx-auto">
             Discover and experience transformative rituals and sanctuaries
           </p>
