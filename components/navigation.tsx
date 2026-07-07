@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { format } from "date-fns"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote } from "lucide-react"
+import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins } from "lucide-react"
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -97,6 +97,7 @@ export function Navigation() {
           { href: "/creator", label: "Studio", icon: <Music className="w-4 h-4" /> },
           { href: "/creator/upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
           { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" /> },
+          { href: "/creator/earnings", label: "Earnings", icon: <Coins className="w-4 h-4" /> },
           { href: "/creator/payouts", label: "Payouts", icon: <Banknote className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
@@ -114,6 +115,7 @@ export function Navigation() {
         items.push(
           { href: "/admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
           { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
+          { href: "/admin/royalties", label: "Royalties", icon: <Coins className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
