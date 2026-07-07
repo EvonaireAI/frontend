@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { format } from "date-fns"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText } from "lucide-react"
+import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3 } from "lucide-react"
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -111,6 +111,7 @@ export function Navigation() {
       case "admin":
         items.push(
           { href: "/admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
+          { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
