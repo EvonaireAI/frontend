@@ -15,6 +15,7 @@ import {
   type SubscriptionDetails,
   type Invoice,
 } from "@/lib/subscription"
+import { planDisplayName } from "@/lib/plans"
 import {
   AlertTriangle,
   CheckCircle,
@@ -170,7 +171,10 @@ export default function BillingPage() {
   const cancelAtPeriodEnd = subscription?.cancel_at_period_end ?? false
   const periodEnd = subscription?.current_period_end ?? null
 
-  const planInfo = PLAN_DISPLAY[plan] ?? { name: "Free", price: "$0/mo" }
+  const planInfo = {
+    name: subscription?.display_name ?? PLAN_DISPLAY[plan]?.name ?? planDisplayName(plan),
+    price: PLAN_DISPLAY[plan]?.price ?? "$0/mo",
+  }
   const paid = isPaidActive(plan, status)
   const pastDue = isPastDue(plan, status)
   const isFree = plan === "free" || (!paid && !pastDue && status !== "trialing")

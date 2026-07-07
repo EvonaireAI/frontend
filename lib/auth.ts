@@ -1,3 +1,6 @@
+import { PLAN_MARKETING_NAMES } from "./plans"
+import { throwIfEntitlementDenied } from "./entitlements"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export type SubscriptionPlan = "free" | "evocore" | "evobloom" | "evoluxe"
@@ -5,12 +8,7 @@ export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled"
 
 export const PAID_PLANS: SubscriptionPlan[] = ["evocore", "evobloom", "evoluxe"]
 
-export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = {
-  free: "Free",
-  evocore: "EVOcore",
-  evobloom: "EVObloom",
-  evoluxe: "EVOluxe",
-}
+export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = PLAN_MARKETING_NAMES
 
 export function getSubscriptionAccess(plan?: SubscriptionPlan, status?: SubscriptionStatus) {
   const isPaidActive =
@@ -71,6 +69,10 @@ export interface Ritual {
   created_at: string
   updated_at: string
   creator: User
+  // Entitlement fields on /rituals/public/ — locked is computed server-side
+  // from the caller's plan (anonymous callers get free-plan locks)
+  locked?: boolean
+  required_plan?: string | null
 }
 
 export interface RitualUpload {
@@ -215,7 +217,7 @@ export interface CareFeedItem {
 }
 
 class AuthService {
-  getAuthHeaders() {
+  getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem("access_token")
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
@@ -465,7 +467,10 @@ class AuthService {
     if (search) params.append("search", search)
     if (tags && tags.length > 0) params.append("tags", tags.join(","))
 
-    const response = await fetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`)
+    // Send auth when available so locked/required_plan reflect the caller's plan
+    const response = await fetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
+      headers: this.getAuthHeaders(),
+    })
 
     if (!response.ok) {
       throw new Error("Failed to fetch rituals")
@@ -528,6 +533,8 @@ class AuthService {
     })
 
     if (!response.ok) {
+      // Structured 403s (quota_exceeded / care_level) open the upgrade modal
+      await throwIfEntitlementDenied(response)
       throw new Error("Failed to start play session")
     }
 

@@ -13,7 +13,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
+import { useEntitlements } from "@/lib/entitlements-context"
+import { format } from "date-fns"
 import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText } from "lucide-react"
+
+// Current-plan badge for the account menu; notes the end date when the
+// subscription is set to cancel.
+function PlanBadge() {
+  const { entitlements, planName } = useEntitlements()
+
+  const sub = entitlements?.subscription
+  const cancelNote =
+    sub?.cancel_at_period_end && sub.current_period_end
+      ? ` until ${format(new Date(sub.current_period_end), "MMM d, yyyy")}`
+      : ""
+
+  return (
+    <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/30 text-xs">
+      {planName}
+      {cancelNote}
+    </Badge>
+  )
+}
 
 export function Navigation() {
   const { user, loading, logout } = useAuth()
@@ -172,11 +193,12 @@ export function Navigation() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 bg-card border-border" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
+                  <div className="flex flex-col space-y-1.5 leading-none">
                     <p className="font-medium text-foreground">
                       {user.first_name} {user.last_name}
                     </p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                    <PlanBadge />
                   </div>
                 </div>
                 <DropdownMenuSeparator />

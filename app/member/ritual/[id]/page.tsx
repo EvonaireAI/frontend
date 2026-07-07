@@ -9,7 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { authService, type User, type Ritual, type PlaySession } from "@/lib/auth"
-import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle, Flag } from "lucide-react"
+import { EntitlementDeniedError, throwIfEntitlementDenied, openUpgradeModal } from "@/lib/entitlements"
+import { useEntitlements } from "@/lib/entitlements-context"
+import { planDisplayName } from "@/lib/plans"
+import { QuotaMeter } from "@/components/payments/quota-meter"
+import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle, Flag, Lock, Sparkles } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
@@ -20,6 +24,7 @@ export default function RitualPlayer() {
   const [audioSrc, setAudioSrc] = useState<string | null>(null)
   const [audioLoading, setAudioLoading] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
+  const [pendingPlay, setPendingPlay] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -33,13 +38,15 @@ export default function RitualPlayer() {
   const [submittingFeedback, setSubmittingFeedback] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioSrcRef = useRef<string | null>(null)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const params = useParams()
   const ritualId = Number.parseInt(params.id as string)
+  const { plan } = useEntitlements()
 
-  const fetchAuthenticatedAudio = async (ritualId: number) => {
-    if (audioSrc) return // Don't re-fetch if we already have the source
+  const fetchAuthenticatedAudio = async (ritualId: number): Promise<string | null> => {
+    if (audioSrcRef.current) return audioSrcRef.current
 
     setAudioLoading(true)
     setAudioError(null)
@@ -57,15 +64,24 @@ export default function RitualPlayer() {
       })
 
       if (!response.ok) {
+        // Structured care_level 403 opens the upgrade modal
+        await throwIfEntitlementDenied(response)
         throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`)
       }
 
       const audioBlob = await response.blob()
       const objectUrl = URL.createObjectURL(audioBlob)
+      audioSrcRef.current = objectUrl
       setAudioSrc(objectUrl)
+      return objectUrl
     } catch (err) {
       console.error("Error fetching ritual audio:", err)
-      setAudioError(err instanceof Error ? err.message : "Failed to load audio")
+      if (err instanceof EntitlementDeniedError) {
+        setAudioError(`This ritual is part of the ${planDisplayName(err.denial.required_plan)} tier.`)
+      } else {
+        setAudioError(err instanceof Error ? err.message : "Failed to load audio")
+      }
+      return null
     } finally {
       setAudioLoading(false)
     }
@@ -96,7 +112,8 @@ export default function RitualPlayer() {
         }
 
         setRitual(currentRitual)
-        await fetchAuthenticatedAudio(ritualId)
+        // Audio is fetched lazily on Play, after the play is registered, so
+        // any entitlement denial arrives before the player opens
       } catch (err) {
         console.error("Failed to load data:", err)
         router.push("/auth/login")
@@ -108,56 +125,93 @@ export default function RitualPlayer() {
     loadData()
 
     return () => {
-      if (audioSrc) {
-        URL.revokeObjectURL(audioSrc)
+      if (audioSrcRef.current) {
+        URL.revokeObjectURL(audioSrcRef.current)
       }
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current)
       }
     }
-  }, [router, ritualId, audioSrc])
+  }, [router, ritualId])
 
-  const handlePlay = async () => {
-    if (!ritual || !audioRef.current || !audioSrc) return
+  const startProgressInterval = (session: PlaySession | null) => {
+    progressIntervalRef.current = setInterval(async () => {
+      if (audioRef.current) {
+        const currentPos = audioRef.current.currentTime
+        setCurrentTime(currentPos)
 
-    try {
-      if (!isPlaying) {
-        // Start play session if not already started
-        if (!playSession) {
-          const session = await authService.startPlaySession(ritual.id)
-          setPlaySession(session)
-        }
-
-        await audioRef.current.play()
-        setIsPlaying(true)
-
-        progressIntervalRef.current = setInterval(async () => {
-          if (audioRef.current) {
-            const currentPos = audioRef.current.currentTime
-            setCurrentTime(currentPos)
-
-            // Track progress every 30 seconds
-            if (Math.floor(currentPos) > 0 && Math.floor(currentPos) % 30 === 0) {
-              try {
-                const currentSession = playSession || (await authService.startPlaySession(ritual.id))
-                await authService.updatePlayProgress(currentSession.id, currentPos)
-              } catch (err) {
-                console.error("Failed to update progress:", err)
-              }
-            }
+        // Track progress every 30 seconds
+        if (Math.floor(currentPos) > 0 && Math.floor(currentPos) % 30 === 0 && session) {
+          try {
+            await authService.updatePlayProgress(session.id, currentPos)
+          } catch (err) {
+            console.error("Failed to update progress:", err)
           }
-        }, 1000)
-      } else {
-        audioRef.current.pause()
-        setIsPlaying(false)
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current)
         }
       }
+    }, 1000)
+  }
+
+  const startAudio = async (session: PlaySession | null) => {
+    if (!audioRef.current) return
+    try {
+      await audioRef.current.play()
+      setIsPlaying(true)
+      startProgressInterval(session)
     } catch (err) {
       console.error("Failed to play audio:", err)
       setAudioError("Failed to play audio. Please try again.")
     }
+  }
+
+  // Plays as soon as the <audio> element mounts with the freshly fetched source
+  useEffect(() => {
+    if (pendingPlay && audioSrc && audioRef.current) {
+      setPendingPlay(false)
+      startAudio(playSession)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPlay, audioSrc])
+
+  const handlePlay = async () => {
+    if (!ritual) return
+
+    if (isPlaying) {
+      audioRef.current?.pause()
+      setIsPlaying(false)
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+      return
+    }
+
+    // Register the play BEFORE starting audio playback so quota/care-level
+    // denials arrive before the player opens. Replays reuse the session and
+    // don't consume quota.
+    let session = playSession
+    if (!session) {
+      try {
+        session = await authService.startPlaySession(ritual.id)
+        setPlaySession(session)
+      } catch (err) {
+        if (err instanceof EntitlementDeniedError) {
+          // Upgrade modal is already open
+          return
+        }
+        console.error("Failed to start play session:", err)
+        setAudioError("Failed to start play session. Please try again.")
+        return
+      }
+    }
+
+    if (!audioSrc) {
+      const url = await fetchAuthenticatedAudio(ritual.id)
+      if (!url) return
+      setPendingPlay(true)
+      return
+    }
+
+    await startAudio(session)
   }
 
   const handleTimeUpdate = () => {
@@ -283,6 +337,47 @@ export default function RitualPlayer() {
     return null
   }
 
+  // Locked rituals show an upsell instead of the player
+  if (ritual.locked) {
+    const requiredPlan = ritual.required_plan ?? "evocore"
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 lg:py-12 max-w-2xl">
+          <Button variant="outline" onClick={() => router.back()} className="mb-8 bg-transparent border-border text-foreground hover:bg-secondary">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Library
+          </Button>
+          <Card className="bg-card border-border text-center">
+            <CardHeader className="pb-4">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle className="text-2xl text-foreground">{ritual.title}</CardTitle>
+              <CardDescription>
+                This ritual is part of the {planDisplayName(requiredPlan)} tier.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() =>
+                  openUpgradeModal({
+                    reason: "care_level",
+                    current_plan: plan,
+                    required_plan: requiredPlan,
+                  })
+                }
+                className="bg-primary text-primary-foreground hover:bg-gold-muted"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Unlock with {planDisplayName(requiredPlan)}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 lg:py-12 max-w-4xl">
@@ -335,25 +430,27 @@ export default function RitualPlayer() {
                     </div>
                   )}
 
-                  {audioError && (
+                  {audioError && !audioLoading && (
                     <div className="py-8">
                       <p className="text-destructive mb-4">Error: {audioError}</p>
-                      <Button onClick={() => fetchAuthenticatedAudio(ritualId)} variant="outline">
+                      <Button onClick={handlePlay} variant="outline">
                         Try Again
                       </Button>
                     </div>
                   )}
 
-                  {audioSrc && !audioLoading && !audioError && (
+                  {!audioLoading && !audioError && (
                     <>
-                      <audio
-                        ref={audioRef}
-                        src={audioSrc}
-                        onTimeUpdate={handleTimeUpdate}
-                        onLoadedMetadata={handleLoadedMetadata}
-                        onEnded={handleEnded}
-                        preload="metadata"
-                      />
+                      {audioSrc && (
+                        <audio
+                          ref={audioRef}
+                          src={audioSrc}
+                          onTimeUpdate={handleTimeUpdate}
+                          onLoadedMetadata={handleLoadedMetadata}
+                          onEnded={handleEnded}
+                          preload="metadata"
+                        />
+                      )}
 
                       <Button onClick={handlePlay} size="lg" className="w-20 h-20 rounded-full mb-6 bg-primary text-primary-foreground hover:bg-gold-muted">
                         {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
@@ -465,6 +562,7 @@ export default function RitualPlayer() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <QuotaMeter />
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-foreground">About This Ritual</CardTitle>

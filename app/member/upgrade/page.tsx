@@ -1,103 +1,84 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth-context"
 import { paymentService } from "@/lib/payments"
-import { isPaidActive, PLAN_DISPLAY } from "@/lib/subscription"
-import { Check, X, Loader2, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react"
+import { useEntitlements } from "@/lib/entitlements-context"
+import {
+  PRICING_PLANS,
+  PLAN_PRICES,
+  PLAN_ENTITLEMENTS,
+  planDisplayName,
+  formatLimit,
+  formatCareLevelAccess,
+  formatHistoryDays,
+  type PlanKey,
+  type PlanEntitlements,
+} from "@/lib/plans"
+import { Check, Loader2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 
-// ── Plan definitions ────────────────────────────────────────────────────────────
-const PLANS = [
-  {
-    id: "evocore",
-    name: "EVOcore",
-    price: 11,
-    subtitle: "Best for newcomers",
-    features: [
-      "Access to all sanctuaries",
-      "Monthly ritual recommendations",
-      "Community support",
-    ],
-  },
-  {
-    id: "evobloom",
-    name: "EVObloom",
-    price: 22,
-    subtitle: "Most popular",
-    popular: true,
-    features: [
-      "Everything in EVOcore",
-      "Advanced ritual tracking",
-      "Personal wellness insights",
-      "Priority support",
-    ],
-  },
-  {
-    id: "evoluxe",
-    name: "EVOluxe",
-    price: 33,
-    subtitle: "Full access",
-    label: "Full Access",
-    features: [
-      "Everything in EVObloom",
-      "1-on-1 coaching sessions",
-      "Custom ritual creation",
-      "VIP community + reports",
-    ],
-  },
-] as const
-
-// ── Comparison table data ────────────────────────────────────────────────────────
-const COMPARISON: Array<{
+// Rows of the approved pricing matrix. Values derive from the shared
+// entitlements table — no per-plan copy is hardcoded here.
+const MATRIX_ROWS: Array<{
   label: string
-  free: boolean
-  evocore: boolean
-  evobloom: boolean
-  evoluxe: boolean
+  value: (e: PlanEntitlements) => string | boolean
 }> = [
-  { label: "Access to all sanctuaries",        free: false, evocore: true,  evobloom: true,  evoluxe: true  },
-  { label: "Monthly ritual recommendations",    free: false, evocore: true,  evobloom: true,  evoluxe: true  },
-  { label: "Community support",                 free: false, evocore: true,  evobloom: true,  evoluxe: true  },
-  { label: "Advanced ritual tracking",          free: false, evocore: false, evobloom: true,  evoluxe: true  },
-  { label: "Personal wellness insights",        free: false, evocore: false, evobloom: true,  evoluxe: true  },
-  { label: "Priority support",                  free: false, evocore: false, evobloom: true,  evoluxe: true  },
-  { label: "1-on-1 coaching sessions",          free: false, evocore: false, evobloom: false, evoluxe: true  },
-  { label: "Custom ritual creation",            free: false, evocore: false, evobloom: false, evoluxe: true  },
-  { label: "VIP community access",              free: false, evocore: false, evobloom: false, evoluxe: true  },
-  { label: "Quarterly wellness reports",        free: false, evocore: false, evobloom: false, evoluxe: true  },
+  { label: "Ritual library access", value: (e) => formatCareLevelAccess(e.max_care_level) },
+  {
+    label: "Monthly ritual plays",
+    value: (e) =>
+      e.monthly_level1_play_quota === null
+        ? "Unlimited"
+        : `${e.monthly_level1_play_quota} Level-1 rituals/month`,
+  },
+  { label: "Sanctuaries", value: (e) => formatLimit(e.max_sanctuaries) },
+  {
+    label: "Agora circles",
+    value: (e) => e.agora.charAt(0).toUpperCase() + e.agora.slice(1),
+  },
+  { label: "Journal history", value: (e) => formatHistoryDays(e.journal_history_days) },
+  { label: "Journal export", value: (e) => e.journal_export },
+  {
+    label: "AI insights",
+    value: (e) =>
+      e.ai_insights === "none" ? false : e.ai_insights === "monthly" ? "Monthly report" : "Full",
+  },
+  {
+    label: "Timeline history",
+    value: (e) => (e.timeline_history_days === null ? "Full" : `${e.timeline_history_days} days`),
+  },
+  { label: "Priority support", value: (e) => e.priority_support },
 ]
 
-function CellIcon({ included }: { included: boolean }) {
-  if (included) {
+function MatrixCell({ value }: { value: string | boolean }) {
+  if (value === true) {
     return (
       <div className="mx-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
         <Check className="h-3 w-3 text-primary" />
       </div>
     )
   }
-  return (
-    <div className="mx-auto flex h-5 w-5 items-center justify-center rounded-full bg-secondary">
-      <X className="h-3 w-3 text-muted-foreground" />
-    </div>
-  )
+  if (value === false) {
+    return <span className="text-muted-foreground">—</span>
+  }
+  return <span className="text-foreground">{value}</span>
 }
 
-// ── Main page ───────────────────────────────────────────────────────────────────
+const PLAN_SUBTITLES: Record<string, string> = {
+  free: "Begin your journey",
+  evocore: "Recommended for most members",
+  evobloom: "The complete experience",
+}
+
 export default function UpgradePage() {
-  const { user } = useAuth()
+  const { plan: currentPlan } = useEntitlements()
   const [loadingId, setLoadingId] = useState<string | null>(null)
-  const [tableOpen, setTableOpen] = useState(false)
 
-  const currentPlan = user?.subscription_plan ?? "free"
-  const currentStatus = user?.subscription_status ?? "active"
-  const userIsPaid = isPaidActive(currentPlan, currentStatus)
-
-  const handleSelectPlan = async (planId: string) => {
-    setLoadingId(planId)
+  const handleSelectPlan = async (planKey: PlanKey) => {
+    setLoadingId(planKey)
     try {
-      const session = await paymentService.createCheckoutSession(planId)
+      const session = await paymentService.createCheckoutSession(planKey)
       if (session.session_url) {
         window.location.href = session.session_url
       } else {
@@ -108,9 +89,6 @@ export default function UpgradePage() {
       setLoadingId(null)
     }
   }
-
-  const isCurrentPlan = (planId: string) =>
-    planId === currentPlan && userIsPaid
 
   return (
     <div className="min-h-screen bg-background">
@@ -129,70 +107,65 @@ export default function UpgradePage() {
             Choose Your Plan
           </h1>
           <p className="text-muted-foreground text-sm max-w-xl">
-            Unlock deeper rituals, personal insights, and community features. Cancel anytime.
+            Unlock deeper rituals, more sanctuaries, and richer insights. Cancel anytime.
           </p>
         </div>
 
         {/* ── Plan cards ──────────────────────────────────────────────────────── */}
         <div className="grid md:grid-cols-3 gap-5 mb-10">
-          {PLANS.map((plan) => {
-            const isCurrent = isCurrentPlan(plan.id)
-            const isLoading = loadingId === plan.id
+          {PRICING_PLANS.map((planKey) => {
+            const name = planDisplayName(planKey)
+            const price = PLAN_PRICES[planKey]
+            const recommended = planKey === "evocore"
+            const isCurrent = planKey === currentPlan
+            const isLoading = loadingId === planKey
             const anyLoading = loadingId !== null
 
             return (
               <div
-                key={plan.id}
+                key={planKey}
                 className={`relative flex flex-col rounded-2xl border transition-all ${
-                  plan.popular
+                  recommended
                     ? "border-primary/50 shadow-[0_0_32px_-8px_rgba(217,181,116,0.2)] bg-[#141f2a]"
                     : "border-border bg-card"
                 }`}
               >
-                {/* Most Popular badge */}
-                {plan.popular && (
+                {recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground shadow-[0_0_12px_rgba(217,181,116,0.4)]">
-                      Most Popular
+                      Recommended
                     </span>
                   </div>
                 )}
 
-                {/* Full Access label */}
-                {"label" in plan && plan.label && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-muted-foreground border border-border">
-                      {plan.label}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`px-6 pt-8 pb-5 ${plan.popular || "label" in plan ? "pt-10" : ""}`}>
-                  {/* Plan name + subtitle */}
-                  <p className={`text-sm font-semibold mb-1 ${plan.popular ? "text-primary" : "text-foreground"}`}>
-                    {plan.name}
+                <div className="px-6 pt-8 pb-5">
+                  <p className={`text-sm font-semibold mb-1 ${recommended ? "text-primary" : "text-foreground"}`}>
+                    {name}
                   </p>
-                  <p className="text-xs text-muted-foreground mb-5">{plan.subtitle}</p>
+                  <p className="text-xs text-muted-foreground mb-5">{PLAN_SUBTITLES[planKey]}</p>
 
-                  {/* Price */}
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-4xl font-bold text-foreground">${plan.price}</span>
+                    <span className="text-4xl font-bold text-foreground">${price}</span>
                     <span className="text-sm text-muted-foreground">/mo</span>
                   </div>
 
-                  {/* Divider */}
                   <div className="h-px bg-border mb-5" />
 
-                  {/* Features */}
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2.5">
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 flex-shrink-0">
-                          <Check className="h-2.5 w-2.5 text-primary" />
-                        </div>
-                        <span className="text-sm text-foreground">{feature}</span>
-                      </li>
-                    ))}
+                  {/* Key entitlements summary, derived from the shared table */}
+                  <ul className="space-y-3">
+                    {MATRIX_ROWS.slice(0, 4).map((row) => {
+                      const value = row.value(PLAN_ENTITLEMENTS[planKey])
+                      return (
+                        <li key={row.label} className="flex items-center gap-2.5">
+                          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 flex-shrink-0">
+                            <Check className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                          <span className="text-sm text-foreground">
+                            {row.label}: {typeof value === "boolean" ? (value ? "Included" : "—") : value}
+                          </span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
 
@@ -202,12 +175,14 @@ export default function UpgradePage() {
                     <div className="w-full h-11 rounded-xl bg-secondary border border-border text-muted-foreground text-sm font-medium flex items-center justify-center cursor-default">
                       Current plan
                     </div>
+                  ) : planKey === "free" ? (
+                    <div className="w-full h-11" />
                   ) : (
                     <button
-                      onClick={() => handleSelectPlan(plan.id)}
+                      onClick={() => handleSelectPlan(planKey)}
                       disabled={anyLoading}
                       className={`w-full h-11 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                        plan.popular
+                        recommended
                           ? "bg-primary text-primary-foreground hover:bg-gold-muted shadow-[0_0_16px_rgba(217,181,116,0.25)]"
                           : "bg-transparent border border-border text-foreground hover:bg-secondary"
                       }`}
@@ -217,8 +192,10 @@ export default function UpgradePage() {
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           Processing…
                         </>
+                      ) : currentPlan === "free" ? (
+                        "Get started"
                       ) : (
-                        `Get ${plan.name}`
+                        "Upgrade"
                       )}
                     </button>
                   )}
@@ -228,42 +205,44 @@ export default function UpgradePage() {
           })}
         </div>
 
-        {/* ── Compare all features toggle ───────────────────────────────────── */}
-        <div>
-          <button
-            onClick={() => setTableOpen((prev) => !prev)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 mx-auto"
-          >
-            {tableOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            {tableOpen ? "Hide feature comparison" : "Compare all features ↓"}
-          </button>
-
-          {tableOpen && (
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/40">
-                    <th className="text-left px-5 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider w-1/2">Feature</th>
-                    <th className="px-3 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider text-center">Free</th>
-                    <th className="px-3 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider text-center">EVOcore</th>
-                    <th className="px-3 py-3.5 text-xs text-primary font-semibold uppercase tracking-wider text-center">EVObloom</th>
-                    <th className="px-3 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider text-center">EVOluxe</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {COMPARISON.map((row, i) => (
-                    <tr key={i} className="hover:bg-secondary/20 transition-colors">
-                      <td className="px-5 py-3 text-foreground">{row.label}</td>
-                      <td className="px-3 py-3 text-center"><CellIcon included={row.free} /></td>
-                      <td className="px-3 py-3 text-center"><CellIcon included={row.evocore} /></td>
-                      <td className="px-3 py-3 text-center"><CellIcon included={row.evobloom} /></td>
-                      <td className="px-3 py-3 text-center"><CellIcon included={row.evoluxe} /></td>
-                    </tr>
+        {/* ── Full matrix ─────────────────────────────────────────────────────── */}
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/40">
+                  <th className="text-left px-5 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider w-1/3">
+                    Feature
+                  </th>
+                  {PRICING_PLANS.map((planKey) => (
+                    <th
+                      key={planKey}
+                      className={`px-3 py-3.5 text-xs font-medium uppercase tracking-wider text-center ${
+                        planKey === "evocore" ? "text-primary font-semibold" : "text-muted-foreground"
+                      }`}
+                    >
+                      {planDisplayName(planKey)}
+                      <span className="block font-normal normal-case mt-0.5">
+                        {planKey === "free" ? "Free" : `$${PLAN_PRICES[planKey]}/mo`}
+                      </span>
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {MATRIX_ROWS.map((row) => (
+                  <tr key={row.label} className="hover:bg-secondary/20 transition-colors">
+                    <td className="px-5 py-3 text-foreground">{row.label}</td>
+                    {PRICING_PLANS.map((planKey) => (
+                      <td key={planKey} className="px-3 py-3 text-center">
+                        <MatrixCell value={row.value(PLAN_ENTITLEMENTS[planKey])} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <p className="text-xs text-muted-foreground text-center mt-8">

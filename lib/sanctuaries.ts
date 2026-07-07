@@ -1,4 +1,5 @@
 import { authService } from "./auth"
+import { throwIfEntitlementDenied } from "./entitlements"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -237,8 +238,10 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || `Failed to request join: ${response.statusText}`)
+      // sanctuary_limit 403s open the upgrade modal; other 403s (e.g. plain
+      // membership restrictions) surface their detail as a normal error
+      const error = await throwIfEntitlementDenied(response)
+      throw new Error(error?.detail || `Failed to request join: ${response.statusText}`)
     }
 
     return response.json()

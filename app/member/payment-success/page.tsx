@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { useEntitlements } from "@/lib/entitlements-context"
 import { fetchSubscription, PLAN_DISPLAY } from "@/lib/subscription"
 
 function PaymentSuccessContent() {
@@ -12,6 +13,7 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")
   const { refreshUser } = useAuth()
+  const { refreshEntitlements } = useEntitlements()
 
   const [state, setState] = useState<"polling" | "success" | "pending">("polling")
   const [activePlan, setActivePlan] = useState<string | null>(null)
@@ -26,8 +28,9 @@ function PaymentSuccessContent() {
       try {
         const sub = await fetchSubscription()
         if (sub.plan !== "free" && sub.status === "active") {
-          // Webhook fired — plan is active
-          await refreshUser()
+          // Webhook fired — plan is active; refresh entitlements so locked
+          // states re-render without a full reload
+          await Promise.all([refreshUser(), refreshEntitlements()])
           setActivePlan(sub.plan)
           setState("success")
 
@@ -51,7 +54,7 @@ function PaymentSuccessContent() {
     // Start first poll after 2 seconds (give webhook time to fire)
     timer = setTimeout(poll, 2000)
     return () => clearTimeout(timer)
-  }, [router, refreshUser])
+  }, [router, refreshUser, refreshEntitlements])
 
   const planName = activePlan ? (PLAN_DISPLAY[activePlan]?.name ?? activePlan) : null
 

@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/lib/auth-context"
+import { EntitlementsProvider } from "@/lib/entitlements-context"
+import { UpgradeModalHost } from "@/components/payments/upgrade-modal"
 import { Navigation } from "@/components/navigation"
 import { ConsentGuard } from "@/components/consent-guard"
 import { GatewayQuizGuard } from "@/components/gateway-quiz-guard"
@@ -37,17 +39,20 @@ html {
       </head>
       <body>
         <AuthProvider>
-          <ConsentGuard>
-            <GatewayQuizGuard>
-              <div className="min-h-screen flex flex-col">
-                <Navigation />
-                <div className="flex-1">{children}</div>
-                <Footer />
-              </div>
-              <GaiaChatWidget />
-              <Toaster richColors position="top-right" />
-            </GatewayQuizGuard>
-          </ConsentGuard>
+          <EntitlementsProvider>
+            <ConsentGuard>
+              <GatewayQuizGuard>
+                <div className="min-h-screen flex flex-col">
+                  <Navigation />
+                  <div className="flex-1">{children}</div>
+                  <Footer />
+                </div>
+                <GaiaChatWidget />
+                <UpgradeModalHost />
+                <Toaster richColors position="top-right" />
+              </GatewayQuizGuard>
+            </ConsentGuard>
+          </EntitlementsProvider>
         </AuthProvider>
       </body>
     </html>

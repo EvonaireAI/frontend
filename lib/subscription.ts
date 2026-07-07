@@ -1,14 +1,17 @@
+import { PLAN_MARKETING_NAMES, PLAN_PRICES, type PlanKey } from "./plans"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export const PAID_PLANS = ["evocore", "evobloom", "evoluxe"] as const
 export type PaidPlan = (typeof PAID_PLANS)[number]
 
-export const PLAN_DISPLAY: Record<string, { name: string; price: string }> = {
-  free:     { name: "Free",     price: "$0/mo"  },
-  evocore:  { name: "EVOcore",  price: "$11/mo" },
-  evobloom: { name: "EVObloom", price: "$22/mo" },
-  evoluxe:  { name: "EVOluxe",  price: "$33/mo" },
-}
+// Derived from the shared plan helper — do not hardcode names here
+export const PLAN_DISPLAY: Record<string, { name: string; price: string }> = Object.fromEntries(
+  (Object.keys(PLAN_MARKETING_NAMES) as PlanKey[]).map((key) => [
+    key,
+    { name: PLAN_MARKETING_NAMES[key], price: `$${PLAN_PRICES[key]}/mo` },
+  ]),
+)
 
 export function isPaidActive(plan: string, status: string): boolean {
   return PAID_PLANS.includes(plan as PaidPlan) &&
@@ -21,6 +24,7 @@ export function isPastDue(plan: string, status: string): boolean {
 
 export interface SubscriptionDetails {
   plan: string
+  display_name: string
   status: string
   current_period_end: string | null
   cancel_at_period_end: boolean
