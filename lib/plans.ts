@@ -101,6 +101,12 @@ export function formatCareLevelAccess(maxCareLevel: number): string {
   return "All levels (1–3)"
 }
 
+export function formatAgoraAccess(agora: PlanEntitlements["agora"]): string {
+  if (agora === "host") return "Host circles"
+  if (agora === "join") return "Join discussions"
+  return "Browse only"
+}
+
 export function formatHistoryDays(days: number | null): string {
   return days === null ? "Full history" : `${days} days`
 }

@@ -43,7 +43,7 @@ export interface EntitlementsResponse {
 
 // ── Structured entitlement denial (403) ────────────────────────────────────────
 
-export type EntitlementDenialReason = "quota_exceeded" | "care_level" | "sanctuary_limit"
+export type EntitlementDenialReason = "quota_exceeded" | "care_level" | "sanctuary_limit" | "agora_tier"
 
 export interface EntitlementDenial {
   error: "entitlement_denied"

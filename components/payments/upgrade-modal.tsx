@@ -11,6 +11,7 @@ import {
   getPlanEntitlements,
   formatLimit,
   formatCareLevelAccess,
+  formatAgoraAccess,
   PLAN_PRICES,
   type PlanKey,
 } from "@/lib/plans"
@@ -25,6 +26,10 @@ function denialTitle(denial: EntitlementDenial): string {
       return "You've reached your monthly ritual limit"
     case "sanctuary_limit":
       return "You've reached your plan's sanctuary limit."
+    case "agora_tier":
+      return denial.required_plan === "evobloom"
+        ? "Hosting circles is part of the Scholar tier."
+        : `Joining discussions is part of the ${planDisplayName(denial.required_plan)} tier.`
   }
 }
 
@@ -42,6 +47,10 @@ function denialBody(denial: EntitlementDenial): string {
     }
     case "sanctuary_limit":
       return `Upgrade to ${requiredName} to join more sanctuaries.`
+    case "agora_tier":
+      return denial.required_plan === "evobloom"
+        ? `Upgrade to ${requiredName} to host your own discussion circles.`
+        : `Upgrade to ${requiredName} to post and reply in sanctuary circles.`
   }
 }
 
@@ -71,6 +80,11 @@ function comparisonRows(currentPlan: string, requiredPlan: string) {
       label: "Sanctuaries",
       current: formatLimit(current.max_sanctuaries),
       required: formatLimit(required.max_sanctuaries),
+    },
+    {
+      label: "Agora circles",
+      current: formatAgoraAccess(current.agora),
+      required: formatAgoraAccess(required.agora),
     },
   ]
 }
