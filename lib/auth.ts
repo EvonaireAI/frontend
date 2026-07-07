@@ -522,6 +522,12 @@ class AuthService {
     }
   }
 
+  /**
+   * @deprecated The ritual player now registers plays via
+   * POST /analytics/playback/start/ (see lib/playback-metering.ts), which
+   * also handles quota. Calling this for the same listen would create a
+   * second play.
+   */
   async startPlaySession(ritualId: number): Promise<PlaySession> {
     const response = await fetch(`${API_BASE_URL}/analytics/plays/`, {
       method: "POST",

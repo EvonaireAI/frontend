@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
-import { authService, type User, type Ritual, type PlaySession } from "@/lib/auth"
+import { authService, type User, type Ritual } from "@/lib/auth"
+import { PlaybackMeter } from "@/lib/playback-metering"
 import { EntitlementDeniedError, throwIfEntitlementDenied, openUpgradeModal } from "@/lib/entitlements"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { planDisplayName } from "@/lib/plans"
@@ -29,7 +30,6 @@ export default function RitualPlayer() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState([1])
-  const [playSession, setPlaySession] = useState<PlaySession | null>(null)
   const [isBlessed, setIsBlessed] = useState(false)
   const [blessError, setBlessError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState("")
@@ -39,7 +39,13 @@ export default function RitualPlayer() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioSrcRef = useRef<string | null>(null)
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  // Reports listening time for creator royalties; telemetry only — meter
+  // failures never block or interrupt playback
+  const meterRef = useRef<PlaybackMeter | null>(null)
+  if (!meterRef.current) {
+    meterRef.current = new PlaybackMeter(() => audioRef.current?.currentTime ?? 0)
+  }
+  const meter = meterRef.current
   const router = useRouter()
   const params = useParams()
   const ritualId = Number.parseInt(params.id as string)
@@ -128,36 +134,39 @@ export default function RitualPlayer() {
       if (audioSrcRef.current) {
         URL.revokeObjectURL(audioSrcRef.current)
       }
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current)
-      }
+      // Navigating to another ritual/page ends the playback session
+      meter.end()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, ritualId])
 
-  const startProgressInterval = (session: PlaySession | null) => {
-    progressIntervalRef.current = setInterval(async () => {
-      if (audioRef.current) {
-        const currentPos = audioRef.current.currentTime
-        setCurrentTime(currentPos)
-
-        // Track progress every 30 seconds
-        if (Math.floor(currentPos) > 0 && Math.floor(currentPos) % 30 === 0 && session) {
-          try {
-            await authService.updatePlayProgress(session.id, currentPos)
-          } catch (err) {
-            console.error("Failed to update progress:", err)
-          }
-        }
+  // Credit listening up to the moment the tab is hidden (the user may come
+  // back — don't end); end the session when the page actually goes away,
+  // since a normal request wouldn't survive unload.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        meter.onHidden()
       }
-    }, 1000)
-  }
+    }
+    const handlePageHide = () => {
+      meter.end()
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("pagehide", handlePageHide)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("pagehide", handlePageHide)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const startAudio = async (session: PlaySession | null) => {
+  const startAudio = async () => {
     if (!audioRef.current) return
     try {
       await audioRef.current.play()
       setIsPlaying(true)
-      startProgressInterval(session)
+      meter.onPlaying()
     } catch (err) {
       console.error("Failed to play audio:", err)
       setAudioError("Failed to play audio. Please try again.")
@@ -168,7 +177,7 @@ export default function RitualPlayer() {
   useEffect(() => {
     if (pendingPlay && audioSrc && audioRef.current) {
       setPendingPlay(false)
-      startAudio(playSession)
+      startAudio()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingPlay, audioSrc])
@@ -179,28 +188,22 @@ export default function RitualPlayer() {
     if (isPlaying) {
       audioRef.current?.pause()
       setIsPlaying(false)
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current)
-      }
+      meter.onPause()
       return
     }
 
-    // Register the play BEFORE starting audio playback so quota/care-level
-    // denials arrive before the player opens. Replays reuse the session and
-    // don't consume quota.
-    let session = playSession
-    if (!session) {
+    // Register the playback session BEFORE starting audio so quota/care-level
+    // denials arrive before the player opens. Resuming a pause keeps the same
+    // session; only a listen that ended needs a fresh start.
+    if (!meter.listening) {
       try {
-        session = await authService.startPlaySession(ritual.id)
-        setPlaySession(session)
+        await meter.start(ritual.id)
       } catch (err) {
         if (err instanceof EntitlementDeniedError) {
           // Upgrade modal is already open
           return
         }
-        console.error("Failed to start play session:", err)
-        setAudioError("Failed to start play session. Please try again.")
-        return
+        // Any other metering failure is swallowed — audio plays regardless
       }
     }
 
@@ -211,7 +214,7 @@ export default function RitualPlayer() {
       return
     }
 
-    await startAudio(session)
+    await startAudio()
   }
 
   const handleTimeUpdate = () => {
@@ -226,20 +229,11 @@ export default function RitualPlayer() {
     }
   }
 
-  const handleEnded = async () => {
+  const handleEnded = () => {
     setIsPlaying(false)
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current)
-    }
-
-    // Mark session as complete
-    if (playSession) {
-      try {
-        await authService.completePlaySession(playSession.id)
-      } catch (err) {
-        console.error("Failed to complete session:", err)
-      }
-    }
+    // Close the playback session with the final position; replaying after
+    // this starts a brand-new session
+    meter.end()
   }
 
   const handleSeek = (value: number[]) => {
