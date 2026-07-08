@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
+import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins } from "lucide-react"
+import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck } from "lucide-react"
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -99,12 +100,15 @@ export function Navigation() {
           { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" /> },
           { href: "/creator/earnings", label: "Earnings", icon: <Coins className="w-4 h-4" /> },
           { href: "/creator/payouts", label: "Payouts", icon: <Banknote className="w-4 h-4" /> },
+          { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
       case "member":
         items.push(
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
           { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
           { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
@@ -116,12 +120,15 @@ export function Navigation() {
           { href: "/admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
           { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
           { href: "/admin/royalties", label: "Royalties", icon: <Coins className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
       case "moderator":
         items.push(
           { href: "/moderate", label: "Moderate", icon: <Shield className="w-4 h-4" /> },
+          { href: "/moderate/review-queue", label: "Commons Review", icon: <ClipboardCheck className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
@@ -177,6 +184,8 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <GatewayProgressBadge />
+
             <Badge variant="outline" className={getRoleColor(user.role)}>
               {getRoleIcon(user.role)}
               <span className="ml-1 capitalize">{user.role}</span>

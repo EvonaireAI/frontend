@@ -1,5 +1,5 @@
 import { authService } from "./auth"
-import { throwIfEntitlementDenied } from "./entitlements"
+import { throwIfGated } from "./gateway-quiz"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -238,9 +238,10 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      // sanctuary_limit 403s open the upgrade modal; other 403s (e.g. plain
-      // membership restrictions) surface their detail as a normal error
-      const error = await throwIfEntitlementDenied(response)
+      // gateway_incomplete 403s throw GatewayIncompleteError (runGatedAction
+      // finishes the Gateway then retries the join); sanctuary_limit 403s open
+      // the upgrade modal; other 403s surface their detail as a normal error.
+      const error = await throwIfGated(response)
       throw new Error(error?.detail || `Failed to request join: ${response.statusText}`)
     }
 

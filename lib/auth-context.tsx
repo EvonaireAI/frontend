@@ -2,17 +2,14 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { authService, type User, type LoginResponse } from "@/lib/auth"
-import { gatewayQuizService } from "@/lib/gateway-quiz"
 
 interface AuthContextType {
   user: User | null
   loading: boolean
   consentsAccepted: boolean
-  gatewayQuizCompleted: boolean
   login: (email: string, password: string) => Promise<LoginResponse>
   logout: () => void
   refreshUser: () => Promise<void>
-  refreshGatewayQuizStatus: () => Promise<void>
   acceptConsent: (privacyPolicy: boolean, termsOfService: boolean) => Promise<void>
 }
 
@@ -22,16 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [consentsAccepted, setConsentsAccepted] = useState(false)
-  const [gatewayQuizCompleted, setGatewayQuizCompleted] = useState(false)
-
-  const refreshGatewayQuizStatus = useCallback(async () => {
-    try {
-      const attempt = await gatewayQuizService.getStatus()
-      setGatewayQuizCompleted(attempt.status === "completed")
-    } catch {
-      setGatewayQuizCompleted(false)
-    }
-  }, [])
 
   const refreshUser = useCallback(async () => {
     try {
@@ -39,22 +26,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await authService.getProfile()
         setUser(userData)
         setConsentsAccepted(userData.consents_accepted ?? false)
-        if (userData.consents_accepted) {
-          await refreshGatewayQuizStatus()
-        } else {
-          setGatewayQuizCompleted(false)
-        }
       } else {
         setUser(null)
         setConsentsAccepted(false)
-        setGatewayQuizCompleted(false)
       }
     } catch {
       setUser(null)
       setConsentsAccepted(false)
-      setGatewayQuizCompleted(false)
     }
-  }, [refreshGatewayQuizStatus])
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -70,19 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
     const consented = data.consents_accepted ?? userData.consents_accepted ?? false
     setConsentsAccepted(consented)
-    if (consented) {
-      await refreshGatewayQuizStatus()
-    } else {
-      setGatewayQuizCompleted(false)
-    }
     return data
-  }, [refreshGatewayQuizStatus])
+  }, [])
 
   const logout = useCallback(() => {
     authService.logout()
     setUser(null)
     setConsentsAccepted(false)
-    setGatewayQuizCompleted(false)
   }, [])
 
   const acceptConsent = useCallback(async (privacyPolicy: boolean, termsOfService: boolean) => {
@@ -97,11 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         consentsAccepted,
-        gatewayQuizCompleted,
         login,
         logout,
         refreshUser,
-        refreshGatewayQuizStatus,
         acceptConsent,
       }}
     >

@@ -11,6 +11,7 @@ import { authService, type Ritual } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { EntitlementDeniedError, openUpgradeModal } from "@/lib/entitlements"
+import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { planDisplayName } from "@/lib/plans"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { SanctuaryCard } from "@/components/sanctuaries/sanctuary-card"
@@ -232,12 +233,17 @@ export default function MemberDashboard() {
     if (!selectedSanctuary) return
 
     try {
-      await sanctuariesService.requestJoin(selectedSanctuary.id, { note, invite_token: inviteToken })
+      // gateway_incomplete opens the finish-your-Gateway modal, then the join
+      // is retried automatically once the user completes it.
+      await runGatedAction(() =>
+        sanctuariesService.requestJoin(selectedSanctuary.id, { note, invite_token: inviteToken }),
+      )
       setJoinFormOpen(false)
       await loadSanctuaries()
     } catch (err) {
-      if (err instanceof EntitlementDeniedError) {
-        // The upgrade modal is already open; close the join dialog quietly
+      if (err instanceof EntitlementDeniedError || err instanceof GatewayCancelledError) {
+        // Either the upgrade modal is already open, or the user dismissed the
+        // Gateway modal — close the join dialog quietly, no penalty.
         setJoinFormOpen(false)
         return
       }

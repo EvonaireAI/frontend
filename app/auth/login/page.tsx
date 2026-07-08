@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth-context"
-import { gatewayQuizService } from "@/lib/gateway-quiz"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
@@ -25,20 +24,11 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const loginResponse = await login(email, password)
-      // Consent must come first; the quiz follows once consent is recorded.
+      // Consent must come first; after that, discovery is open — Gateway
+      // questions surface gently over time rather than blocking entry.
       if (!loginResponse.consents_accepted) {
         router.push("/consent")
         return
-      }
-      try {
-        const quizStatus = await gatewayQuizService.getStatus()
-        if (quizStatus.status !== "completed") {
-          router.push("/gateway-quiz")
-          return
-        }
-      } catch {
-        // If status fetch fails, fall through to dashboard — the
-        // GatewayQuizGuard will redirect once the auth context refreshes.
       }
       router.push("/dashboard")
     } catch (err) {

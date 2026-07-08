@@ -1,3 +1,5 @@
+import { throwIfGated } from "./gateway-quiz"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 const TIER_PRICE_MAP: Record<string, string> = {
@@ -52,8 +54,10 @@ class PaymentService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to create checkout session")
+      // A gateway_incomplete 403 here throws GatewayIncompleteError (handled by
+      // runGatedAction, which finishes the Gateway then retries checkout).
+      const error = await throwIfGated(response)
+      throw new Error(error?.detail || "Failed to create checkout session")
     }
 
     return response.json()

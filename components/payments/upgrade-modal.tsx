@@ -16,6 +16,7 @@ import {
   type PlanKey,
 } from "@/lib/plans"
 import { paymentService } from "@/lib/payments"
+import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { Loader2, Lock, Sparkles } from "lucide-react"
 
 function denialTitle(denial: EntitlementDenial): string {
@@ -112,13 +113,19 @@ export function UpgradeModalHost() {
   const handleUpgrade = async () => {
     setCheckoutLoading(true)
     try {
-      const session = await paymentService.createCheckoutSession(requiredPlan)
+      // gateway_incomplete finishes the Gateway inline, then retries checkout.
+      const session = await runGatedAction(() => paymentService.createCheckoutSession(requiredPlan))
       if (session.session_url) {
         window.location.href = session.session_url
       } else {
         throw new Error("No checkout URL received")
       }
     } catch (err) {
+      if (err instanceof GatewayCancelledError) {
+        // User dismissed the Gateway modal — no penalty, just stop.
+        setCheckoutLoading(false)
+        return
+      }
       toast.error(err instanceof Error ? err.message : "Failed to start checkout")
       setCheckoutLoading(false)
     }

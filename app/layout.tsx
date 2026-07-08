@@ -4,10 +4,12 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/lib/auth-context"
 import { EntitlementsProvider } from "@/lib/entitlements-context"
+import { GatewayProvider } from "@/lib/gateway-context"
 import { UpgradeModalHost } from "@/components/payments/upgrade-modal"
 import { Navigation } from "@/components/navigation"
 import { ConsentGuard } from "@/components/consent-guard"
-import { GatewayQuizGuard } from "@/components/gateway-quiz-guard"
+import { GatewayNudge } from "@/components/gateway/gateway-nudge"
+import { GatewayCompletionModalHost } from "@/components/gateway/gateway-completion-modal"
 import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
 import { Toaster } from "@/components/ui/sonner"
@@ -40,8 +42,8 @@ html {
       <body>
         <AuthProvider>
           <EntitlementsProvider>
-            <ConsentGuard>
-              <GatewayQuizGuard>
+            <GatewayProvider>
+              <ConsentGuard>
                 <div className="min-h-screen flex flex-col">
                   <Navigation />
                   <div className="flex-1">{children}</div>
@@ -49,9 +51,11 @@ html {
                 </div>
                 <GaiaChatWidget />
                 <UpgradeModalHost />
+                <GatewayCompletionModalHost />
+                <GatewayNudge />
                 <Toaster richColors position="top-right" />
-              </GatewayQuizGuard>
-            </ConsentGuard>
+              </ConsentGuard>
+            </GatewayProvider>
           </EntitlementsProvider>
         </AuthProvider>
       </body>

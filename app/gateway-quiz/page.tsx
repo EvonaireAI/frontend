@@ -7,6 +7,7 @@ import { Loader2, Sparkles, Compass, Feather, ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/lib/auth-context"
+import { useGateway } from "@/lib/gateway-context"
 import {
   cleanNarration,
   findSectionFor,
@@ -24,7 +25,8 @@ const OPTION_KEYS: GatewayQuizOptionKey[] = ["A", "B", "C", "D"]
 
 export default function GatewayQuizPage() {
   const router = useRouter()
-  const { user, loading: authLoading, refreshGatewayQuizStatus } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  const { refresh: refreshGatewayProgress } = useGateway()
 
   const [stage, setStage] = useState<Stage>("loading")
   const [content, setContent] = useState<GatewayQuizContent | null>(null)
@@ -148,7 +150,7 @@ export default function GatewayQuizPage() {
   }
 
   const handleEnterPlatform = async () => {
-    await refreshGatewayQuizStatus()
+    await refreshGatewayProgress()
     router.push("/dashboard")
   }
 
