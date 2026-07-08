@@ -13,7 +13,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText } from "lucide-react"
+import { useEntitlements } from "@/lib/entitlements-context"
+import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
+import { format } from "date-fns"
+import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck } from "lucide-react"
+
+// Current-plan badge for the account menu; notes the end date when the
+// subscription is set to cancel.
+function PlanBadge() {
+  const { entitlements, planName } = useEntitlements()
+
+  const sub = entitlements?.subscription
+  const cancelNote =
+    sub?.cancel_at_period_end && sub.current_period_end
+      ? ` until ${format(new Date(sub.current_period_end), "MMM d, yyyy")}`
+      : ""
+
+  return (
+    <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/30 text-xs">
+      {planName}
+      {cancelNote}
+    </Badge>
+  )
+}
 
 export function Navigation() {
   const { user, loading, logout } = useAuth()
@@ -75,12 +97,18 @@ export function Navigation() {
         items.push(
           { href: "/creator", label: "Studio", icon: <Music className="w-4 h-4" /> },
           { href: "/creator/upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
+          { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" /> },
+          { href: "/creator/earnings", label: "Earnings", icon: <Coins className="w-4 h-4" /> },
+          { href: "/creator/payouts", label: "Payouts", icon: <Banknote className="w-4 h-4" /> },
+          { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
       case "member":
         items.push(
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
           { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
           { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
@@ -90,12 +118,17 @@ export function Navigation() {
       case "admin":
         items.push(
           { href: "/admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
+          { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
+          { href: "/admin/royalties", label: "Royalties", icon: <Coins className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
       case "moderator":
         items.push(
           { href: "/moderate", label: "Moderate", icon: <Shield className="w-4 h-4" /> },
+          { href: "/moderate/review-queue", label: "Commons Review", icon: <ClipboardCheck className="w-4 h-4" /> },
+          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
         )
         break
@@ -127,7 +160,8 @@ export function Navigation() {
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link href={getRoleDashboard(user.role)} className="flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="Evonaire" width={28} height={28} className="w-7 h-7" />
               <span className="text-lg font-bold text-foreground tracking-wide">Evonaire</span>
             </Link>
 
@@ -150,6 +184,8 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <GatewayProgressBadge />
+
             <Badge variant="outline" className={getRoleColor(user.role)}>
               {getRoleIcon(user.role)}
               <span className="ml-1 capitalize">{user.role}</span>
@@ -172,11 +208,12 @@ export function Navigation() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 bg-card border-border" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
+                  <div className="flex flex-col space-y-1.5 leading-none">
                     <p className="font-medium text-foreground">
                       {user.first_name} {user.last_name}
                     </p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                    <PlanBadge />
                   </div>
                 </div>
                 <DropdownMenuSeparator />

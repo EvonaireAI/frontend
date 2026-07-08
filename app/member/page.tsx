@@ -9,25 +9,24 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authService, type Ritual } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
+import { useEntitlements } from "@/lib/entitlements-context"
+import { EntitlementDeniedError, openUpgradeModal } from "@/lib/entitlements"
+import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
+import { planDisplayName } from "@/lib/plans"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { SanctuaryCard } from "@/components/sanctuaries/sanctuary-card"
+import { SanctuaryLimitBanner } from "@/components/sanctuaries/sanctuary-limit-banner"
 import { JoinRequestForm } from "@/components/sanctuaries/join-request-form"
-import { Loader2, Search, Heart, Play, Filter, Eye, Users, AlertTriangle } from "lucide-react"
+import { Loader2, Search, Heart, Play, Filter, Eye, Users, AlertTriangle, Lock } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
 import Link from "next/link"
 import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
+import { QuotaMeter } from "@/components/payments/quota-meter"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 import { isPaidActive } from "@/lib/subscription"
 
 // ── Subscription badge ─────────────────────────────────────────────────────────
-const PLAN_NAMES: Record<string, string> = {
-  free: "Free Plan",
-  evocore: "EVOcore",
-  evobloom: "EVObloom",
-  evoluxe: "EVOluxe ✦",
-}
-
 function SubscriptionBadge({
   plan,
   status,
@@ -35,11 +34,12 @@ function SubscriptionBadge({
   plan?: string
   status?: string
 }) {
+  const { planName } = useEntitlements()
   const p = plan ?? "free"
   const s = status ?? "active"
   const paid = isPaidActive(p, s)
   const pastDue = !paid && ["evocore", "evobloom", "evoluxe"].includes(p) && s === "past_due"
-  const name = PLAN_NAMES[p] ?? "Free Plan"
+  const name = planName
 
   const glowClass =
     p === "evoluxe"
@@ -76,6 +76,7 @@ function SubscriptionBadge({
 // ── Dashboard ──────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const { user, loading: authLoading } = useAuth()
+  const { plan } = useEntitlements()
   const [rituals, setRituals] = useState<Ritual[]>([])
   const [filteredRituals, setFilteredRituals] = useState<Ritual[]>([])
   const [loading, setLoading] = useState(true)
@@ -232,10 +233,20 @@ export default function MemberDashboard() {
     if (!selectedSanctuary) return
 
     try {
-      await sanctuariesService.requestJoin(selectedSanctuary.id, { note, invite_token: inviteToken })
+      // gateway_incomplete opens the finish-your-Gateway modal, then the join
+      // is retried automatically once the user completes it.
+      await runGatedAction(() =>
+        sanctuariesService.requestJoin(selectedSanctuary.id, { note, invite_token: inviteToken }),
+      )
       setJoinFormOpen(false)
       await loadSanctuaries()
     } catch (err) {
+      if (err instanceof EntitlementDeniedError || err instanceof GatewayCancelledError) {
+        // Either the upgrade modal is already open, or the user dismissed the
+        // Gateway modal — close the join dialog quietly, no penalty.
+        setJoinFormOpen(false)
+        return
+      }
       throw err
     }
   }
@@ -299,6 +310,7 @@ export default function MemberDashboard() {
           </TabsList>
 
           <TabsContent value="sanctuaries" className="space-y-6">
+            <SanctuaryLimitBanner />
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
@@ -362,6 +374,7 @@ export default function MemberDashboard() {
           </TabsContent>
 
           <TabsContent value="rituals" className="space-y-6">
+            <QuotaMeter />
             <Card className="mb-8 bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
@@ -436,13 +449,25 @@ export default function MemberDashboard() {
                   {filteredRituals.map((ritual) => (
                     <Card
                       key={ritual.id}
-                      className="bg-card border border-border hover:border-primary/40 transition-all duration-300 group"
+                      className={`bg-card border transition-all duration-300 group ${
+                        ritual.locked
+                          ? "border-border/60 opacity-80 hover:opacity-100 hover:border-primary/30"
+                          : "border-border hover:border-primary/40"
+                      }`}
                     >
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start mb-2">
-                          <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
-                            {getCareLevel(ritual.care_level)}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
+                              {getCareLevel(ritual.care_level)}
+                            </Badge>
+                            {ritual.locked && (
+                              <Badge variant="outline" className="border-primary/40 text-primary bg-primary/10 flex items-center gap-1">
+                                <Lock className="w-3 h-3" />
+                                Locked
+                              </Badge>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2">
                             <ReportModal
                               contentType="ritual"
@@ -481,17 +506,40 @@ export default function MemberDashboard() {
                           <div className="text-sm text-muted-foreground">
                             by {ritual.creator.first_name} {ritual.creator.last_name}
                           </div>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="bg-primary text-primary-foreground hover:bg-gold-muted"
-                          >
-                            <Link href={`/member/ritual/${ritual.id}`}>
-                              <Play className="w-4 h-4 mr-2" />
+                          {ritual.locked ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-primary/40 text-primary bg-transparent hover:bg-primary/10"
+                              onClick={() =>
+                                openUpgradeModal({
+                                  reason: "care_level",
+                                  current_plan: plan,
+                                  required_plan: ritual.required_plan ?? "evocore",
+                                })
+                              }
+                            >
+                              <Lock className="w-4 h-4 mr-2" />
                               Experience
-                            </Link>
-                          </Button>
+                            </Button>
+                          ) : (
+                            <Button
+                              asChild
+                              size="sm"
+                              className="bg-primary text-primary-foreground hover:bg-gold-muted"
+                            >
+                              <Link href={`/member/ritual/${ritual.id}`}>
+                                <Play className="w-4 h-4 mr-2" />
+                                Experience
+                              </Link>
+                            </Button>
+                          )}
                         </div>
+                        {ritual.locked && (
+                          <p className="text-xs text-primary/90">
+                            Unlocks with {planDisplayName(ritual.required_plan ?? "evocore")}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

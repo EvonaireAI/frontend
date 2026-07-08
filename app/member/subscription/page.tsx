@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { PLAN_DISPLAY_NAMES, getSubscriptionAccess } from "@/lib/auth"
-import { PremiumTierModal } from "@/components/payments/premium-tier-modal"
+import { getSubscriptionAccess } from "@/lib/auth"
+import { useEntitlements } from "@/lib/entitlements-context"
+import { PLAN_PRICES, PRICING_PLANS, planDisplayName, type PlanKey } from "@/lib/plans"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, CheckCircle, CreditCard, Loader2, Sparkles, XCircle } from "lucide-react"
 
@@ -42,7 +43,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function SubscriptionPage() {
   const { user } = useAuth()
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const { planName } = useEntitlements()
 
   if (!user) {
     return (
@@ -55,7 +56,6 @@ export default function SubscriptionPage() {
   const plan = user.subscription_plan ?? "free"
   const status = user.subscription_status ?? "active"
   const { isPaidActive, isPastDue, isFree } = getSubscriptionAccess(plan, status)
-  const planName = PLAN_DISPLAY_NAMES[plan] ?? "Free"
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +97,7 @@ export default function SubscriptionPage() {
                   <StatusBadge status={status} />
                   {plan !== "free" && (
                     <span className="text-xs text-muted-foreground">
-                      {plan === "evocore" ? "$11" : plan === "evobloom" ? "$22" : "$33"}/mo
+                      ${PLAN_PRICES[plan as PlanKey] ?? PLAN_PRICES.evocore}/mo
                     </span>
                   )}
                 </div>
@@ -141,23 +141,23 @@ export default function SubscriptionPage() {
         {/* Actions */}
         <div className="space-y-3">
           {isFree ? (
-            <button
-              onClick={() => setUpgradeOpen(true)}
+            <Link
+              href="/member/upgrade"
               className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
             >
               <Sparkles className="w-4 h-4" />
               Upgrade Plan
-            </button>
+            </Link>
           ) : (
             <>
               {!isPaidActive && (
-                <button
-                  onClick={() => setUpgradeOpen(true)}
+                <Link
+                  href="/member/upgrade"
                   className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
                 >
                   <Sparkles className="w-4 h-4" />
                   Reactivate Plan
-                </button>
+                </Link>
               )}
               <p className="text-xs text-muted-foreground text-center pt-1">
                 To update your payment method or cancel, please contact support or manage your
@@ -170,12 +170,12 @@ export default function SubscriptionPage() {
         {/* Plan comparison hint */}
         {isFree && (
           <p className="text-xs text-muted-foreground text-center mt-6">
-            EVOcore · $11/mo &nbsp;·&nbsp; EVObloom · $22/mo &nbsp;·&nbsp; EVOluxe · $33/mo
+            {PRICING_PLANS.filter((p) => p !== "free")
+              .map((p) => `${planDisplayName(p)} · $${PLAN_PRICES[p]}/mo`)
+              .join("  ·  ")}
           </p>
         )}
       </div>
-
-      <PremiumTierModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )
 }

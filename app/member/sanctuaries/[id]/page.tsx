@@ -9,6 +9,7 @@ import { authService, type User } from "@/lib/auth"
 import { sanctuariesService, type Sanctuary, type RitualAssignment } from "@/lib/sanctuaries"
 import { Loader2, ArrowLeft, Users, Lock, Globe, Calendar, Flag } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
+import { AgoraCircles } from "@/components/agora/agora-circles"
 import Link from "next/link"
 
 export default function MemberSanctuaryDetailPage() {
@@ -54,7 +55,7 @@ export default function MemberSanctuaryDetailPage() {
 
       setSanctuary(sanctuaryData)
       setRituals(ritualsData)
-      setMembershipStatus(sanctuaryData.membership_status)
+      setMembershipStatus(sanctuaryData.membership_status ?? null)
     } catch (err) {
       console.error("Failed to load sanctuary data:", err)
     } finally {
@@ -271,6 +272,10 @@ export default function MemberSanctuaryDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        <div className="mt-8">
+          <AgoraCircles sanctuaryId={sanctuaryId} />
+        </div>
 
         <Card className="bg-secondary border-border mt-8">
           <CardHeader className="pb-2">

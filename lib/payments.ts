@@ -1,3 +1,5 @@
+import { throwIfGated } from "./gateway-quiz"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 const TIER_PRICE_MAP: Record<string, string> = {
@@ -17,46 +19,8 @@ export interface CheckoutSession {
   session_url?: string
 }
 
-export interface PaymentTier {
-  id: string
-  name: string
-  price: number
-  description: string
-  features: string[]
-}
-
-export const PREMIUM_TIERS: PaymentTier[] = [
-  {
-    id: "evocore",
-    name: "EVOcore",
-    price: 11,
-    description: "Perfect for beginners",
-    features: ["Basic access to all sanctuaries", "Monthly ritual recommendations", "Community support"],
-  },
-  {
-    id: "evobloom",
-    name: "EVObloom",
-    price: 22,
-    description: "Our most popular plan",
-    features: ["Everything in EVOcore", "Advanced ritual tracking", "Personal wellness insights", "Priority support"],
-  },
-  {
-    id: "evioluxe",
-    name: "EVOluxe",
-    price: 33,
-    description: "For the dedicated practitioner",
-    features: [
-      "Everything in EVObloom",
-      "1-on-1 coaching sessions",
-      "Custom ritual creation",
-      "VIP community access",
-      "Quarterly wellness reports",
-    ],
-  },
-]
-
 class PaymentService {
-  private getAuthHeaders() {
+  private getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem("access_token")
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
@@ -90,8 +54,10 @@ class PaymentService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to create checkout session")
+      // A gateway_incomplete 403 here throws GatewayIncompleteError (handled by
+      // runGatedAction, which finishes the Gateway then retries checkout).
+      const error = await throwIfGated(response)
+      throw new Error(error?.detail || "Failed to create checkout session")
     }
 
     return response.json()

@@ -9,3 +9,10 @@ node_modules/
 .env*.local
 .env
 .DS_Store
+
+# Local tooling / editor
+.claude/
+.idea/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
