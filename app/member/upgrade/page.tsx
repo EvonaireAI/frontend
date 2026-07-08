@@ -3,53 +3,18 @@
 import { useState } from "react"
 import Link from "next/link"
 import { paymentService } from "@/lib/payments"
+import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { useEntitlements } from "@/lib/entitlements-context"
 import {
   PRICING_PLANS,
   PLAN_PRICES,
   PLAN_ENTITLEMENTS,
+  PRICING_MATRIX_ROWS,
   planDisplayName,
-  formatLimit,
-  formatCareLevelAccess,
-  formatHistoryDays,
   type PlanKey,
-  type PlanEntitlements,
 } from "@/lib/plans"
 import { Check, Loader2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
-
-// Rows of the approved pricing matrix. Values derive from the shared
-// entitlements table — no per-plan copy is hardcoded here.
-const MATRIX_ROWS: Array<{
-  label: string
-  value: (e: PlanEntitlements) => string | boolean
-}> = [
-  { label: "Ritual library access", value: (e) => formatCareLevelAccess(e.max_care_level) },
-  {
-    label: "Monthly ritual plays",
-    value: (e) =>
-      e.monthly_level1_play_quota === null
-        ? "Unlimited"
-        : `${e.monthly_level1_play_quota} Level-1 rituals/month`,
-  },
-  { label: "Sanctuaries", value: (e) => formatLimit(e.max_sanctuaries) },
-  {
-    label: "Agora circles",
-    value: (e) => e.agora.charAt(0).toUpperCase() + e.agora.slice(1),
-  },
-  { label: "Journal history", value: (e) => formatHistoryDays(e.journal_history_days) },
-  { label: "Journal export", value: (e) => e.journal_export },
-  {
-    label: "AI insights",
-    value: (e) =>
-      e.ai_insights === "none" ? false : e.ai_insights === "monthly" ? "Monthly report" : "Full",
-  },
-  {
-    label: "Timeline history",
-    value: (e) => (e.timeline_history_days === null ? "Full" : `${e.timeline_history_days} days`),
-  },
-  { label: "Priority support", value: (e) => e.priority_support },
-]
 
 function MatrixCell({ value }: { value: string | boolean }) {
   if (value === true) {
@@ -78,13 +43,19 @@ export default function UpgradePage() {
   const handleSelectPlan = async (planKey: PlanKey) => {
     setLoadingId(planKey)
     try {
-      const session = await paymentService.createCheckoutSession(planKey)
+      // gateway_incomplete finishes the Gateway inline, then retries checkout.
+      const session = await runGatedAction(() => paymentService.createCheckoutSession(planKey))
       if (session.session_url) {
         window.location.href = session.session_url
       } else {
         throw new Error("No checkout URL received")
       }
     } catch (err) {
+      if (err instanceof GatewayCancelledError) {
+        // User dismissed the Gateway modal — no penalty, just stop.
+        setLoadingId(null)
+        return
+      }
       toast.error(err instanceof Error ? err.message : "Failed to start checkout")
       setLoadingId(null)
     }
@@ -153,7 +124,7 @@ export default function UpgradePage() {
 
                   {/* Key entitlements summary, derived from the shared table */}
                   <ul className="space-y-3">
-                    {MATRIX_ROWS.slice(0, 4).map((row) => {
+                    {PRICING_MATRIX_ROWS.slice(0, 4).map((row) => {
                       const value = row.value(PLAN_ENTITLEMENTS[planKey])
                       return (
                         <li key={row.label} className="flex items-center gap-2.5">
@@ -230,7 +201,7 @@ export default function UpgradePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {MATRIX_ROWS.map((row) => (
+                {PRICING_MATRIX_ROWS.map((row) => (
                   <tr key={row.label} className="hover:bg-secondary/20 transition-colors">
                     <td className="px-5 py-3 text-foreground">{row.label}</td>
                     {PRICING_PLANS.map((planKey) => (

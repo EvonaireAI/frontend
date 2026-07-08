@@ -110,3 +110,39 @@ export function formatAgoraAccess(agora: PlanEntitlements["agora"]): string {
 export function formatHistoryDays(days: number | null): string {
   return days === null ? "Full history" : `${days} days`
 }
+
+// Rows of the approved pricing matrix, shared by the public landing page and
+// the member pricing page. Values derive from the entitlements table above —
+// boolean values render as ✓/—, strings render as text.
+export interface PricingMatrixRow {
+  label: string
+  value: (e: PlanEntitlements) => string | boolean
+}
+
+export const PRICING_MATRIX_ROWS: PricingMatrixRow[] = [
+  { label: "Ritual library access", value: (e) => formatCareLevelAccess(e.max_care_level) },
+  {
+    label: "Monthly ritual plays",
+    value: (e) =>
+      e.monthly_level1_play_quota === null
+        ? "Unlimited"
+        : `${e.monthly_level1_play_quota} Level-1 rituals/month`,
+  },
+  { label: "Sanctuaries", value: (e) => formatLimit(e.max_sanctuaries) },
+  {
+    label: "Agora circles",
+    value: (e) => e.agora.charAt(0).toUpperCase() + e.agora.slice(1),
+  },
+  { label: "Journal history", value: (e) => formatHistoryDays(e.journal_history_days) },
+  { label: "Journal export", value: (e) => e.journal_export },
+  {
+    label: "AI insights",
+    value: (e) =>
+      e.ai_insights === "none" ? false : e.ai_insights === "monthly" ? "Monthly report" : "Full",
+  },
+  {
+    label: "Timeline history",
+    value: (e) => (e.timeline_history_days === null ? "Full" : `${e.timeline_history_days} days`),
+  },
+  { label: "Priority support", value: (e) => e.priority_support },
+]

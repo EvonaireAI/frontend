@@ -153,7 +153,8 @@ export function Navigation() {
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link href={getRoleDashboard(user.role)} className="flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="Evonaire" width={28} height={28} className="w-7 h-7" />
               <span className="text-lg font-bold text-foreground tracking-wide">Evonaire</span>
             </Link>
 
