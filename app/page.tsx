@@ -1,7 +1,8 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import Link from "next/link"
-import { Shield, Heart, Sparkles, Check } from "lucide-react"
+import { Shield, Heart, Check } from "lucide-react"
 import {
   PRICING_PLANS,
   PLAN_PRICES,
@@ -31,6 +32,15 @@ function PricingCell({ value }: { value: string | boolean }) {
 }
 
 export default function LandingPage() {
+  // Smooth-scroll to an on-page section. Works on touch and keyboard (the
+  // element is a real anchor, so Enter/Space and no-JS still navigate to it).
+  const scrollToSection = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id)
+    if (!target) return
+    e.preventDefault()
+    target.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   return (
     <div className="min-h-screen bg-dark-navy relative overflow-hidden">
       {/* Starfield background */}
@@ -40,20 +50,23 @@ export default function LandingPage() {
         <div className="stars3" />
       </div>
 
-      {/* Top navigation */}
-      <nav className="relative z-10 flex justify-end items-center gap-6 p-6">
-        <Link
+      {/* Top navigation — Pricing and Learn More sit on opposite sides,
+          flanking the central dandelion hero. Both work on tap + keyboard. */}
+      <nav className="relative z-10 flex justify-between items-center gap-6 p-6">
+        <a
           href="#pricing"
+          onClick={(e) => scrollToSection(e, "pricing")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Pricing
-        </Link>
-        <Link
+        </a>
+        <a
           href="#features"
+          onClick={(e) => scrollToSection(e, "features")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Learn More
-        </Link>
+        </a>
       </nav>
 
       {/* Dandelion brand illustration — soft hero backdrop */}
@@ -270,7 +283,10 @@ export default function LandingPage() {
             {/* Feature 3 */}
             <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
               <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
-                <Sparkles className="w-6 h-6 text-gold" />
+                {/* EVONAIRE EA mark — replaces the generic sparkle icon.
+                    TODO(fitsum): drop the final EA monogram SVG at public/brand/ea-mark.svg */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/ea-mark.svg" alt="" width={24} height={24} className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
               <p className="text-cream/60 text-sm leading-relaxed">

@@ -452,7 +452,7 @@ export default function CreatorDashboard() {
               <>
                 <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Your Resonance Trust Score</CardTitle>
+                    <CardTitle className="text-foreground">Your Resonance Trust Synthesis</CardTitle>
                     <CardDescription>
                       A real-time measure of your holistic health and readiness to expand your reach
                     </CardDescription>

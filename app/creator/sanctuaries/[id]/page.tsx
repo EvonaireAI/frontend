@@ -202,11 +202,14 @@ export default function SanctuaryDetailPage() {
         </div>
 
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-secondary border border-border">
-            <TabsTrigger value="requests">Pending Requests</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="rituals">Rituals</TabsTrigger>
-            <TabsTrigger value="audit">Audit Log</TabsTrigger>
+          <TabsList className="flex h-auto w-full flex-wrap gap-1 bg-secondary border border-border sm:grid sm:grid-cols-4">
+            <TabsTrigger value="requests" className="flex-1 whitespace-nowrap text-xs sm:text-sm">
+              <span className="sm:hidden">Requests</span>
+              <span className="hidden sm:inline">Pending Requests</span>
+            </TabsTrigger>
+            <TabsTrigger value="members" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Members</TabsTrigger>
+            <TabsTrigger value="rituals" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Rituals</TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Audit Log</TabsTrigger>
           </TabsList>
 
           <TabsContent value="requests">

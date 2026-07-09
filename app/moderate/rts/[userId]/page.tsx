@@ -111,7 +111,7 @@ export default function CreatorRTSDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Current RTS Score</CardTitle>
-              <CardDescription>Real-time Resonance Trust Score</CardDescription>
+              <CardDescription>Real-time Resonance Trust Synthesis</CardDescription>
             </CardHeader>
             <CardContent>
               {score ? (

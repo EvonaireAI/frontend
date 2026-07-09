@@ -28,7 +28,7 @@ export function CreatorScoreTable({ creators }: CreatorScoreTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>Creator RTS Scores</CardTitle>
-        <CardDescription>Monitor all creator Resonance Trust Scores</CardDescription>
+        <CardDescription>Monitor all creator Resonance Trust Synthesis results</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-4">

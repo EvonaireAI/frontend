@@ -12,11 +12,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
+import { roleDashboardLabel } from "@/lib/roles"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Sparkles, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck } from "lucide-react"
+import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock } from "lucide-react"
+
+// Primary sections that don't have routes yet. Rendered as disabled
+// "Coming soon" entries in the mobile section menu so they're discoverable
+// without inventing pages.
+// TODO(fitsum): confirm Symposium / Civic Virtue routes, then promote these
+// to real navigation items.
+const COMING_SOON_SECTIONS = ["Symposium", "Civic Virtue"]
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -111,6 +127,10 @@ export function Navigation() {
           { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
           { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
           { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
+          { href: "/member/reflection-room", label: "Reflection Room", icon: <LifeBuoy className="w-4 h-4" /> },
+          // DECISION(fitsum): "The Ledger" is kept as the broader financial hub
+          // (earnings, invoices, transactions, plan history) — it already links
+          // to Billing internally. Billing stays as a direct shortcut for now.
           { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
           { href: "/member/billing", label: "Billing", icon: <CreditCard className="w-4 h-4" /> },
         )
@@ -158,7 +178,60 @@ export function Navigation() {
     <nav className="border-b border-border bg-dark-navy/95 backdrop-blur supports-[backdrop-filter]:bg-dark-navy/80 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-4 md:space-x-8">
+            {/* Mobile section menu — primary destinations on phones. */}
+            {navigationItems.length > 0 && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden h-9 w-9"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-72 bg-card border-border p-0">
+                  <SheetHeader className="p-4 border-b border-border text-left">
+                    <SheetTitle className="flex items-center gap-2 text-foreground">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/logo.svg" alt="" width={24} height={24} className="w-6 h-6" />
+                      Evonaire
+                    </SheetTitle>
+                  </SheetHeader>
+                  <nav className="flex flex-col p-2">
+                    {navigationItems.map((item) => (
+                      <SheetClose asChild key={item.href}>
+                        <Link
+                          href={item.href}
+                          className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-secondary ${
+                            pathname === item.href ? "text-primary bg-secondary" : "text-muted-foreground"
+                          }`}
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </Link>
+                      </SheetClose>
+                    ))}
+                    {COMING_SOON_SECTIONS.map((label) => (
+                      <div
+                        key={label}
+                        aria-disabled="true"
+                        className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+                      >
+                        <span className="flex items-center gap-3">
+                          <Clock className="w-4 h-4" />
+                          {label}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide">Soon</span>
+                      </div>
+                    ))}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            )}
+
             <Link href={getRoleDashboard(user.role)} className="flex items-center space-x-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.svg" alt="Evonaire" width={28} height={28} className="w-7 h-7" />
@@ -186,9 +259,9 @@ export function Navigation() {
           <div className="flex items-center space-x-4">
             <GatewayProgressBadge />
 
-            <Badge variant="outline" className={getRoleColor(user.role)}>
+            <Badge variant="outline" className={`hidden sm:inline-flex ${getRoleColor(user.role)}`}>
               {getRoleIcon(user.role)}
-              <span className="ml-1 capitalize">{user.role}</span>
+              <span className="ml-1">{roleDashboardLabel(user.role)}</span>
             </Badge>
 
             <DropdownMenu>
