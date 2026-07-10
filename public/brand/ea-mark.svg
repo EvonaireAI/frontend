@@ -1,9 +1,0 @@
-<!-- TODO(fitsum): replace with the final EVONAIRE EA monogram SVG.
-     This is a clean placeholder mark (gold ring + "EA") matching the brand
-     palette so nothing generic ships in the meantime. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" role="img" aria-label="Evonaire">
-  <circle cx="50" cy="50" r="44" stroke="#d9b574" stroke-width="5" />
-  <text x="50" y="50" fill="#d9b574" font-family="Georgia, 'Times New Roman', serif"
-        font-size="40" font-weight="600" letter-spacing="-2"
-        text-anchor="middle" dominant-baseline="central">EA</text>
-</svg>

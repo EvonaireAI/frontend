@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +26,7 @@ import { useEntitlements } from "@/lib/entitlements-context"
 import { roleDashboardLabel } from "@/lib/roles"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, CreditCard, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock } from "lucide-react"
+import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock } from "lucide-react"
 
 // Primary sections that don't have routes yet. Rendered as disabled
 // "Coming soon" entries in the mobile section menu so they're discoverable
@@ -128,11 +129,11 @@ export function Navigation() {
           { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
           { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
           { href: "/member/reflection-room", label: "Reflection Room", icon: <LifeBuoy className="w-4 h-4" /> },
-          // DECISION(fitsum): "The Ledger" is kept as the broader financial hub
-          // (earnings, invoices, transactions, plan history) — it already links
-          // to Billing internally. Billing stays as a direct shortcut for now.
+          // DECISION(fitsum): "The Ledger" is the single financial destination in
+          // the nav. Billing & Invoices lives as a section inside it, so the
+          // standalone "Billing" nav entry was removed to avoid redundancy.
+          // The /member/billing route still exists and is reachable from Ledger.
           { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
-          { href: "/member/billing", label: "Billing", icon: <CreditCard className="w-4 h-4" /> },
         )
         break
       case "admin":
@@ -195,8 +196,9 @@ export function Navigation() {
                 <SheetContent side="left" className="w-72 bg-card border-border p-0">
                   <SheetHeader className="p-4 border-b border-border text-left">
                     <SheetTitle className="flex items-center gap-2 text-foreground">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/logo.svg" alt="" width={24} height={24} className="w-6 h-6" />
+                      <span className="flex items-center justify-center h-6 w-6 rounded-md bg-white p-0.5">
+                        <Image src="/brand/ea-mark.png" alt="" width={512} height={512} className="h-full w-full object-contain" />
+                      </span>
                       Evonaire
                     </SheetTitle>
                   </SheetHeader>
@@ -233,8 +235,11 @@ export function Navigation() {
             )}
 
             <Link href={getRoleDashboard(user.role)} className="flex items-center space-x-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="Evonaire" width={28} height={28} className="w-7 h-7" />
+              {/* EA monogram has an opaque white background, so it sits inside a
+                  white rounded container to avoid a white box on the dark nav. */}
+              <span className="flex items-center justify-center h-8 w-8 rounded-lg bg-white p-0.5 shadow-sm">
+                <Image src="/brand/ea-mark.png" alt="Evonaire" width={512} height={512} className="h-full w-full object-contain" priority />
+              </span>
               <span className="text-lg font-bold text-foreground tracking-wide">Evonaire</span>
             </Link>
 
