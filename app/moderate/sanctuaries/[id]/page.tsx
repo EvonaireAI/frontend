@@ -187,7 +187,7 @@ export default function SanctuaryAuditPage() {
           <TabsList className="flex h-auto w-full flex-wrap gap-1 sm:grid sm:grid-cols-3">
             <TabsTrigger value="members" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Members</TabsTrigger>
             <TabsTrigger value="rituals" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Rituals</TabsTrigger>
-            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Audit Log</TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">The Archive</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members">

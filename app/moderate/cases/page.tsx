@@ -150,7 +150,7 @@ export default function ModerationCases() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Moderation Cases</h1>
+            <h1 className="text-3xl font-bold text-foreground">Care Cases</h1>
             <p className="text-muted-foreground">Manage active moderation cases and reports</p>
           </div>
         </div>

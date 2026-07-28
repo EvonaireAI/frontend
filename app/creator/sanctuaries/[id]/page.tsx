@@ -161,7 +161,7 @@ export default function SanctuaryDetailPage() {
             <Button asChild>
               <Link href={`/creator/sanctuaries/${sanctuary.id}/edit`}>
                 <Edit className="w-4 h-4 mr-2" />
-                Edit
+                Settings
               </Link>
             </Button>
           </div>
@@ -209,7 +209,7 @@ export default function SanctuaryDetailPage() {
             </TabsTrigger>
             <TabsTrigger value="members" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Members</TabsTrigger>
             <TabsTrigger value="rituals" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Rituals</TabsTrigger>
-            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Audit Log</TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">The Archive</TabsTrigger>
           </TabsList>
 
           <TabsContent value="requests">

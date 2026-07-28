@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -24,16 +25,18 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { roleDashboardLabel } from "@/lib/roles"
+import { GLOSSARY, COMING_SOON_SECTIONS } from "@/lib/glossary"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock } from "lucide-react"
+import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal } from "lucide-react"
 
-// Primary sections that don't have routes yet. Rendered as disabled
-// "Coming soon" entries in the mobile section menu so they're discoverable
-// without inventing pages.
-// TODO(fitsum): confirm Symposium / Civic Virtue routes, then promote these
-// to real navigation items.
-const COMING_SOON_SECTIONS = ["Symposium", "Civic Virtue"]
+interface NavItem {
+  href: string
+  label: string
+  icon: ReactNode
+  /** Desktop-only: move out of the inline bar into the "More" dropdown. */
+  overflow?: boolean
+}
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -106,51 +109,59 @@ export function Navigation() {
     }
   }
 
-  const getNavigationItems = (role: string) => {
-    const items = []
+  // `overflow: true` keeps an item out of the inline desktop bar (it moves to
+  // the "More" dropdown) without hiding it — the mobile sheet always lists
+  // every item. Only the creator role has enough destinations to need it.
+  const getNavigationItems = (role: string): NavItem[] => {
+    const items: NavItem[] = []
 
     switch (role) {
       case "creator":
         items.push(
-          { href: "/creator", label: "Studio", icon: <Music className="w-4 h-4" /> },
-          { href: "/creator/upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
-          { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" /> },
-          { href: "/creator/earnings", label: "Earnings", icon: <Coins className="w-4 h-4" /> },
-          { href: "/creator/payouts", label: "Payouts", icon: <Banknote className="w-4 h-4" /> },
-          { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" /> },
-          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
-          { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/creator", label: GLOSSARY.creatorStudio, icon: <Music className="w-4 h-4" /> },
+          { href: "/creator/upload", label: GLOSSARY.uploadRitual, icon: <Upload className="w-4 h-4" /> },
+          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
+          { href: "/member/agora", label: GLOSSARY.agora, icon: <Landmark className="w-4 h-4" /> },
+          // One financial hub: The Ledger carries Billing and links out to the
+          // creator-only Earnings / Payouts pages (kept below as overflow).
+          { href: "/member/ledger", label: GLOSSARY.ledger, icon: <ScrollText className="w-4 h-4" /> },
+          { href: "/member/my-sanctuary", label: GLOSSARY.mySanctuary, icon: <Home className="w-4 h-4" />, overflow: true },
+          { href: "/creator/earnings", label: GLOSSARY.earnings, icon: <Coins className="w-4 h-4" />, overflow: true },
+          { href: "/creator/payouts", label: GLOSSARY.payouts, icon: <Banknote className="w-4 h-4" />, overflow: true },
+          { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" />, overflow: true },
+          { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" />, overflow: true },
+          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
         )
         break
       case "member":
         items.push(
-          { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
-          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
-          { href: "/member/agora", label: "The Agora", icon: <Landmark className="w-4 h-4" /> },
-          { href: "/member/my-sanctuary", label: "My Sanctuary", icon: <Home className="w-4 h-4" /> },
-          { href: "/member/reflection-room", label: "Reflection Room", icon: <LifeBuoy className="w-4 h-4" /> },
+          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
+          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
+          { href: "/member/agora", label: GLOSSARY.agora, icon: <Landmark className="w-4 h-4" /> },
+          { href: "/member/my-sanctuary", label: GLOSSARY.mySanctuary, icon: <Home className="w-4 h-4" /> },
+          { href: "/member/reflection-room", label: GLOSSARY.reflectionRoom, icon: <LifeBuoy className="w-4 h-4" /> },
           // DECISION(fitsum): "The Ledger" is the single financial destination in
           // the nav. Billing & Invoices lives as a section inside it, so the
           // standalone "Billing" nav entry was removed to avoid redundancy.
           // The /member/billing route still exists and is reachable from Ledger.
-          { href: "/member/ledger", label: "The Ledger", icon: <ScrollText className="w-4 h-4" /> },
+          { href: "/member/ledger", label: GLOSSARY.ledger, icon: <ScrollText className="w-4 h-4" /> },
         )
         break
       case "admin":
         items.push(
-          { href: "/admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
+          { href: "/admin", label: GLOSSARY.stewardConsole, icon: <Shield className="w-4 h-4" /> },
           { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
           { href: "/admin/royalties", label: "Royalties", icon: <Coins className="w-4 h-4" /> },
-          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
-          { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
+          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
         )
         break
       case "moderator":
         items.push(
-          { href: "/moderate", label: "Moderate", icon: <Shield className="w-4 h-4" /> },
+          { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <Shield className="w-4 h-4" /> },
           { href: "/moderate/review-queue", label: "Commons Review", icon: <ClipboardCheck className="w-4 h-4" /> },
-          { href: "/commons", label: "Commons", icon: <Store className="w-4 h-4" /> },
-          { href: "/member", label: "Library", icon: <Heart className="w-4 h-4" /> },
+          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
+          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
         )
         break
     }
@@ -174,6 +185,8 @@ export function Navigation() {
   }
 
   const navigationItems = getNavigationItems(user.role)
+  const inlineItems = navigationItems.filter((item) => !item.overflow)
+  const overflowItems = navigationItems.filter((item) => item.overflow)
 
   return (
     <nav className="border-b border-border bg-dark-navy/95 backdrop-blur supports-[backdrop-filter]:bg-dark-navy/80 sticky top-0 z-50">
@@ -245,7 +258,7 @@ export function Navigation() {
 
             {navigationItems.length > 0 && (
               <div className="hidden md:flex items-center space-x-6">
-                {navigationItems.map((item) => (
+                {inlineItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -257,6 +270,34 @@ export function Navigation() {
                     <span>{item.label}</span>
                   </Link>
                 ))}
+
+                {/* Overflow + the not-yet-built sections, so every destination
+                    stays reachable on desktop without crowding the bar. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center space-x-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                    <MoreHorizontal className="w-4 h-4" />
+                    <span>More</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+                    {overflowItems.map((item) => (
+                      <DropdownMenuItem asChild key={item.href}>
+                        <Link href={item.href} className="flex items-center gap-2">
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                    {COMING_SOON_SECTIONS.map((label) => (
+                      <DropdownMenuItem key={label} disabled className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          {label}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide">Soon</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>
@@ -311,7 +352,7 @@ export function Navigation() {
                   <DropdownMenuItem asChild>
                     <Link href="/admin" className="flex items-center">
                       <Shield className="mr-2 h-4 w-4" />
-                      <span>Admin Panel</span>
+                      <span>{GLOSSARY.stewardConsole}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}

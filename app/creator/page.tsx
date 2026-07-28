@@ -29,6 +29,8 @@ import {
   Activity,
 } from "lucide-react"
 import Link from "next/link"
+import { GLOSSARY } from "@/lib/glossary"
+import { StudioStatusStrip } from "@/components/creator/studio-status-strip"
 
 export default function CreatorDashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -72,6 +74,16 @@ export default function CreatorDashboard() {
 
     loadData()
   }, [router])
+
+  // Deep links like /creator?tab=sanctuaries (used after removing a sanctuary)
+  // open straight onto the right tab. Read from location rather than
+  // useSearchParams so the client page doesn't need a Suspense boundary.
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab")
+    if (tab && ["rituals", "upload", "analytics", "rts", "sanctuaries"].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [])
 
   useEffect(() => {
     if (activeTab === "analytics" && !dashboardMetrics && !analyticsLoading) {
@@ -194,9 +206,11 @@ export default function CreatorDashboard() {
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Hero header section */}
         <div className="text-center mb-10">
-          <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">Welcome To Your Sanctuary</p>
+          <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">
+            {user ? `Welcome back, ${user.first_name}` : "Welcome To Your Sanctuary"}
+          </p>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance">
-            {user ? `Hi, ${user.first_name}` : "Creator Studio"}
+            {GLOSSARY.creatorStudio}
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
             This is a protected space for your voice, rituals, and creative offerings.
@@ -211,21 +225,24 @@ export default function CreatorDashboard() {
             <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
               <Link href="/creator/upload">
                 <Plus className="w-4 h-4 mr-2" />
-                New Ritual
+                {GLOSSARY.uploadRitual}
               </Link>
             </Button>
           </div>
         </div>
 
+        {/* Create → Upload → Review → Publish → Grow → Earn, at a glance (§C) */}
+        <StudioStatusStrip rituals={rituals} ritualsLoading={ritualsLoading} />
+
         <Tabs defaultValue="rituals" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 max-w-3xl mx-auto bg-secondary border border-border">
             <TabsTrigger value="rituals" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Music className="w-4 h-4" />
-              <span className="hidden sm:inline">My Rituals</span>
+              <span className="hidden sm:inline">{GLOSSARY.myRituals}</span>
             </TabsTrigger>
             <TabsTrigger value="upload" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Upload</span>
+              <span className="hidden sm:inline">{GLOSSARY.uploadRitual}</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="w-4 h-4" />
@@ -233,7 +250,7 @@ export default function CreatorDashboard() {
             </TabsTrigger>
             <TabsTrigger value="rts" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Activity className="w-4 h-4" />
-              <span className="hidden sm:inline">RTS Score</span>
+              <span className="hidden sm:inline">{GLOSSARY.rtsShort}</span>
             </TabsTrigger>
             <TabsTrigger value="sanctuaries" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="w-4 h-4" />

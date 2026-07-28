@@ -240,7 +240,7 @@ export default function ModerateDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-orange-600" />
-                    Moderation Cases
+                    Care Cases
                   </CardTitle>
                   <CardDescription>Manage active moderation cases and reports</CardDescription>
                 </CardHeader>

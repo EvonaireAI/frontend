@@ -19,7 +19,11 @@ import {
   Calendar,
   Music,
   CreditCard,
+  Coins,
+  Banknote,
 } from "lucide-react"
+import { GLOSSARY } from "@/lib/glossary"
+import { MyPractice } from "@/components/member/my-practice"
 
 interface PlayHistoryItem {
   id: number
@@ -96,8 +100,38 @@ export default function LedgerPage() {
 
   if (!user) return null
 
+  // Locally derived counts — these stand in until /analytics/me/summary/
+  // answers, and remain the source of truth for the per-item lists below.
   const completedCount = playHistory.filter((p) => p.is_completed).length
   const totalTime = playHistory.reduce((acc, p) => acc + p.progress_seconds, 0)
+
+  const now = new Date()
+  const inCurrentMonth = (iso: string) => {
+    const d = new Date(iso)
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  }
+  const monthPlays = playHistory.filter((p) => inCurrentMonth(p.started_at))
+  const monthBlessings = blessings.filter((b) => inCurrentMonth(b.created_at))
+
+  const practiceFallback = {
+    allTime: {
+      sessions_count: playHistory.length,
+      listening_minutes: Math.floor(totalTime / 60),
+      rituals_completed: completedCount,
+      blessings_given: blessings.length,
+      blessings_received: 0,
+    },
+    currentMonth: {
+      sessions_count: monthPlays.length,
+      listening_minutes: Math.floor(monthPlays.reduce((acc, p) => acc + p.progress_seconds, 0) / 60),
+      rituals_completed: monthPlays.filter((p) => p.is_completed).length,
+      blessings_given: monthBlessings.length,
+      blessings_received: 0,
+    },
+    // Seekers can't derive blessings received client-side; the tile only
+    // appears once the summary endpoint provides it.
+    hasBlessingsReceived: false,
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -110,56 +144,39 @@ export default function LedgerPage() {
             <p className="text-sm uppercase tracking-widest text-gold-muted">Records</p>
           </div>
           <h1 className="text-3xl md:text-4xl font-serif text-foreground tracking-wide mb-2">
-            The Ledger
+            {GLOSSARY.ledger}
           </h1>
           <p className="text-muted-foreground">
             A record of your practice — every ritual experienced, every blessing given.
           </p>
         </div>
 
-        {/* Summary stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-            <p className="text-2xl font-bold text-foreground">{playHistory.length}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Sessions</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-            <p className="text-2xl font-bold text-foreground">{completedCount}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Completed</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-            <p className="text-2xl font-bold text-foreground">{blessings.length}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Blessings</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-            <p className="text-2xl font-bold text-foreground">{Math.floor(totalTime / 60)}m</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Listen Time</p>
-          </div>
-        </div>
+        {/* My Practice — the personal section (§B) */}
+        <MyPractice fallback={practiceFallback} />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 max-w-md bg-secondary border border-border">
             <TabsTrigger
               value="history"
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Play className="w-4 h-4" />
-              <span className="hidden sm:inline">Sessions</span>
+              <span>Sessions</span>
             </TabsTrigger>
             <TabsTrigger
               value="blessings"
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Heart className="w-4 h-4" />
-              <span className="hidden sm:inline">Blessings</span>
+              <span>Blessings</span>
             </TabsTrigger>
             <TabsTrigger
               value="billing"
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">Billing</span>
+              <span>{GLOSSARY.billing}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -178,7 +195,7 @@ export default function LedgerPage() {
                     Your ritual experiences will appear here
                   </p>
                   <Button asChild>
-                    <Link href="/member">Start Exploring</Link>
+                    <Link href="/member">Open the {GLOSSARY.sacredLibrary}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -239,7 +256,7 @@ export default function LedgerPage() {
                     Bless rituals that resonate with you
                   </p>
                   <Button asChild>
-                    <Link href="/member">Explore Rituals</Link>
+                    <Link href="/member">Open the {GLOSSARY.sacredLibrary}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -278,7 +295,7 @@ export default function LedgerPage() {
           </TabsContent>
 
           {/* Billing shortcut */}
-          <TabsContent value="billing">
+          <TabsContent value="billing" className="space-y-4">
             <div className="bg-card border border-border rounded-xl p-8 text-center">
               <CreditCard className="w-10 h-10 text-primary mx-auto mb-4 opacity-60" />
               <h3 className="text-lg font-semibold text-foreground mb-2">Billing &amp; Invoices</h3>
@@ -287,9 +304,36 @@ export default function LedgerPage() {
                 Evonaire, Inc.
               </p>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                <Link href="/member/billing">Go to Billing</Link>
+                <Link href="/member/billing">Go to {GLOSSARY.billing}</Link>
               </Button>
             </div>
+
+            {/* Creators keep Earnings and Payouts as their own pages, but The
+                Ledger is the one financial hub — so it links out to them. */}
+            {user.role === "creator" && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <Coins className="w-6 h-6 text-primary mb-3 opacity-70" />
+                  <h3 className="text-base font-semibold text-foreground mb-1">{GLOSSARY.earnings}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Royalty statements for your rituals, period by period.
+                  </p>
+                  <Button asChild variant="outline" className="bg-transparent border-border">
+                    <Link href="/creator/earnings">View {GLOSSARY.earnings}</Link>
+                  </Button>
+                </div>
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <Banknote className="w-6 h-6 text-primary mb-3 opacity-70" />
+                  <h3 className="text-base font-semibold text-foreground mb-1">{GLOSSARY.payouts}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your payout account and transfer history.
+                  </p>
+                  <Button asChild variant="outline" className="bg-transparent border-border">
+                    <Link href="/creator/payouts">View {GLOSSARY.payouts}</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

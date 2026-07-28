@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { authService } from "@/lib/auth"
+import { roleShortLabel } from "@/lib/roles"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 
 export default function RegisterPage() {
@@ -169,9 +170,18 @@ export default function RegisterPage() {
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#141f2a] border-gold/20 text-cream">
-                    <SelectItem value="member" className="focus:bg-gold/10 focus:text-cream">Member</SelectItem>
-                    <SelectItem value="creator" className="focus:bg-gold/10 focus:text-cream">Creator</SelectItem>
-                    <SelectItem value="moderator" className="focus:bg-gold/10 focus:text-cream">Moderator</SelectItem>
+                    {/* Values stay on the backend role keys; only the labels
+                        follow the canonical glossary (member → Seeker,
+                        moderator → Guardian). */}
+                    <SelectItem value="member" className="focus:bg-gold/10 focus:text-cream">
+                      {roleShortLabel("member")}
+                    </SelectItem>
+                    <SelectItem value="creator" className="focus:bg-gold/10 focus:text-cream">
+                      {roleShortLabel("creator")}
+                    </SelectItem>
+                    <SelectItem value="moderator" className="focus:bg-gold/10 focus:text-cream">
+                      {roleShortLabel("moderator")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

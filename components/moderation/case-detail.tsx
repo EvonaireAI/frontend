@@ -230,7 +230,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                     <p className="text-muted-foreground">{new Date(moderationCase.updated_at).toLocaleString()}</p>
                   </div>
                   <div>
-                    <span className="font-medium">Assigned Moderator:</span>
+                    <span className="font-medium">Assigned Guardian:</span>
                     <p className="text-muted-foreground">
                       {moderationCase.assigned_moderator_email || "Unassigned"}
                     </p>
@@ -239,13 +239,13 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
               </CardContent>
             </Card>
 
-            {/* Case History */}
+            {/* Care History */}
             {moderationCase.history && moderationCase.history.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="w-5 h-5" />
-                    Case History
+                    Care History
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -271,13 +271,13 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
 
           {/* Actions Panel */}
           <div className="space-y-6">
-            {/* Crisis Escalation */}
+            {/* Care Escalation */}
             {!moderationCase.crisis_escalated && (
               <Card className="border-red-200 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
                     <AlertTriangle className="w-5 h-5" />
-                    Crisis Escalation
+                    Care Escalation
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -315,7 +315,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate }: CaseDetai
                       <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2 text-red-600">
                           <AlertTriangle className="w-5 h-5" />
-                          Confirm Crisis Escalation
+                          Confirm Care Escalation
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                           This will immediately escalate the case to the crisis intervention team. 

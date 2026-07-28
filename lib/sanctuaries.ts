@@ -416,6 +416,64 @@ class SanctuariesService {
       throw new Error(error.detail || `Failed to remove ritual: ${response.statusText}`)
     }
   }
+
+  /**
+   * Permanently remove a sanctuary. `acknowledge: true` is required by the
+   * server — a request without it comes back 400, and a non-owner (who isn't a
+   * Steward) comes back 403. The audit trail is written backend-side.
+   */
+  async removeSanctuary(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/sanctuaries/${id}/`, {
+      method: "DELETE",
+      headers: {
+        ...this.getHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ acknowledge: true }),
+    })
+
+    if (!response.ok) {
+      throw await toRemovalError(response)
+    }
+  }
+}
+
+/** Error from `DELETE /sanctuaries/<id>/`, carrying the status so the UI can
+ *  distinguish "you're not the owner" (403) from a validation failure (400). */
+export class SanctuaryRemovalError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = "SanctuaryRemovalError"
+    this.status = status
+  }
+}
+
+async function toRemovalError(response: Response): Promise<SanctuaryRemovalError> {
+  let message = ""
+  try {
+    const body = await response.json()
+    // DRF puts non-field errors under `detail`; serializer errors come back
+    // keyed by field, so fall back to the first string we can find.
+    message =
+      body?.detail ||
+      body?.acknowledge?.[0] ||
+      (typeof body === "string" ? body : "") ||
+      Object.values(body ?? {}).flat().find((v) => typeof v === "string") ||
+      ""
+  } catch {
+    // Non-JSON body (proxy error page, empty 502) — fall through to defaults.
+  }
+
+  if (!message) {
+    message =
+      response.status === 403
+        ? "Only the sanctuary owner can remove this sanctuary."
+        : `Failed to remove sanctuary: ${response.statusText}`
+  }
+
+  return new SanctuaryRemovalError(message, response.status)
 }
 
 export const sanctuariesService = new SanctuariesService()

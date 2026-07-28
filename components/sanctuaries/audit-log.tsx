@@ -40,7 +40,7 @@ export function AuditLog({ entries, loading = false }: AuditLogProps) {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">Audit Log</CardTitle>
+        <CardTitle className="text-foreground">The Archive</CardTitle>
         <CardDescription>Track all sanctuary activities</CardDescription>
       </CardHeader>
       <CardContent>

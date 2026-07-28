@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
+import { RemoveSanctuary } from "@/components/sanctuaries/remove-sanctuary"
 import { Loader2, ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
 
@@ -131,8 +132,8 @@ export default function EditSanctuaryPage() {
               Back to Sanctuary
             </Link>
           </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Edit Sanctuary</h1>
-          <p className="text-muted-foreground">Update your sanctuary settings and information</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Sanctuary Settings</h1>
+          <p className="text-muted-foreground">Update your sanctuary&rsquo;s details, privacy and membership</p>
         </div>
 
         <Card className="bg-card border-border">
@@ -256,6 +257,19 @@ export default function EditSanctuaryPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Owner-only destructive action, deliberately at the end of settings
+            rather than buried behind another screen. */}
+        {sanctuary && (
+          <div className="mt-8">
+            <RemoveSanctuary
+              sanctuaryId={sanctuaryId}
+              sanctuaryTitle={sanctuary.title}
+              isOwner={!!user && sanctuary.owner?.id === user.id}
+              redirectTo="/creator?tab=sanctuaries"
+            />
+          </div>
+        )}
       </div>
     </div>
   )

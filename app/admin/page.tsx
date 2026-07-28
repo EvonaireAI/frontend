@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authService, type RoleRequest, type User } from "@/lib/auth"
 import { ConfigForm } from "@/components/rts/config-form"
+import { roleShortLabel } from "@/lib/roles"
 import { Loader2, Check, X, ArrowLeft, Users, Settings } from "lucide-react"
 import Link from "next/link"
 
@@ -97,7 +98,7 @@ export default function AdminPage() {
                 Back to Dashboard
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Steward Console</h1>
           </div>
         </div>
 
@@ -111,18 +112,18 @@ export default function AdminPage() {
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="role-requests" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Role Requests
+              Steward Requests
             </TabsTrigger>
             <TabsTrigger value="rts-config" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              RTS Config
+              Resonance Configuration
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="role-requests">
             <Card>
               <CardHeader>
-                <CardTitle>Pending Role Requests</CardTitle>
+                <CardTitle>Pending Steward Requests</CardTitle>
                 <CardDescription>Review and approve or reject requests for elevated roles</CardDescription>
               </CardHeader>
               <CardContent>
@@ -147,9 +148,9 @@ export default function AdminPage() {
                               </h3>
                               <p className="text-sm text-gray-600 dark:text-gray-400">{request.user.email}</p>
                               <div className="flex items-center space-x-2 mt-1">
-                                <Badge variant="outline">Current: {request.user.role}</Badge>
+                                <Badge variant="outline">Current: {roleShortLabel(request.user.role)}</Badge>
                                 <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                  Requesting: {request.requested_role}
+                                  Requesting: {roleShortLabel(request.requested_role)}
                                 </Badge>
                               </div>
                             </div>
