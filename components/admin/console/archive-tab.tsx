@@ -203,8 +203,8 @@ export function ArchiveTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted-foreground">
-          One trail across sanctuaries, care cases, royalties and memberships. Read-only — nothing here can be
-          edited or removed.
+          One trail across every append-only source the platform keeps. Read-only — nothing here can be edited or
+          removed.
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />

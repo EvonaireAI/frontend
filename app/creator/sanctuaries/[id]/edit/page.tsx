@@ -278,7 +278,13 @@ export default function EditSanctuaryPage() {
               sanctuaryId={sanctuaryId}
               sanctuaryTitle={sanctuary.title}
               canRemove={!!user && (sanctuary.owner?.id === user.id || isSteward(user.role))}
-              redirectTo="/creator?tab=sanctuaries"
+              // A steward isn't a creator, so /creator would bounce them to
+              // /dashboard — send them to their own sanctuaries surface.
+              redirectTo={
+                user && isSteward(user.role) && sanctuary.owner?.id !== user.id
+                  ? "/moderate?tab=sanctuaries"
+                  : "/creator?tab=sanctuaries"
+              }
             />
           </div>
         )}
