@@ -15,6 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { authService, type PendingRitual } from "@/lib/auth"
+import { ProtectedAudioPreview } from "@/components/player/protected-audio-preview"
 import { Clock, User, Tag, AlertTriangle, CheckCircle, XCircle, Play, Pause } from "lucide-react"
 import { toast } from "sonner"
 
@@ -268,14 +269,13 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
 
                       {audioPlaying === ritual.id && ritual.audio_file && (
                         <div className="mt-4 p-4 bg-muted rounded-lg">
-                          <audio
-                            controls
-                            className="w-full"
-                            src={authService.getRitualStreamUrl(ritual.id)}
+                          {/* Watermarked so a leak out of the review queue is
+                              as traceable as one out of a member session */}
+                          <ProtectedAudioPreview
+                            getSourceUrl={() => authService.getRitualStreamUrl(ritual.id)}
+                            contextLabel={`R${ritual.id}`}
                             onEnded={() => setAudioPlaying(null)}
-                          >
-                            Your browser does not support the audio element.
-                          </audio>
+                          />
                         </div>
                       )}
                     </CardContent>
