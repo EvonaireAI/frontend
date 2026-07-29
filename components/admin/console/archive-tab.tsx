@@ -58,6 +58,25 @@ const ACTIONS_BY_TYPE: Record<ArchiveType, string[]> = {
     "payment_failed",
     "reactivated",
   ],
+  // Session 12 — SecurityAuditLog.EventType.
+  security: [
+    "stream_token_issued",
+    "stream_token_rejected",
+    "stream_denied",
+    "session_superseded",
+    "session_terminated",
+    "abuse_warning",
+    "abuse_flag_opened",
+    "abuse_flag_resolved",
+    "enforcement_action",
+    "playback_restricted",
+    "playback_restriction_lifted",
+    "account_suspended",
+    "license_changed",
+    "license_reviewed",
+    "entitlement_granted",
+    "entitlement_revoked",
+  ],
 }
 
 function ArchiveRow({ entry }: { entry: ArchiveEntry }) {
@@ -158,13 +177,14 @@ export function ArchiveTab() {
     setOffset(0)
   }, [selectedType, action, since, until, actorId])
 
-  // `available_types` is authoritative; fall back to the four documented
-  // sources before the first response lands.
+  // `available_types` is authoritative — a new source added server-side shows
+  // up as a chip on its own. This fallback only covers the first paint.
   const availableTypes: ArchiveType[] = data?.available_types ?? [
     "sanctuary",
     "moderation",
     "royalty",
     "subscription",
+    "security",
   ]
 
   const actionOptions = useMemo(() => {

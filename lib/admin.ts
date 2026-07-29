@@ -64,7 +64,13 @@ export interface PendingReviewCounts {
   commons_listings: number
   agora_content: number
   royalty_periods: number
-  /** The sum of the six — this is the console badge number. */
+  /**
+   * Session 12. Only the *case-less* (warning-level) abuse flags — lock-level
+   * flags open their own `ModerationCase` and are already counted in
+   * `care_cases`, so nothing is double-counted.
+   */
+  content_protection_flags?: number
+  /** The sum of the counters above — this is the console badge number. */
   total: number
 }
 
@@ -150,6 +156,19 @@ export interface TrustCare {
     opened_in_window: number
     by_type: Record<string, number>
   }
+  /**
+   * Session 12. Behavioural request-pattern signals only — no emotional
+   * inference and no profiling. Optional so the tab still renders against a
+   * backend that predates the block.
+   */
+  content_protection?: {
+    flags_open: number
+    flags_in_window: number
+    sessions_terminated_in_window: number
+    playback_restrictions_active: number
+    /** Keyed by `AbuseFlag.Action`. */
+    by_action: Record<string, number>
+  }
   guardian_workload: GuardianWorkloadRow[]
   /** `supported` is false until an appeal model ships — key off the flag. */
   appeals: { supported: boolean; count: number; detail: string }
@@ -158,7 +177,8 @@ export interface TrustCare {
 
 // ── The Archive ─────────────────────────────────────────────────────────────
 
-export type ArchiveType = "sanctuary" | "moderation" | "royalty" | "subscription"
+/** Five sources since Session 12 added `security`. */
+export type ArchiveType = "sanctuary" | "moderation" | "royalty" | "subscription" | "security"
 
 export interface ArchiveEntry {
   /** `"<kind>:<pk>"` — a React key, never a fetchable id. */
@@ -235,6 +255,7 @@ export const ARCHIVE_TYPE_LABELS: Record<string, string> = {
   moderation: "Care cases",
   royalty: "Royalties",
   subscription: "Memberships",
+  security: "Content protection",
 }
 
 export function archiveTypeLabel(type: string): string {
@@ -246,10 +267,15 @@ export const ARCHIVE_TYPE_CHIPS: Record<string, string> = {
   moderation: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
   royalty: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300",
   subscription: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300",
+  security: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300",
 }
 
-/** Actors are genuinely absent for engine-written rows — never print "null". */
+/**
+ * Actors are genuinely absent on rows no person wrote — the royalty engine, and
+ * the Session 12 detector / sweep / webhook rows in the security trail. Never
+ * print "null".
+ */
 export function actorLabel(actor: ArchiveEntry["actor"], type: string): string {
   if (actor?.email) return actor.email
-  return type === "royalty" ? "System" : "—"
+  return type === "royalty" || type === "security" ? "System" : "—"
 }

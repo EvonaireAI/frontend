@@ -72,8 +72,9 @@ export function PlatformOverviewTab({
   const memberships = data.memberships
 
   // Each counter goes where the rows actually live — some of those are Guardian
-  // tabs, because stewards oversee here and act there.
-  const pendingRows: Array<{ label: string; value: number; go: () => void }> = [
+  // tabs, because stewards oversee here and act there. A counter with no `go`
+  // has no review surface yet and must not pretend otherwise.
+  const pendingRows: Array<{ label: string; value: number; go?: () => void; note?: string }> = [
     { label: "Steward requests", value: pending.role_requests, go: () => onNavigate("requests") },
     { label: "Care cases", value: pending.care_cases, go: () => router.push("/moderate?tab=pending") },
     { label: "Rituals", value: pending.rituals, go: () => router.push("/moderate?tab=library") },
@@ -81,6 +82,17 @@ export function PlatformOverviewTab({
     { label: "Agora content", value: pending.agora_content, go: () => onNavigate("trust-care") },
     { label: "Royalty periods", value: pending.royalty_periods, go: () => onNavigate("earnings") },
   ]
+
+  // Session 12 counts warning-level abuse flags here. They carry no
+  // `ModerationCase`, so they are NOT in the Guardian queues and there is no
+  // review surface for them yet — counted honestly, linked nowhere.
+  if (typeof pending.content_protection_flags === "number") {
+    pendingRows.push({
+      label: "Content protection flags",
+      value: pending.content_protection_flags,
+      note: "Review queue ships with Content Protection",
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -127,20 +139,33 @@ export function PlatformOverviewTab({
         </CardHeader>
         <CardContent>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {pendingRows.map((row) => (
-              <button
-                key={row.label}
-                type="button"
-                onClick={row.go}
-                className="flex items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:border-primary/40"
-              >
-                <span className="text-sm text-foreground">{row.label}</span>
-                <span className="flex items-center gap-2 font-semibold tabular-nums">
-                  {row.value.toLocaleString()}
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </span>
-              </button>
-            ))}
+            {pendingRows.map((row) =>
+              row.go ? (
+                <button
+                  key={row.label}
+                  type="button"
+                  onClick={row.go}
+                  className="flex items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:border-primary/40"
+                >
+                  <span className="text-sm text-foreground">{row.label}</span>
+                  <span className="flex items-center gap-2 font-semibold tabular-nums">
+                    {row.value.toLocaleString()}
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </button>
+              ) : (
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between rounded-lg border border-dashed border-border p-3"
+                >
+                  <span className="min-w-0 text-sm text-foreground">
+                    {row.label}
+                    {row.note && <span className="block text-xs text-muted-foreground">{row.note}</span>}
+                  </span>
+                  <span className="font-semibold tabular-nums">{row.value.toLocaleString()}</span>
+                </div>
+              ),
+            )}
           </div>
         </CardContent>
       </Card>

@@ -8,8 +8,6 @@ interface FallbackCounts {
   /** Locally derived all-time figures, used until the endpoint answers. */
   allTime: PracticePeriod
   currentMonth: PracticePeriod
-  /** A seeker can't derive blessings *received* client-side; hide that tile. */
-  hasBlessingsReceived: boolean
 }
 
 /**
@@ -19,7 +17,15 @@ interface FallbackCounts {
  * no streaks, and no language that implies falling behind. A month with one
  * session reads exactly as neutrally as a month with thirty.
  */
-export function MyPractice({ fallback }: { fallback: FallbackCounts }) {
+export function MyPractice({
+  fallback,
+  isCreator,
+}: {
+  fallback: FallbackCounts
+  /** `blessings_received` is always 0 for non-creators — hide it rather than
+   *  showing a permanent zero (API_CONTRACTS Session 10, frontend notes). */
+  isCreator: boolean
+}) {
   const [summary, setSummary] = useState<PracticeSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,14 +49,15 @@ export function MyPractice({ fallback }: { fallback: FallbackCounts }) {
 
   const allTime: PracticePeriod = summary ?? fallback.allTime
   const month: PracticePeriod = summary?.current_month ?? fallback.currentMonth
-  const showReceived = summary !== null || fallback.hasBlessingsReceived
-
   const tiles = [
     { label: "Sessions", value: allTime.sessions_count },
     { label: "Rituals completed", value: allTime.rituals_completed },
+    // Server-side this is already whole minutes — never divide it again.
     { label: "Minutes listening", value: allTime.listening_minutes },
     { label: "Blessings given", value: allTime.blessings_given },
-    ...(showReceived ? [{ label: "Blessings received", value: allTime.blessings_received }] : []),
+    ...(isCreator && summary !== null
+      ? [{ label: "Blessings received", value: allTime.blessings_received }]
+      : []),
   ]
 
   return (

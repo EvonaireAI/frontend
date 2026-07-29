@@ -128,9 +128,6 @@ export default function LedgerPage() {
       blessings_given: monthBlessings.length,
       blessings_received: 0,
     },
-    // Seekers can't derive blessings received client-side; the tile only
-    // appears once the summary endpoint provides it.
-    hasBlessingsReceived: false,
   }
 
   return (
@@ -152,7 +149,7 @@ export default function LedgerPage() {
         </div>
 
         {/* My Practice — the personal section (§B) */}
-        <MyPractice fallback={practiceFallback} />
+        <MyPractice fallback={practiceFallback} isCreator={user.role === "creator"} />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

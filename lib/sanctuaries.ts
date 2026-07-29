@@ -135,7 +135,11 @@ class SanctuariesService {
     return response.json()
   }
 
-  // Get sanctuary detail
+  // Get sanctuary detail.
+  //
+  // Since Session 10 an archived (removed) sanctuary 404s for everyone except
+  // stewards — including its former owner — so callers must treat 404 as
+  // "gone" and route back to the list rather than assuming an auth problem.
   async getSanctuaryDetail(id: number): Promise<Sanctuary> {
     const response = await fetch(`${API_BASE_URL}/sanctuaries/${id}/`, {
       method: "GET",
@@ -143,8 +147,11 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || `Failed to get sanctuary: ${response.statusText}`)
+      const body = await readJson(response)
+      throw new SanctuaryRequestError(
+        body?.detail || `Failed to get sanctuary: ${response.statusText}`,
+        response.status,
+      )
     }
 
     return response.json()
@@ -418,62 +425,147 @@ class SanctuariesService {
   }
 
   /**
-   * Permanently remove a sanctuary. `acknowledge: true` is required by the
-   * server — a request without it comes back 400, and a non-owner (who isn't a
-   * Steward) comes back 403. The audit trail is written backend-side.
+   * Step 1 of removal: `POST /sanctuaries/<id>/remove/` with an empty body.
+   *
+   * The server answers 400 `acknowledgment_required` carrying the consequence
+   * copy to show in the confirm dialog. That copy is server-owned — render it
+   * verbatim rather than hardcoding it here (API_CONTRACTS Session 10).
+   *
+   * A 403 means the control shouldn't have been rendered at all; 400
+   * `already_removed` means someone else got there first.
    */
-  async removeSanctuary(id: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/sanctuaries/${id}/`, {
-      method: "DELETE",
-      headers: {
-        ...this.getHeaders(),
-        "Content-Type": "application/json",
-      },
+  async getRemovalConsequences(id: number): Promise<RemovalConsequences> {
+    const response = await fetch(`${API_BASE_URL}/sanctuaries/${id}/remove/`, {
+      method: "POST",
+      headers: { ...this.getHeaders(), "Content-Type": "application/json" },
+      body: "{}",
+    })
+
+    const body = await readJson(response)
+
+    if (response.status === 400 && body?.code === "acknowledgment_required") {
+      return {
+        consequences: Array.isArray(body.consequences) ? body.consequences : [],
+        reversible: body.reversible === true,
+        title: body?.sanctuary?.title ?? null,
+      }
+    }
+
+    // Anything else — including an unexpected 200 — is a genuine failure of
+    // the preflight; the caller falls back to generic copy or surfaces it.
+    throw toRemovalError(response, body)
+  }
+
+  /**
+   * Step 2: re-send with the acknowledgment. Returns the 200 body so the UI
+   * can toast the server's own `detail` string.
+   *
+   * Note this is a *soft* delete — the sanctuary moves to `archived` and only
+   * platform staff can restore it. Members, circles and ritual links are not
+   * restored by a restore.
+   */
+  async removeSanctuary(id: number): Promise<RemovalResult> {
+    const response = await fetch(`${API_BASE_URL}/sanctuaries/${id}/remove/`, {
+      method: "POST",
+      headers: { ...this.getHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ acknowledge: true }),
     })
 
+    const body = await readJson(response)
+
     if (!response.ok) {
-      throw await toRemovalError(response)
+      throw toRemovalError(response, body)
+    }
+
+    return {
+      detail: body?.detail ?? "Sanctuary removed.",
+      sanctuaryId: body?.sanctuary_id ?? id,
+      status: body?.status ?? "archived",
+      membershipsRevoked: body?.memberships_revoked ?? 0,
+      circlesArchived: body?.circles_archived ?? 0,
+      ritualsDetached: body?.rituals_detached ?? 0,
     }
   }
 }
 
-/** Error from `DELETE /sanctuaries/<id>/`, carrying the status so the UI can
- *  distinguish "you're not the owner" (403) from a validation failure (400). */
-export class SanctuaryRemovalError extends Error {
+/** The 400 `acknowledgment_required` preflight payload. */
+export interface RemovalConsequences {
+  /** Server-owned copy for the confirm dialog. Render verbatim. */
+  consequences: string[]
+  reversible: boolean
+  title: string | null
+}
+
+export interface RemovalResult {
+  detail: string
+  sanctuaryId: number
+  status: string
+  membershipsRevoked: number
+  circlesArchived: number
+  ritualsDetached: number
+}
+
+/** A failed sanctuary read, carrying the HTTP status so callers can tell
+ *  "gone" (404 — e.g. removed) from "not signed in" (401). */
+export class SanctuaryRequestError extends Error {
   readonly status: number
 
   constructor(message: string, status: number) {
     super(message)
-    this.name = "SanctuaryRemovalError"
+    this.name = "SanctuaryRequestError"
     this.status = status
   }
 }
 
-async function toRemovalError(response: Response): Promise<SanctuaryRemovalError> {
-  let message = ""
-  try {
-    const body = await response.json()
-    // DRF puts non-field errors under `detail`; serializer errors come back
-    // keyed by field, so fall back to the first string we can find.
-    message =
-      body?.detail ||
-      body?.acknowledge?.[0] ||
-      (typeof body === "string" ? body : "") ||
-      Object.values(body ?? {}).flat().find((v) => typeof v === "string") ||
-      ""
-  } catch {
-    // Non-JSON body (proxy error page, empty 502) — fall through to defaults.
+/** Error from `POST /sanctuaries/<id>/remove/`, carrying the status and the
+ *  server's `code` so the UI can tell "you're not allowed" (403) from
+ *  "someone already removed it" (400 `already_removed`). */
+export class SanctuaryRemovalError extends Error {
+  readonly status: number
+  readonly code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = "SanctuaryRemovalError"
+    this.status = status
+    this.code = code
   }
+
+  /** The sanctuary was already archived — treat as success-ish, not a fault. */
+  get alreadyRemoved(): boolean {
+    return this.code === "already_removed"
+  }
+}
+
+async function readJson(response: Response): Promise<any> {
+  try {
+    return await response.json()
+  } catch {
+    // Non-JSON body (proxy error page, empty 502).
+    return null
+  }
+}
+
+function toRemovalError(response: Response, body: any): SanctuaryRemovalError {
+  // DRF puts non-field errors under `detail`; serializer errors come back
+  // keyed by field, so fall back to the first string we can find.
+  let message: string =
+    body?.detail ||
+    body?.acknowledge?.[0] ||
+    (typeof body === "string" ? body : "") ||
+    Object.values(body ?? {}).flat().find((v) => typeof v === "string") ||
+    ""
 
   if (!message) {
     message =
       response.status === 403
-        ? "Only the sanctuary owner can remove this sanctuary."
+        ? "Only the sanctuary owner or platform staff can remove this sanctuary."
+        : response.status === 404
+        ? "This sanctuary no longer exists."
         : `Failed to remove sanctuary: ${response.statusText}`
   }
 
-  return new SanctuaryRemovalError(message, response.status)
+  return new SanctuaryRemovalError(message, response.status, body?.code ?? null)
 }
 
 export const sanctuariesService = new SanctuariesService()

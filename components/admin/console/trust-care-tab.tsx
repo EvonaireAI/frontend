@@ -19,7 +19,28 @@ import { violationLabel } from "@/lib/moderation"
 
 const WINDOW_OPTIONS = [7, 14, 30, 90]
 
-function Breakdown({ title, entries, empty }: { title: string; entries: Array<[string, number]>; empty: string }) {
+/** `AbuseFlag.Action` — the detector writes the first three, a human the rest. */
+const ABUSE_ACTION_LABELS: Record<string, string> = {
+  none: "No action yet",
+  warned: "Soft warning shown",
+  session_terminated: "Session terminated",
+  dismiss: "Dismissed — no abuse",
+  restrict_playback: "Playback restricted",
+  suspend_account: "Account suspended",
+}
+
+function Breakdown({
+  title,
+  entries,
+  empty,
+  labelFor = violationLabel,
+}: {
+  title: string
+  entries: Array<[string, number]>
+  empty: string
+  /** Violation types by default; pass a map for other vocabularies. */
+  labelFor?: (key: string) => string
+}) {
   return (
     <div>
       <p className="mb-2 text-sm font-medium text-foreground">{title}</p>
@@ -29,7 +50,7 @@ function Breakdown({ title, entries, empty }: { title: string; entries: Array<[s
         <div className="flex flex-wrap gap-2">
           {entries.map(([key, value]) => (
             <Badge key={key} variant="outline" className="text-xs">
-              {violationLabel(key)} · {value.toLocaleString()}
+              {labelFor(key)} · {value.toLocaleString()}
             </Badge>
           ))}
         </div>
@@ -95,7 +116,14 @@ export function TrustCareTab() {
     )
   }
 
-  const { cases, reports, agora_flags: agoraFlags, rts_interventions: interventions, appeals } = data
+  const {
+    cases,
+    reports,
+    agora_flags: agoraFlags,
+    rts_interventions: interventions,
+    content_protection: contentProtection,
+    appeals,
+  } = data
 
   return (
     <div className="space-y-6">
@@ -212,6 +240,41 @@ export function TrustCareTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Session 12. Rendered only when the backend sends the block, so this
+          tab still works against a pre-Session-12 API. */}
+      {contentProtection && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Content protection</CardTitle>
+            <CardDescription>
+              Behavioural request patterns only — no profiling, and no automated restriction. Restricting or
+              suspending an account takes a named guardian and a written reason.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Stat label="Open flags" value={contentProtection.flags_open} />
+              <Stat label="Flags in window" value={contentProtection.flags_in_window} />
+              <Stat label="Sessions terminated" value={contentProtection.sessions_terminated_in_window} hint="In window" />
+              <Stat label="Active playback restrictions" value={contentProtection.playback_restrictions_active} />
+            </div>
+            <Breakdown
+              title="Flags by action taken"
+              entries={Object.entries(contentProtection.by_action ?? {})}
+              empty="No flags raised."
+              labelFor={(key) => ABUSE_ACTION_LABELS[key] ?? key.replace(/_/g, " ")}
+            />
+            <p className="text-xs text-muted-foreground">
+              The full trail is in{" "}
+              <Link href="/admin?tab=archive" className="text-primary hover:underline">
+                The Archive
+              </Link>{" "}
+              under Content protection.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

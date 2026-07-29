@@ -8,14 +8,19 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { Loader2, LifeBuoy, Wind, Heart, ArrowLeft } from "lucide-react"
 
-// The Reflection Room (formerly "Safety Room") — a calm surface a member can
-// step into for grounding and to reach additional support. The primary action
-// connects them with a Guardian.
+// The Reflection Room (formerly "Safety Room" — see API_CONTRACTS.md Session 09
+// GAIA terminology) is a calm surface a member can step into for grounding and
+// to reach additional support. The primary action connects them with a Guardian.
 //
-// There is no live "available guardians" endpoint yet, so the CTA routes to the
-// best existing support destination (the Agora, where Guardians are present).
-// TODO(fitsum): point "Connect with a Guardian" at GET /api/guardians/available/
-// when the backend adds it, so we can show real, on-call Guardians here.
+// Contract alignment (API_CONTRACTS.md): there is NO member-facing "available
+// guardians" / support-connect endpoint. Per Session 11, "Members raise concerns
+// through POST /api/moderations/report/" (authService.submitReport) — but that
+// requires a specific content target (ritual/sanctuary/user) and does not fit a
+// general "I need support" request. So the CTA routes to the Agora (where
+// Guardians are present) for now.
+// TODO(fitsum): decide the real support destination — either add a dedicated
+// member→Guardian support endpoint to the contract, or repurpose the Reflection
+// Room CTA to open a targeted moderations/report flow.
 export default function ReflectionRoomPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -68,7 +73,8 @@ export default function ReflectionRoomPage() {
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-3">
             <Button asChild className="flex-1">
-              {/* TODO(fitsum): point at GET /api/guardians/available/ when it exists */}
+              {/* TODO(fitsum): no member→Guardian support endpoint in
+                  API_CONTRACTS.md yet; routes to the Agora for now. */}
               <Link href="/member/agora">
                 <Heart className="w-4 h-4 mr-2" />
                 Connect with a Guardian

@@ -18,26 +18,37 @@ import {
 import { sanctuariesService, SanctuaryRemovalError } from "@/lib/sanctuaries"
 import { Loader2, Trash2, AlertTriangle } from "lucide-react"
 
+// Shown only if the preflight can't reach the server. The real copy is
+// server-owned (API_CONTRACTS Session 10) and fetched when the dialog opens —
+// this exists so a network blip doesn't leave the dialog empty.
+const FALLBACK_CONSEQUENCES = [
+  "The sanctuary is permanently hidden from members and from discovery.",
+  "All current members lose access and every pending join request is closed.",
+  "Its Agora circles are archived.",
+  "Its settings (capacity, privacy, open join) stop applying.",
+  "Rituals are not deleted; they stay owned by their creators and remain usable elsewhere.",
+]
+
 /**
- * Remove Sanctuary (owner-only).
+ * Remove Sanctuary.
  *
- * Renders nothing unless the viewer owns the sanctuary — Stewards remove
- * sanctuaries from their own console, which is a separate surface.
+ * Two-step by contract: opening the dialog POSTs an empty body to
+ * `/sanctuaries/<id>/remove/`, which answers 400 `acknowledgment_required`
+ * carrying the consequence copy; confirming re-sends with `acknowledge: true`.
  *
- * The confirm button stays disabled until the acknowledgment box is ticked, so
- * the server's 400-without-acknowledgment path should be unreachable from
- * here; it's still surfaced verbatim if the server disagrees.
+ * Rendered for the sanctuary owner *or* a steward — the backend admits both,
+ * and a 403 here means the control shouldn't have been shown.
  */
 export function RemoveSanctuary({
   sanctuaryId,
   sanctuaryTitle,
-  isOwner,
+  canRemove,
   /** Where to land after a successful removal — the sanctuaries list. */
   redirectTo = "/creator",
 }: {
   sanctuaryId: number
   sanctuaryTitle: string
-  isOwner: boolean
+  canRemove: boolean
   redirectTo?: string
 }) {
   const router = useRouter()
@@ -45,8 +56,10 @@ export function RemoveSanctuary({
   const [acknowledged, setAcknowledged] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [consequences, setConsequences] = useState<string[] | null>(null)
+  const [loadingCopy, setLoadingCopy] = useState(false)
 
-  if (!isOwner) return null
+  if (!canRemove) return null
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
@@ -54,26 +67,53 @@ export function RemoveSanctuary({
       // Reset the gate each time, so a reopened dialog never starts armed.
       setAcknowledged(false)
       setError(null)
+      return
     }
+
+    // Step 1 — fetch the server's consequence copy for this sanctuary.
+    setLoadingCopy(true)
+    sanctuariesService
+      .getRemovalConsequences(sanctuaryId)
+      .then((preflight) => {
+        setConsequences(preflight.consequences.length ? preflight.consequences : FALLBACK_CONSEQUENCES)
+      })
+      .catch((err) => {
+        setConsequences(FALLBACK_CONSEQUENCES)
+        // An already-removed or forbidden sanctuary is worth saying up front
+        // rather than waiting for the user to confirm.
+        if (err instanceof SanctuaryRemovalError && (err.alreadyRemoved || err.status === 403)) {
+          setError(err.message)
+        }
+      })
+      .finally(() => setLoadingCopy(false))
   }
 
   const handleRemove = async () => {
     setRemoving(true)
     setError(null)
     try {
-      await sanctuariesService.removeSanctuary(sanctuaryId)
+      const result = await sanctuariesService.removeSanctuary(sanctuaryId)
       setOpen(false)
-      toast.success("Sanctuary removed", {
-        description: `"${sanctuaryTitle}" has been removed from the platform.`,
+      // The server owns the wording of the confirmation too.
+      toast.success(result.detail, {
+        description: `${result.membershipsRevoked} ${
+          result.membershipsRevoked === 1 ? "member" : "members"
+        } notified · ${result.circlesArchived} ${
+          result.circlesArchived === 1 ? "circle" : "circles"
+        } archived · rituals kept.`,
       })
       router.push(redirectTo)
       router.refresh()
     } catch (err) {
-      if (err instanceof SanctuaryRemovalError) {
-        setError(err.message)
-      } else {
-        setError(err instanceof Error ? err.message : "Failed to remove sanctuary")
+      if (err instanceof SanctuaryRemovalError && err.alreadyRemoved) {
+        // Someone else removed it first — the goal state is already true.
+        setOpen(false)
+        toast.info(err.message)
+        router.push(redirectTo)
+        router.refresh()
+        return
       }
+      setError(err instanceof Error ? err.message : "Failed to remove sanctuary")
     } finally {
       setRemoving(false)
     }
@@ -86,8 +126,9 @@ export function RemoveSanctuary({
         <div>
           <h2 className="text-base font-semibold text-foreground">Remove Sanctuary</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Permanently remove this sanctuary from Evonaire. Members lose access and circles are
-            archived. This cannot be undone from your account.
+            Remove this sanctuary from Evonaire. Members lose access and circles are archived.
+            You cannot undo this yourself — only platform staff can restore it, and restoring
+            does not bring members or circles back. Your rituals are not deleted.
           </p>
         </div>
       </div>
@@ -96,7 +137,7 @@ export function RemoveSanctuary({
           target, which the default h-9 button doesn't give. */}
       <Button
         variant="destructive"
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
         className="w-full sm:w-auto h-11 sm:h-9"
       >
         <Trash2 className="w-4 h-4 mr-2" />
@@ -110,12 +151,18 @@ export function RemoveSanctuary({
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left">
                 <p>Removing this sanctuary means:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Its members lose access to the sanctuary and its circles.</li>
-                  <li>Every circle in the sanctuary is archived.</li>
-                  <li>The sanctuary disappears from the platform and can no longer be joined.</li>
-                  <li>Its content and settings are permanently removed from view.</li>
-                </ul>
+                {loadingCopy && consequences === null ? (
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Checking what this will affect…
+                  </p>
+                ) : (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {(consequences ?? FALLBACK_CONSEQUENCES).map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
