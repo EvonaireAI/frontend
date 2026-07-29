@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
-import { roleDashboardLabel } from "@/lib/roles"
+import { roleDashboardLabel, isSteward } from "@/lib/roles"
 import { GLOSSARY, COMING_SOON_SECTIONS } from "@/lib/glossary"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
@@ -70,6 +70,7 @@ export function Navigation() {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
+      case "superadmin":
       case "admin":
         return <Shield className="w-4 h-4" />
       case "creator":
@@ -83,6 +84,7 @@ export function Navigation() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
+      case "superadmin":
       case "admin":
         return "bg-destructive/10 text-destructive border-destructive/20"
       case "creator":
@@ -100,6 +102,7 @@ export function Navigation() {
         return "/creator"
       case "member":
         return "/member"
+      case "superadmin":
       case "admin":
         return "/admin"
       case "moderator":
@@ -147,19 +150,24 @@ export function Navigation() {
           { href: "/member/ledger", label: GLOSSARY.ledger, icon: <ScrollText className="w-4 h-4" /> },
         )
         break
+      // Stewards get BOTH consoles — the backend's IsModerator admits
+      // admin/superadmin, so a steward can work care cases too.
+      case "superadmin":
       case "admin":
         items.push(
           { href: "/admin", label: GLOSSARY.stewardConsole, icon: <Shield className="w-4 h-4" /> },
-          { href: "/admin/subscriptions", label: "Subscriptions", icon: <BarChart3 className="w-4 h-4" /> },
-          { href: "/admin/royalties", label: "Royalties", icon: <Coins className="w-4 h-4" /> },
-          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
-          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
+          { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <ClipboardCheck className="w-4 h-4" /> },
+          { href: "/admin?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
+          { href: "/admin?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
+          { href: "/admin?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
+          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
+          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" />, overflow: true },
         )
         break
       case "moderator":
         items.push(
           { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <Shield className="w-4 h-4" /> },
-          { href: "/moderate/review-queue", label: "Commons Review", icon: <ClipboardCheck className="w-4 h-4" /> },
+          { href: "/moderate?tab=pending", label: "Pending Reviews", icon: <ClipboardCheck className="w-4 h-4" /> },
           { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
           { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
         )
@@ -348,7 +356,7 @@ export function Navigation() {
                     <span>Profile Settings</span>
                   </Link>
                 </DropdownMenuItem>
-                {user.role === "admin" && (
+                {isSteward(user.role) && (
                   <DropdownMenuItem asChild>
                     <Link href="/admin" className="flex items-center">
                       <Shield className="mr-2 h-4 w-4" />

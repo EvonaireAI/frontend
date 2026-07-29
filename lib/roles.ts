@@ -37,3 +37,29 @@ export function roleDashboardLabel(role: string | null | undefined): string {
 export function roleShortLabel(role: string | null | undefined): string {
   return roleDashboardLabel(role).replace(/\s*\(D\d\)\s*$/, "")
 }
+
+// ── Access helpers ──────────────────────────────────────────────────────────
+//
+// These mirror the backend permission classes exactly. Use them instead of
+// inline role comparisons so the two never drift:
+//
+//   IsModerator      → moderator | admin | superadmin   (isGuardian)
+//   IsAdminUser      → admin | superadmin               (isSteward)
+//
+// Session 11 backend fix: `role="superadmin"` accounts without the Django
+// superuser flag used to be rejected by every `/api/admin/*` endpoint. Several
+// screens mirrored that bug with `user.role !== "admin"`. Anything gating on
+// steward access must go through `isSteward`.
+
+export const GUARDIAN_ROLES = ["moderator", "admin", "superadmin"] as const
+export const STEWARD_ROLES = ["admin", "superadmin"] as const
+
+/** Can work care cases — the Guardian Dashboard. Stewards qualify too. */
+export function isGuardian(role: string | null | undefined): boolean {
+  return !!role && (GUARDIAN_ROLES as readonly string[]).includes(role)
+}
+
+/** Can reach the Steward Console and the steward-only endpoints. */
+export function isSteward(role: string | null | undefined): boolean {
+  return !!role && (STEWARD_ROLES as readonly string[]).includes(role)
+}

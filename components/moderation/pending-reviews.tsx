@@ -159,10 +159,13 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                             ))}
                           </div>
 
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
+                          {/* `RitualListForReviewSerializer` sends `creator` as a
+                              bare id plus `creator_email`, and has no
+                              `submitted_at` — read `created_at`. */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1 break-all">
                               <User className="w-4 h-4" />
-                              {ritual.creator.first_name} {ritual.creator.last_name}
+                              {ritual.creator_email}
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
@@ -170,7 +173,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                             </div>
                             <div className="flex items-center gap-1">
                               <AlertTriangle className="w-4 h-4" />
-                              Submitted {new Date(ritual.submitted_at).toLocaleDateString()}
+                              Submitted {new Date(ritual.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>

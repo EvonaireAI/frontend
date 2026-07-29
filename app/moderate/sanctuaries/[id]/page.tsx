@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
+import { isGuardian } from "@/lib/roles"
 import {
   sanctuariesService,
   type Sanctuary,
@@ -41,7 +42,7 @@ export default function SanctuaryAuditPage() {
         }
 
         const userData = await authService.getProfile()
-        if (!["moderator", "admin", "superadmin"].includes(userData.role)) {
+        if (!isGuardian(userData.role)) {
           router.push("/dashboard")
           return
         }
@@ -113,7 +114,7 @@ export default function SanctuaryAuditPage() {
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground mb-4">Sanctuary not found</p>
             <Button asChild>
-              <Link href="/moderate">Back to Guardian Dashboard</Link>
+              <Link href="/moderate?tab=sanctuaries">Back to Guardian Dashboard</Link>
             </Button>
           </CardContent>
         </Card>
@@ -126,7 +127,7 @@ export default function SanctuaryAuditPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button asChild variant="outline" className="mb-4 bg-transparent">
-            <Link href="/moderate">
+            <Link href="/moderate?tab=sanctuaries">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Guardian Dashboard
             </Link>
