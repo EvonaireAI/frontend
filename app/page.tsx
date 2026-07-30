@@ -2,7 +2,6 @@
 
 import type { MouseEvent } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Shield, Heart, Check } from "lucide-react"
 import {
   PRICING_PLANS,
@@ -82,17 +81,14 @@ export default function LandingPage() {
 
       {/* Hero section */}
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 -mt-20">
-        {/* Dandelion hero graphic. The PNG has an opaque white background, so
-            it's framed in a soft rounded light container so it reads as an
-            intentional botanical emblem rather than a white box on the dark hero. */}
-        <div className="mb-8 animate-float rounded-[2rem] bg-cream/95 p-4 shadow-[0_0_40px_rgba(217,181,116,0.25)] ring-1 ring-gold/30">
-          <Image
-            src="/brand/dandelion.png"
+        {/* EVONAIRE dandelion — the brand logo, used directly as a transparent
+            SVG so it floats on the dark hero (no white box, no frame). */}
+        <div className="mb-8 animate-float">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
             alt="Evonaire dandelion"
-            width={640}
-            height={888}
-            priority
-            className="h-44 w-auto object-contain md:h-52"
+            className="h-48 w-auto md:h-56 drop-shadow-[0_0_30px_rgba(217,181,116,0.3)]"
           />
         </div>
 
@@ -285,10 +281,11 @@ export default function LandingPage() {
 
             {/* Feature 3 */}
             <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
-              {/* EVONAIRE EA mark — replaces the generic sparkle icon. White
-                  container because the monogram has an opaque white background. */}
-              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-6 p-1.5 ring-1 ring-gold/30">
-                <Image src="/brand/ea-mark.png" alt="" width={512} height={512} className="w-full h-full object-contain" />
+              {/* EVONAIRE dandelion mark — transparent SVG in the same gold
+                  circle as the other feature icons (no white box). */}
+              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.svg" alt="" className="w-8 h-8 object-contain" />
               </div>
               <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
               <p className="text-cream/60 text-sm leading-relaxed">
