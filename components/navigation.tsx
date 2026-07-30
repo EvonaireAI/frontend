@@ -133,6 +133,7 @@ export function Navigation() {
           { href: "/creator/payouts", label: GLOSSARY.payouts, icon: <Banknote className="w-4 h-4" />, overflow: true },
           { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" />, overflow: true },
           { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" />, overflow: true },
+          { href: "/creator/provenance", label: "Provenance", icon: <ScrollText className="w-4 h-4" />, overflow: true },
           { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
         )
         break

@@ -27,6 +27,7 @@ import {
   MessageSquare,
   Users,
   Activity,
+  ScrollText,
 } from "lucide-react"
 import Link from "next/link"
 import { GLOSSARY } from "@/lib/glossary"
@@ -264,6 +265,20 @@ export default function CreatorDashboard() {
               <p className="text-sm text-muted-foreground">
                 Manage your uploaded rituals and track their journey through the community
               </p>
+              {/* Provenance is a full section of its own, not a tab: it has a
+                  detail view per ritual and reads as a record rather than a
+                  dashboard. */}
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="mt-4 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground"
+              >
+                <Link href="/creator/provenance">
+                  <ScrollText className="w-4 h-4 mr-2" />
+                  Provenance &amp; Licenses
+                </Link>
+              </Button>
             </div>
             {ritualsLoading ? (
               <div className="flex items-center justify-center py-12">
