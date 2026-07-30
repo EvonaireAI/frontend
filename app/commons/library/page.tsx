@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
@@ -17,6 +17,8 @@ import {
   type Purchase,
 } from "@/lib/commons"
 import { LicenseChip } from "@/components/commons/listing-chips"
+import { fetchHeldLicenses, type LicenseRecord } from "@/lib/claimchain"
+import { HeldLicensePanel } from "@/components/claimchain/held-license-panel"
 
 // Factual status line for a non-active entry — no shaming language.
 function statusLine(p: Purchase): string {
@@ -37,6 +39,7 @@ export default function PurchasesLibraryPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [purchases, setPurchases] = useState<Purchase[]>([])
+  const [licenses, setLicenses] = useState<LicenseRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,7 +47,15 @@ export default function PurchasesLibraryPage() {
     setLoading(true)
     setError(null)
     try {
-      setPurchases(await fetchPurchases())
+      // Licenses are supplementary: entitlements that predate the ledger have no
+      // license record at all, so a failure or an empty list here must never
+      // stop the library from rendering.
+      const [purchaseList, licensePage] = await Promise.all([
+        fetchPurchases(),
+        fetchHeldLicenses().catch(() => null),
+      ])
+      setPurchases(purchaseList)
+      setLicenses(licensePage?.results ?? [])
     } catch {
       setError("We couldn't load your purchases right now.")
     } finally {
@@ -60,6 +71,24 @@ export default function PurchasesLibraryPage() {
     }
     load()
   }, [authLoading, user, router, load])
+
+  // `LicenseRecord.entitlement` is the purchase id (a Commons purchase *is* an
+  // entitlement). Falling back to the listing id covers the case where the
+  // entitlement link comes back null.
+  const licensesByPurchase = useMemo(() => {
+    const byEntitlement = new Map<number, LicenseRecord>()
+    const byListing = new Map<number, LicenseRecord>()
+    for (const license of licenses) {
+      if (license.entitlement !== null && license.entitlement !== undefined) {
+        byEntitlement.set(license.entitlement, license)
+      }
+      if (license.listing !== null && license.listing !== undefined && !byListing.has(license.listing)) {
+        byListing.set(license.listing, license)
+      }
+    }
+    return (purchase: Purchase) =>
+      byEntitlement.get(purchase.id) ?? byListing.get(purchase.listing.id) ?? null
+  }, [licenses])
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -117,12 +146,14 @@ export default function PurchasesLibraryPage() {
             const isActive = p.status === "active"
             const line = statusLine(p)
             const source = sourceLabel(p)
+            const license = licensesByPurchase(p)
             return (
               <Card
                 key={p.id}
                 className={`bg-card border-border ${isActive ? "" : "opacity-60"}`}
               >
-                <CardContent className="p-5 flex items-start justify-between gap-4 flex-wrap">
+                <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="space-y-2 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <LicenseChip level={p.listing.license_level} />
@@ -174,6 +205,12 @@ export default function PurchasesLibraryPage() {
                       </Button>
                     )}
                   </div>
+                </div>
+
+                {/* The rights record behind this purchase, when there is one.
+                    Pre-ledger entitlements have no license row and simply show
+                    nothing extra. */}
+                {license && <HeldLicensePanel license={license} />}
                 </CardContent>
               </Card>
             )

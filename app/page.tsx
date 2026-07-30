@@ -1,7 +1,9 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import Link from "next/link"
-import { Shield, Heart, Sparkles, Check } from "lucide-react"
+import Image from "next/image"
+import { Shield, Heart, Check } from "lucide-react"
 import {
   PRICING_PLANS,
   PLAN_PRICES,
@@ -31,6 +33,15 @@ function PricingCell({ value }: { value: string | boolean }) {
 }
 
 export default function LandingPage() {
+  // Smooth-scroll to an on-page section. Works on touch and keyboard (the
+  // element is a real anchor, so Enter/Space and no-JS still navigate to it).
+  const scrollToSection = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id)
+    if (!target) return
+    e.preventDefault()
+    target.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   return (
     <div className="min-h-screen bg-dark-navy relative overflow-hidden">
       {/* Starfield background */}
@@ -40,20 +51,23 @@ export default function LandingPage() {
         <div className="stars3" />
       </div>
 
-      {/* Top navigation */}
-      <nav className="relative z-10 flex justify-end items-center gap-6 p-6">
-        <Link
+      {/* Top navigation — Pricing and Learn More sit on opposite sides,
+          flanking the central dandelion hero. Both work on tap + keyboard. */}
+      <nav className="relative z-10 flex justify-between items-center gap-6 p-6">
+        <a
           href="#pricing"
+          onClick={(e) => scrollToSection(e, "pricing")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Pricing
-        </Link>
-        <Link
+        </a>
+        <a
           href="#features"
+          onClick={(e) => scrollToSection(e, "features")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Learn More
-        </Link>
+        </a>
       </nav>
 
       {/* Dandelion brand illustration — soft hero backdrop */}
@@ -68,15 +82,17 @@ export default function LandingPage() {
 
       {/* Hero section */}
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 -mt-20">
-        {/* Logo */}
-        <div className="mb-8 animate-float">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.svg"
-            alt="Evonaire Logo"
-            width={180}
-            height={180}
-            className="drop-shadow-[0_0_30px_rgba(217,181,116,0.3)]"
+        {/* Dandelion hero graphic. The PNG has an opaque white background, so
+            it's framed in a soft rounded light container so it reads as an
+            intentional botanical emblem rather than a white box on the dark hero. */}
+        <div className="mb-8 animate-float rounded-[2rem] bg-cream/95 p-4 shadow-[0_0_40px_rgba(217,181,116,0.25)] ring-1 ring-gold/30">
+          <Image
+            src="/brand/dandelion.png"
+            alt="Evonaire dandelion"
+            width={640}
+            height={888}
+            priority
+            className="h-44 w-auto object-contain md:h-52"
           />
         </div>
 
@@ -269,8 +285,10 @@ export default function LandingPage() {
 
             {/* Feature 3 */}
             <div className="bg-dark-navy/50 border border-gold/20 rounded-2xl p-8 backdrop-blur-sm hover:border-gold/40 transition-colors">
-              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
-                <Sparkles className="w-6 h-6 text-gold" />
+              {/* EVONAIRE EA mark — replaces the generic sparkle icon. White
+                  container because the monogram has an opaque white background. */}
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-6 p-1.5 ring-1 ring-gold/30">
+                <Image src="/brand/ea-mark.png" alt="" width={512} height={512} className="w-full h-full object-contain" />
               </div>
               <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
               <p className="text-cream/60 text-sm leading-relaxed">

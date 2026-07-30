@@ -10,7 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
-import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
+import { sanctuariesService, SanctuaryRequestError, type Sanctuary } from "@/lib/sanctuaries"
+import { isSteward } from "@/lib/roles"
+import { RemoveSanctuary } from "@/components/sanctuaries/remove-sanctuary"
+import { toast } from "sonner"
 import { Loader2, ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
 
@@ -44,7 +47,9 @@ export default function EditSanctuaryPage() {
         }
 
         const userData = await authService.getProfile()
-        if (userData.role !== "creator") {
+        // Stewards reach sanctuary settings too — the backend admits them for
+        // both the read and the removal (API_CONTRACTS Session 10).
+        if (userData.role !== "creator" && !isSteward(userData.role)) {
           router.push("/dashboard")
           return
         }
@@ -63,6 +68,13 @@ export default function EditSanctuaryPage() {
         })
       } catch (err) {
         console.error("Failed to load data:", err)
+        // A removed sanctuary now 404s for its former owner. That's "gone",
+        // not "signed out" — bouncing to the login screen would be a lie.
+        if (err instanceof SanctuaryRequestError && (err.status === 404 || err.status === 403)) {
+          toast.error(err.message || "This sanctuary no longer exists.")
+          router.push("/creator?tab=sanctuaries")
+          return
+        }
         router.push("/auth/login")
       } finally {
         setLoading(false)
@@ -131,8 +143,8 @@ export default function EditSanctuaryPage() {
               Back to Sanctuary
             </Link>
           </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Edit Sanctuary</h1>
-          <p className="text-muted-foreground">Update your sanctuary settings and information</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Sanctuary Settings</h1>
+          <p className="text-muted-foreground">Update your sanctuary&rsquo;s details, privacy and membership</p>
         </div>
 
         <Card className="bg-card border-border">
@@ -256,6 +268,26 @@ export default function EditSanctuaryPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Destructive action, deliberately at the end of settings rather than
+            buried behind another screen. The backend admits the owner or
+            platform staff (API_CONTRACTS Session 10), so mirror that here. */}
+        {sanctuary && (
+          <div className="mt-8">
+            <RemoveSanctuary
+              sanctuaryId={sanctuaryId}
+              sanctuaryTitle={sanctuary.title}
+              canRemove={!!user && (sanctuary.owner?.id === user.id || isSteward(user.role))}
+              // A steward isn't a creator, so /creator would bounce them to
+              // /dashboard — send them to their own sanctuaries surface.
+              redirectTo={
+                user && isSteward(user.role) && sanctuary.owner?.id !== user.id
+                  ? "/moderate?tab=sanctuaries"
+                  : "/creator?tab=sanctuaries"
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   )

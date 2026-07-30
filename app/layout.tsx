@@ -2,17 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { AuthProvider } from "@/lib/auth-context"
-import { EntitlementsProvider } from "@/lib/entitlements-context"
-import { GatewayProvider } from "@/lib/gateway-context"
-import { UpgradeModalHost } from "@/components/payments/upgrade-modal"
-import { Navigation } from "@/components/navigation"
-import { ConsentGuard } from "@/components/consent-guard"
-import { GatewayNudge } from "@/components/gateway/gateway-nudge"
-import { GatewayCompletionModalHost } from "@/components/gateway/gateway-completion-modal"
-import { Footer } from "@/components/footer"
-import { GaiaChatWidget } from "@/components/gaia/chat-widget"
-import { Toaster } from "@/components/ui/sonner"
+import { AppShell } from "@/components/app-shell"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -40,24 +30,9 @@ html {
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: fontStyle }} />
       </head>
       <body>
-        <AuthProvider>
-          <EntitlementsProvider>
-            <GatewayProvider>
-              <ConsentGuard>
-                <div className="min-h-screen flex flex-col">
-                  <Navigation />
-                  <div className="flex-1">{children}</div>
-                  <Footer />
-                </div>
-                <GaiaChatWidget />
-                <UpgradeModalHost />
-                <GatewayCompletionModalHost />
-                <GatewayNudge />
-                <Toaster richColors position="top-right" />
-              </ConsentGuard>
-            </GatewayProvider>
-          </EntitlementsProvider>
-        </AuthProvider>
+        {/* The auth providers, nav and consent guard live in AppShell, which
+            skips them entirely on standalone public routes like /verify. */}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   )

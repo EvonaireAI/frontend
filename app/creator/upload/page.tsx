@@ -209,7 +209,7 @@ export default function RitualUpload() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Upload Sacred Ritual</h1>
+            <h1 className="text-3xl font-bold text-foreground">Upload Ritual</h1>
             <p className="text-muted-foreground">Share your practice with the community</p>
           </div>
         </div>

@@ -1,5 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
+import { unwrapList } from "./moderation"
+
 // RTS Types
 export interface RTSScore {
   user: {
@@ -81,15 +83,16 @@ export interface RTSFlag {
   severity: "low" | "medium" | "high"
 }
 
+/**
+ * `GET /api/rts/alerts/` answers `{"critical_users": [...]}` where each entry
+ * is a slim user — id / email / names only. There is no score or timestamp on
+ * this payload; read the score from `GET /api/rts/<user_id>/` if you need it.
+ */
 export interface RTSAlert {
   id: number
-  user_id: number
   email: string
-  name: string
-  score: number
-  band: string
-  triggered_at: string
-  acknowledged: boolean
+  first_name: string | null
+  last_name: string | null
 }
 
 export interface RTSConfig {
@@ -139,8 +142,15 @@ export interface RTSAuditResponse {
   }>
 }
 
+/** The flag serializer speaks mild/moderate/serious; the UI speaks low/medium/high. */
+const FLAG_SEVERITY_MAP: Record<string, string> = {
+  low: "mild",
+  medium: "moderate",
+  high: "serious",
+}
+
 class RTSService {
-  private getAuthHeaders() {
+  private getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem("access_token")
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
@@ -187,7 +197,8 @@ class RTSService {
     return response.json()
   }
 
-  // Moderator endpoints
+  // Guardian endpoints (moderator / admin / superadmin only since Session 11 —
+  // hide the controls for anyone else rather than letting a 403 reach the UI).
   async getAllCreators(): Promise<RTSCreatorSummary[]> {
     const response = await fetch(`${API_BASE_URL}/rts/creators/`, {
       headers: this.getAuthHeaders(),
@@ -197,7 +208,9 @@ class RTSService {
       throw new Error("Failed to fetch creators")
     }
 
-    return response.json()
+    // The view declares PageNumberPagination, so it answers with a bare array
+    // today and an envelope the moment a PAGE_SIZE is configured.
+    return unwrapList<RTSCreatorSummary>(await response.json()).results
   }
 
   async getCreatorScore(userId: number): Promise<RTSScore> {
@@ -236,15 +249,27 @@ class RTSService {
     return response.json()
   }
 
+  /**
+   * Guardian-only since Session 11. This writes a care-flag signal against
+   * another creator's score — members raise concerns through
+   * `POST /api/moderations/report/` (authService.submitReport) instead.
+   */
   async createFlag(flag: RTSFlag): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/rts/ai/interpret/`, {
+    const response = await fetch(`${API_BASE_URL}/rts/flag/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(flag),
-
+      // The serializer's own field names: `user`, `reason`, and a severity
+      // vocabulary of mild/moderate/serious.
+      body: JSON.stringify({
+        user: flag.user_id,
+        severity: FLAG_SEVERITY_MAP[flag.severity] ?? "moderate",
+        reason: flag.description,
+        source_id: flag.ritual_id,
+        extra_meta: { flag_type: flag.flag_type },
+      }),
     })
 
     if (!response.ok) {
@@ -263,10 +288,13 @@ class RTSService {
       throw new Error("Failed to fetch alerts")
     }
 
-    return response.json()
+    const data = await response.json()
+    return Array.isArray(data?.critical_users) ? data.critical_users : []
   }
 
-  // Admin endpoints
+  // Steward endpoints — PATCH config and recalculate are admin/superadmin only.
+  // Guardians may READ the config (see getConfig) but must not be shown an
+  // edit affordance.
   async getConfig(): Promise<RTSConfig> {
     const response = await fetch(`${API_BASE_URL}/rts/config/`, {
       headers: this.getAuthHeaders(),
@@ -293,6 +321,20 @@ class RTSService {
 
     if (!response.ok) {
       throw new Error("Failed to update RTS config")
+    }
+
+    return response.json()
+  }
+
+  /** Steward-only — rewrites one user's score platform-wide. */
+  async recalculateUser(userId: number): Promise<{ detail?: string; current_score?: number }> {
+    const response = await fetch(`${API_BASE_URL}/rts/recalculate/${userId}/`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to recalculate the score")
     }
 
     return response.json()

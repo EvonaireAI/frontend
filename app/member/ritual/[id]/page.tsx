@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,8 +10,30 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { authService, type User, type Ritual } from "@/lib/auth"
-import { PlaybackMeter } from "@/lib/playback-metering"
-import { EntitlementDeniedError, throwIfEntitlementDenied, openUpgradeModal } from "@/lib/entitlements"
+import {
+  PlaybackMeter,
+  PlaybackLockedError,
+  StreamDeniedError,
+  type Enforcement,
+} from "@/lib/playback-metering"
+import {
+  applySecureScreen,
+  assignStreamSource,
+  clearStreamSource,
+  getScreenProtectionCapabilities,
+  hardenMediaElement,
+  protectSurface,
+  watchCaptureSignal,
+  watchSurfaceVisibility,
+} from "@/lib/screen-protection"
+import { derivePseudonym, shortSessionLabel } from "@/lib/watermark"
+import { DynamicWatermark } from "@/components/player/dynamic-watermark"
+import {
+  PlaybackLockedCard,
+  PlaybackMovedNotice,
+  PlaybackRestrictedCard,
+} from "@/components/player/playback-notice"
+import { EntitlementDeniedError, openUpgradeModal } from "@/lib/entitlements"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { planDisplayName } from "@/lib/plans"
 import { QuotaMeter } from "@/components/payments/quota-meter"
@@ -18,14 +41,19 @@ import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, C
 import { ReportModal } from "@/components/report-modal"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
+// Audio is acquired through the Session 12 session-bound stream token, not by
+// downloading a blob: the URL is short-lived, tied to one live playback session,
+// and assigned straight to the element in JS so it never appears in the markup.
+// Reconnects re-acquire; a re-acquire may return a different URL, so the
+// position is restored by hand.
+const MAX_RECONNECT_ATTEMPTS = 2
+
 export default function RitualPlayer() {
   const [user, setUser] = useState<User | null>(null)
   const [ritual, setRitual] = useState<Ritual | null>(null)
   const [loading, setLoading] = useState(true)
-  const [audioSrc, setAudioSrc] = useState<string | null>(null)
   const [audioLoading, setAudioLoading] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
-  const [pendingPlay, setPendingPlay] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -37,13 +65,50 @@ export default function RitualPlayer() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
   const [submittingFeedback, setSubmittingFeedback] = useState(false)
 
+  // Session 12 protection state
+  const [sessionId, setSessionId] = useState<number | null>(null)
+  const [pseudonym, setPseudonym] = useState("————————")
+  const [moved, setMoved] = useState<{ detail: string | null } | null>(null)
+  const [locked, setLocked] = useState<{ detail: string; flagId: number | null } | null>(null)
+  const [restricted, setRestricted] = useState<{ detail: string | null } | null>(null)
+  const [reclaiming, setReclaiming] = useState(false)
+  const [obscured, setObscured] = useState(false)
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const audioSrcRef = useRef<string | null>(null)
-  // Reports listening time for creator royalties; telemetry only — meter
-  // failures never block or interrupt playback
+  const surfaceRef = useRef<HTMLDivElement | null>(null)
+  const hasSourceRef = useRef(false)
+  const reconnectsRef = useRef(0)
+  // Set while the surface-obscured handler paused audio, so returning to the
+  // tab resumes exactly what it interrupted — and nothing else.
+  const autoPausedRef = useRef(false)
+
+  // Reports listening time for creator royalties and owns the playback session
+  // that stream tokens are bound to. Metering failures never interrupt audio;
+  // stream denials do, and arrive through these callbacks.
   const meterRef = useRef<PlaybackMeter | null>(null)
   if (!meterRef.current) {
-    meterRef.current = new PlaybackMeter(() => audioRef.current?.currentTime ?? 0)
+    meterRef.current = new PlaybackMeter(() => audioRef.current?.currentTime ?? 0, {
+      onSessionChange: (id) => setSessionId(id),
+      onWarning: (enforcement: Enforcement) => {
+        // Once per session, quiet, and explicitly not a change to their access.
+        toast("Unusual playback activity was detected on your account.", {
+          description:
+            "Nothing about your membership or access has changed. If this looks unfamiliar to you, the Reflection Room is open.",
+          duration: 9000,
+        })
+        void enforcement
+      },
+      onLocked: (error) => {
+        setLocked({ detail: error.detail, flagId: error.flagId })
+        setMoved(null)
+      },
+      onSuperseded: (detail) => {
+        setMoved({ detail })
+      },
+      onRestricted: (detail) => {
+        setRestricted({ detail })
+      },
+    })
   }
   const meter = meterRef.current
   const router = useRouter()
@@ -51,47 +116,71 @@ export default function RitualPlayer() {
   const ritualId = Number.parseInt(params.id as string)
   const { plan } = useEntitlements()
 
-  const fetchAuthenticatedAudio = async (ritualId: number): Promise<string | null> => {
-    if (audioSrcRef.current) return audioSrcRef.current
+  const stopAudio = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.pause()
+    setIsPlaying(false)
+  }, [])
 
-    setAudioLoading(true)
-    setAudioError(null)
-
-    try {
-      const token = authService.getToken()
-      if (!token) {
-        throw new Error("User is not authenticated.")
+  // Any state that means "this surface must not be sounding" — locked,
+  // restricted, or moved to another device — stops audio immediately.
+  useEffect(() => {
+    if (locked || restricted || moved) {
+      stopAudio()
+      if (locked || restricted) {
+        clearStreamSource(audioRef.current)
+        hasSourceRef.current = false
       }
+    }
+  }, [locked, restricted, moved, stopAudio])
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rituals/${ritualId}/stream/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        // Structured care_level 403 opens the upgrade modal
-        await throwIfEntitlementDenied(response)
-        throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`)
-      }
-
-      const audioBlob = await response.blob()
-      const objectUrl = URL.createObjectURL(audioBlob)
-      audioSrcRef.current = objectUrl
-      setAudioSrc(objectUrl)
-      return objectUrl
-    } catch (err) {
-      console.error("Error fetching ritual audio:", err)
-      if (err instanceof EntitlementDeniedError) {
-        setAudioError(`This ritual is part of the ${planDisplayName(err.denial.required_plan)} tier.`)
-      } else {
-        setAudioError(err instanceof Error ? err.message : "Failed to load audio")
-      }
-      return null
-    } finally {
-      setAudioLoading(false)
+  const describeDenial = (err: StreamDeniedError): string => {
+    switch (err.reason) {
+      case "session_superseded":
+      case "playback_restricted":
+      case "session_flagged":
+        // Rendered as a card by the callbacks; no duplicate inline error
+        return ""
+      default:
+        return err.detail || "Audio is unavailable right now. Please try again."
     }
   }
+
+  // Acquires a grant and hands the URL to the element. Never returns the URL to
+  // React state — it must not end up in a prop, an attribute, or the DOM.
+  const loadStreamIntoElement = useCallback(
+    async (eventType?: "RECONNECT"): Promise<boolean> => {
+      const audio = audioRef.current
+      if (!audio) return false
+      setAudioLoading(true)
+      setAudioError(null)
+      try {
+        const url = await meter.acquireStreamUrl(eventType)
+        assignStreamSource(audio, url)
+        hardenMediaElement(audio)
+        hasSourceRef.current = true
+        return true
+      } catch (err) {
+        hasSourceRef.current = false
+        if (err instanceof PlaybackLockedError) return false
+        if (err instanceof StreamDeniedError) {
+          const message = describeDenial(err)
+          if (message) setAudioError(message)
+          return false
+        }
+        if (err instanceof EntitlementDeniedError) {
+          setAudioError(`This ritual is part of the ${planDisplayName(err.denial.required_plan)} tier.`)
+          return false
+        }
+        setAudioError("Failed to load audio")
+        return false
+      } finally {
+        setAudioLoading(false)
+      }
+    },
+    [meter],
+  )
 
   useEffect(() => {
     const loadData = async () => {
@@ -108,6 +197,9 @@ export default function RitualPlayer() {
         }
 
         setUser(userData)
+        // Watermark identity: an opaque 8-char pseudonym, never the email or
+        // the raw user id — the mark is visible to anyone looking at the screen.
+        setPseudonym(await derivePseudonym(userData.id))
 
         const rituals = await authService.getPublicRituals()
         const currentRitual = rituals.find((r) => r.id === ritualId && r.status === "approved")
@@ -118,8 +210,8 @@ export default function RitualPlayer() {
         }
 
         setRitual(currentRitual)
-        // Audio is fetched lazily on Play, after the play is registered, so
-        // any entitlement denial arrives before the player opens
+        // Audio is acquired lazily on Play, after the session is registered, so
+        // any entitlement or enforcement denial arrives before the player opens
       } catch (err) {
         console.error("Failed to load data:", err)
         router.push("/auth/login")
@@ -131,9 +223,7 @@ export default function RitualPlayer() {
     loadData()
 
     return () => {
-      if (audioSrcRef.current) {
-        URL.revokeObjectURL(audioSrcRef.current)
-      }
+      clearStreamSource(audioRef.current)
       // Navigating to another ritual/page ends the playback session
       meter.end()
     }
@@ -161,40 +251,104 @@ export default function RitualPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const startAudio = async () => {
-    if (!audioRef.current) return
+  // ── Session 12: screen protection on the player surface ─────────────────────
+
+  useEffect(() => {
+    // No-op on the web by design; a native wrapper implements the bridge and
+    // this becomes FLAG_SECURE / an iOS secure view without touching this file.
+    const releaseSecureScreen = applySecureScreen()
+    const releaseSurface = protectSurface(surfaceRef.current)
+    hardenMediaElement(audioRef.current)
+    return () => {
+      releaseSurface()
+      releaseSecureScreen()
+    }
+  }, [loading, ritual])
+
+  // Hide the artwork and pause when the surface is not in front of the user.
+  // A deterrent against "start recording, walk away" — not a capture defence.
+  //
+  // These pauses deliberately do NOT emit PAUSE/RESUME transport events or
+  // rotate the token. They are ours, not the listener's, and feeding them to
+  // the detector would let ordinary alt-tabbing trip `rapid_transport` and
+  // warn someone who did nothing.
+  useEffect(() => {
+    return watchSurfaceVisibility(
+      () => {
+        setObscured(true)
+        const audio = audioRef.current
+        if (audio && !audio.paused) {
+          autoPausedRef.current = true
+          audio.pause()
+          setIsPlaying(false)
+        }
+      },
+      () => {
+        setObscured(false)
+        if (!autoPausedRef.current) return
+        autoPausedRef.current = false
+        const audio = audioRef.current
+        if (!audio || !hasSourceRef.current) return
+        audio.play().then(
+          () => setIsPlaying(true),
+          () => {
+            // Autoplay policy refused the resume; the play button still works
+          },
+        )
+      },
+    )
+  }, [])
+
+  // Capture signal, where the platform actually has one. On the web today it
+  // subscribes to nothing and reports nothing — see docs/CONTENT-PROTECTION.md.
+  // The backend weights this at zero: context for a reviewing human, never
+  // grounds for enforcement on its own.
+  useEffect(() => {
+    const capabilities = getScreenProtectionCapabilities()
+    if (!capabilities.canDetectRecording) return
+    return watchCaptureSignal(() => {
+      void meter.reportEvent("CAPTURE_SUSPECTED", { platform: capabilities.platform })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Transport ───────────────────────────────────────────────────────────────
+
+  const startAudio = async (resuming: boolean) => {
+    const audio = audioRef.current
+    if (!audio) return
     try {
-      await audioRef.current.play()
+      await audio.play()
       setIsPlaying(true)
       meter.onPlaying()
+      if (resuming) {
+        meter.rotateFor("RESUME")
+        void meter.reportEvent("RESUME")
+      }
     } catch (err) {
       console.error("Failed to play audio:", err)
       setAudioError("Failed to play audio. Please try again.")
     }
   }
 
-  // Plays as soon as the <audio> element mounts with the freshly fetched source
-  useEffect(() => {
-    if (pendingPlay && audioSrc && audioRef.current) {
-      setPendingPlay(false)
-      startAudio()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingPlay, audioSrc])
-
   const handlePlay = async () => {
-    if (!ritual) return
+    if (!ritual || locked || restricted || moved) return
 
     if (isPlaying) {
       audioRef.current?.pause()
       setIsPlaying(false)
       meter.onPause()
+      // A transport event: the previous token dies and the detector sees the
+      // shape of the request.
+      meter.rotateFor("PAUSE")
+      void meter.reportEvent("PAUSE")
       return
     }
 
-    // Register the playback session BEFORE starting audio so quota/care-level
+    // Register the playback session BEFORE acquiring audio so quota/care-level
     // denials arrive before the player opens. Resuming a pause keeps the same
     // session; only a listen that ended needs a fresh start.
+    const resuming = meter.listening && hasSourceRef.current
     if (!meter.listening) {
       try {
         await meter.start(ritual.id)
@@ -203,18 +357,20 @@ export default function RitualPlayer() {
           // Upgrade modal is already open
           return
         }
-        // Any other metering failure is swallowed — audio plays regardless
+        if (err instanceof StreamDeniedError) {
+          // A restriction refused the session outright; the card is rendered
+          return
+        }
+        // Any other metering failure is swallowed — we still try for a grant
       }
     }
 
-    if (!audioSrc) {
-      const url = await fetchAuthenticatedAudio(ritual.id)
-      if (!url) return
-      setPendingPlay(true)
-      return
+    if (!hasSourceRef.current) {
+      reconnectsRef.current = 0
+      if (!(await loadStreamIntoElement())) return
     }
 
-    await startAudio()
+    await startAudio(resuming)
   }
 
   const handleTimeUpdate = () => {
@@ -231,6 +387,8 @@ export default function RitualPlayer() {
 
   const handleEnded = () => {
     setIsPlaying(false)
+    hasSourceRef.current = false
+    clearStreamSource(audioRef.current)
     // Close the playback session with the final position; replaying after
     // this starts a brand-new session
     meter.end()
@@ -240,6 +398,68 @@ export default function RitualPlayer() {
     if (audioRef.current) {
       audioRef.current.currentTime = value[0]
       setCurrentTime(value[0])
+    }
+  }
+
+  // Fires once when the user lets go of the handle, not on every pixel of a
+  // drag — one SEEK per seek, which is what the detector expects to see.
+  const handleSeekCommit = () => {
+    if (!meter.listening) return
+    meter.rotateFor("SEEK")
+    void meter.reportEvent("SEEK")
+  }
+
+  // A dead media element usually means the grant behind it expired or the
+  // network dropped. Re-acquire, restore the position, and carry on.
+  const handleMediaError = async () => {
+    const audio = audioRef.current
+    if (!audio || locked || restricted || moved) return
+    if (!meter.listening) return
+    if (reconnectsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      setAudioError("Audio is unavailable right now. Please try again.")
+      return
+    }
+    reconnectsRef.current += 1
+
+    const resumeAt = audio.currentTime
+    const wasPlaying = isPlaying
+    void meter.reportEvent("ERROR", { player_state: audio.networkState })
+    if (!(await loadStreamIntoElement("RECONNECT"))) return
+    void meter.reportEvent("RECONNECT")
+
+    const restore = () => {
+      audio.removeEventListener("loadedmetadata", restore)
+      if (Number.isFinite(resumeAt) && resumeAt > 0) audio.currentTime = resumeAt
+      if (wasPlaying) void startAudio(false)
+    }
+    audio.addEventListener("loadedmetadata", restore)
+  }
+
+  // "Play here instead" — the user's one session is currently on another
+  // device. Opening a fresh session moves it back, calmly and on request.
+  const handleReclaim = async () => {
+    if (!ritual || reclaiming) return
+    setReclaiming(true)
+    setAudioError(null)
+    try {
+      const url = await meter.reclaimPlayback()
+      const audio = audioRef.current
+      if (audio) {
+        assignStreamSource(audio, url)
+        hardenMediaElement(audio)
+        hasSourceRef.current = true
+      }
+      setMoved(null)
+      await startAudio(false)
+    } catch (err) {
+      if (err instanceof StreamDeniedError) {
+        const message = describeDenial(err)
+        if (message) setAudioError(message)
+      } else if (!(err instanceof PlaybackLockedError)) {
+        setAudioError("Couldn't move playback back here. Please try again.")
+      }
+    } finally {
+      setReclaiming(false)
     }
   }
 
@@ -372,6 +592,8 @@ export default function RitualPlayer() {
     )
   }
 
+  const transportDisabled = Boolean(locked || restricted || moved)
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 lg:py-12 max-w-4xl">
@@ -410,74 +632,108 @@ export default function RitualPlayer() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Audio Player - Dark circle design */}
-                <div className="flex justify-center">
-                  <div className="w-48 h-48 rounded-full bg-secondary border-2 border-border flex items-center justify-center">
-                    <div className="w-40 h-40 rounded-full bg-muted border border-border/50" />
+                {/*
+                  The protected surface. The watermark overlays everything inside
+                  it, so a recording of the player carries the mark wherever the
+                  frame is cropped.
+                */}
+                <div ref={surfaceRef} className="relative">
+                  <DynamicWatermark
+                    identity={{ pseudonym, sessionLabel: shortSessionLabel(sessionId) }}
+                    active={!transportDisabled}
+                  />
+
+                  {/* Audio Player - Dark circle design */}
+                  <div className="flex justify-center">
+                    <div
+                      className={`w-48 h-48 rounded-full bg-secondary border-2 border-border flex items-center justify-center transition-[filter,opacity] duration-200 ${
+                        obscured ? "blur-md opacity-40" : ""
+                      }`}
+                    >
+                      <div className="w-40 h-40 rounded-full bg-muted border border-border/50" />
+                    </div>
                   </div>
-                </div>
-                <div className="rounded-lg p-4 text-center">
-                  {audioLoading && (
-                    <div className="py-8">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-                      <p className="text-muted-foreground">Loading sacred audio...</p>
-                    </div>
-                  )}
+                  <div className="rounded-lg p-4 text-center">
+                    {/*
+                      Always mounted and never given a `src` prop: the presigned
+                      URL is assigned through the element property so it stays in
+                      JS memory and out of the rendered markup.
+                    */}
+                    <audio
+                      ref={audioRef}
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onEnded={handleEnded}
+                      onError={handleMediaError}
+                      preload="none"
+                      controlsList="nodownload"
+                      disablePictureInPicture
+                    />
 
-                  {audioError && !audioLoading && (
-                    <div className="py-8">
-                      <p className="text-destructive mb-4">Error: {audioError}</p>
-                      <Button onClick={handlePlay} variant="outline">
-                        Try Again
-                      </Button>
-                    </div>
-                  )}
+                    {locked && <PlaybackLockedCard detail={locked.detail} flagId={locked.flagId} />}
 
-                  {!audioLoading && !audioError && (
-                    <>
-                      {audioSrc && (
-                        <audio
-                          ref={audioRef}
-                          src={audioSrc}
-                          onTimeUpdate={handleTimeUpdate}
-                          onLoadedMetadata={handleLoadedMetadata}
-                          onEnded={handleEnded}
-                          preload="metadata"
-                        />
-                      )}
+                    {!locked && restricted && <PlaybackRestrictedCard detail={restricted.detail} />}
 
-                      <Button onClick={handlePlay} size="lg" className="w-20 h-20 rounded-full mb-6 bg-primary text-primary-foreground hover:bg-gold-muted">
-                        {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
-                      </Button>
+                    {!locked && !restricted && moved && (
+                      <PlaybackMovedNotice
+                        detail={moved.detail}
+                        onPlayHere={handleReclaim}
+                        busy={reclaiming}
+                      />
+                    )}
 
-                      {/* Progress Bar */}
-                      <div className="space-y-2">
-                        <Slider
-                          value={[currentTime]}
-                          max={duration || 100}
-                          step={1}
-                          onValueChange={handleSeek}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>{formatTime(currentTime)}</span>
-                          <span>{formatTime(duration)}</span>
+                    {!transportDisabled && audioLoading && (
+                      <div className="py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+                        <p className="text-muted-foreground">Loading sacred audio...</p>
+                      </div>
+                    )}
+
+                    {!transportDisabled && audioError && !audioLoading && (
+                      <div className="py-8">
+                        <p className="text-destructive mb-4">Error: {audioError}</p>
+                        <Button onClick={handlePlay} variant="outline">
+                          Try Again
+                        </Button>
+                      </div>
+                    )}
+
+                    {!transportDisabled && !audioLoading && !audioError && (
+                      <>
+                        <Button onClick={handlePlay} size="lg" className="w-20 h-20 rounded-full mb-6 bg-primary text-primary-foreground hover:bg-gold-muted">
+                          {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+                        </Button>
+
+                        {/* Progress Bar */}
+                        <div className="space-y-2">
+                          <Slider
+                            value={[currentTime]}
+                            max={duration || 100}
+                            step={1}
+                            onValueChange={handleSeek}
+                            onValueCommit={handleSeekCommit}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>{formatTime(currentTime)}</span>
+                            <span>{formatTime(duration)}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Volume Control */}
-                      <div className="flex items-center gap-3 mt-4 max-w-xs mx-auto">
-                        <Volume2 className="w-4 h-4 text-muted-foreground" />
-                        <Slider
-                          value={volume}
-                          max={1}
-                          step={0.1}
-                          onValueChange={handleVolumeChange}
-                          className="flex-1"
-                        />
-                      </div>
-                    </>
-                  )}
+                        {/* Volume Control */}
+                        <div className="flex items-center gap-3 mt-4 max-w-xs mx-auto">
+                          <Volume2 className="w-4 h-4 text-muted-foreground" />
+                          <Slider
+                            value={volume}
+                            max={1}
+                            step={0.1}
+                            onValueChange={handleVolumeChange}
+                            className="flex-1"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Actions */}
