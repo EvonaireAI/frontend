@@ -41,19 +41,19 @@ export default function LandingPage() {
       </div>
 
       {/* Top navigation */}
-      <nav className="relative z-10 flex justify-end items-center gap-6 p-6">
-        <Link
+      <nav className="relative z-20 flex justify-end items-center gap-6 p-6">
+        <a
           href="#pricing"
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Pricing
-        </Link>
-        <Link
+        </a>
+        <a
           href="#features"
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Learn More
-        </Link>
+        </a>
       </nav>
 
       {/* Dandelion brand illustration — soft hero backdrop */}
