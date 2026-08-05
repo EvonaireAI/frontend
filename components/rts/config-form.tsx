@@ -93,7 +93,7 @@ export function ConfigForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-primary" />
-          RTS Configuration
+          Resonance Configuration
         </CardTitle>
         <CardDescription>Configure weights, thresholds, and decay settings for the RTS system</CardDescription>
       </CardHeader>

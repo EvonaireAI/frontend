@@ -23,6 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ShadowModeBanner } from "@/components/admin/royalties/shadow-mode-banner"
+import { isSteward } from "@/lib/roles"
 import { authService, type User } from "@/lib/auth"
 import { centsToDollarString, rateToPercentString } from "@/lib/metrics"
 import { periodLabel } from "@/lib/listening"
@@ -87,7 +88,7 @@ export default function AdminRoyaltyPeriodPage() {
           return
         }
         const userData = await authService.getProfile()
-        if (userData.role !== "admin") {
+        if (!isSteward(userData.role)) {
           router.push("/dashboard")
           return
         }
@@ -110,7 +111,7 @@ export default function AdminRoyaltyPeriodPage() {
     )
   }
 
-  if (!user || user.role !== "admin") {
+  if (!user || !isSteward(user.role)) {
     return null
   }
 
@@ -118,7 +119,7 @@ export default function AdminRoyaltyPeriodPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <Link
-          href="/admin/royalties"
+          href="/admin?tab=earnings"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />

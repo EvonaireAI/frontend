@@ -24,6 +24,8 @@ import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
 import { QuotaMeter } from "@/components/payments/quota-meter"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { GLOSSARY } from "@/lib/glossary"
+import { BeginHere } from "@/components/member/begin-here"
 import { isPaidActive } from "@/lib/subscription"
 
 // ── Subscription badge ─────────────────────────────────────────────────────────
@@ -268,10 +270,12 @@ export default function MemberDashboard() {
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Hero header */}
         <div className="text-center mb-10">
-          <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">Welcome Back</p>
+          <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">
+            {user ? `Welcome back, ${user.first_name}` : "Welcome Back"}
+          </p>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance inline-flex items-center gap-2 justify-center flex-wrap">
-            <span>{user ? `Hi, ${user.first_name}` : "Sacred Library"}</span>
-            <GaiaInfoTip infoKey="member.library" ariaLabel="About the library" side="bottom" />
+            <span>{GLOSSARY.sacredLibrary}</span>
+            <GaiaInfoTip infoKey="member.library" ariaLabel="About the Sacred Library" side="bottom" />
           </h1>
           {/* Subscription badge */}
           {user && (
@@ -294,6 +298,8 @@ export default function MemberDashboard() {
             </Button>
           </div>
         </div>
+
+        <BeginHere rituals={rituals} />
 
         <PremiumCTABanner />
 
@@ -340,7 +346,9 @@ export default function MemberDashboard() {
 
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">{filteredSanctuaries.length} Sanctuaries Available</h2>
+                <h2 className="text-2xl font-semibold">
+                  {filteredSanctuaries.length} {filteredSanctuaries.length === 1 ? "Sanctuary" : "Sanctuaries"} Available
+                </h2>
               </div>
 
               {sanctuariesLoading ? (
@@ -425,7 +433,9 @@ export default function MemberDashboard() {
 
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">{filteredRituals.length} Sacred Practices Available</h2>
+                <h2 className="text-2xl font-semibold">
+                  {filteredRituals.length} Sacred {filteredRituals.length === 1 ? "Practice" : "Practices"} Available
+                </h2>
               </div>
 
               {ritualsLoading ? (

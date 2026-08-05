@@ -25,7 +25,9 @@ export interface User {
   email: string
   first_name: string
   last_name: string
-  role: "member" | "creator" | "moderator" | "admin"
+  // `superadmin` is a real role on the account, not just the Django superuser
+  // flag — the backend admits it everywhere `admin` is admitted.
+  role: "member" | "creator" | "moderator" | "admin" | "superadmin"
   profile_picture?: string
   date_joined: string
   consent_privacy_policy?: boolean
@@ -159,31 +161,10 @@ export interface PendingRitual {
   updated_at: string
 }
 
-export interface ModerationCase {
-  id: number
-  ritual: number | null
-  ritual_title?: string
-  reporter?: number | null
-  reporter_email?: string
-  emotional_state?: number | null
-  flagged_by_ai: boolean
-  violation_type?: string
-  flagged_reason?: string
-  severity: "low" | "medium" | "high"
-  assigned_moderator?: number | null
-  assigned_moderator_email?: string
-  status: "open" | "assigned" | "resolved" | "closed"
-  crisis_escalated?: boolean
-  created_at: string
-  updated_at: string
-  history: Array<{
-    at: string
-    by: string
-    event: string
-    before: Record<string, any>
-    after: Record<string, any>
-  }>
-}
+// The care-case types and every case read/transition live in lib/moderation.ts
+// (the Guardian data layer). Re-exported here so existing importers keep
+// working.
+export type { ModerationCase, CareFeedItem } from "./moderation"
 
 export interface ReviewResponse {
   id: number
@@ -194,27 +175,6 @@ export interface ReviewResponse {
   status_after: string
   note: string
   created_at: string
-}
-
-export interface CareFeedItem {
-  id: number
-  type: "blessing" | "feedback" | "case"
-  ritual?: number | null
-  ritual_title?: string
-  user?: number | null
-  giver_email?: string
-  feedback_text?: string
-  is_anonymous?: boolean
-  emotional_state?: number | null
-  flagged_by_ai?: boolean
-  flagged_reason?: string
-  severity?: "low" | "medium" | "high"
-  assigned_moderator?: number | null
-  assigned_moderator_email?: string
-  status?: string
-  created_at?: string
-  updated_at?: string
-  history?: Array<Record<string, any>>
 }
 
 class AuthService {
@@ -758,47 +718,11 @@ class AuthService {
     return response.json()
   }
 
-  // Crisis Escalation
-  async escalateCase(caseId: number, notes: string): Promise<{
-    detail: string
-    case_id: number
-    severity: string
-    crisis_escalated: boolean
-    intervention_id: number
-  }> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/escalate/`, {
-      method: "POST",
-      headers: {
-        ...this.getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ notes }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to escalate case")
-    }
-
-    return response.json()
-  }
-
-  async getModerationStats(): Promise<{
-    pending_reviews: number
-    open_cases: number
-    reviews_completed_today: number
-    cases_resolved_today: number
-  }> {
-    // This endpoint doesn't exist in the API docs, so we'll calculate from other endpoints
-    const [pendingRituals, cases] = await Promise.all([this.getPendingRituals(), this.getModerationCases()])
-
-    return {
-      pending_reviews: pendingRituals.length,
-      open_cases: cases.filter((c) => c.status === "open").length,
-      reviews_completed_today: 0, // Would need separate endpoint
-      cases_resolved_today: 0, // Would need separate endpoint
-    }
-  }
+  // Care cases — reads, the five workflow transitions and crisis escalation all
+  // live in `moderationService` (lib/moderation.ts). The PATCH-based helpers
+  // that used to live here are gone on purpose: writing `status` directly
+  // leaves `assigned_at` / `resolved_by` / `archived_at` unstamped, so the case
+  // never appears correctly in Care History or The Archive.
 
   async getPendingRituals(): Promise<PendingRitual[]> {
     const response = await fetch(`${API_BASE_URL}/moderations/rituals/pending/`, {
@@ -825,104 +749,6 @@ class AuthService {
     if (!response.ok) {
       const error = await response.json()
       throw new Error(error.detail || "Failed to review ritual")
-    }
-
-    return response.json()
-  }
-
-  async getModerationCases(): Promise<ModerationCase[]> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/`, {
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch moderation cases")
-    }
-
-    return response.json()
-  }
-
-  async getModerationCase(caseId: number): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, {
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch moderation case")
-    }
-
-    return response.json()
-  }
-
-  async updateModerationCase(
-    caseId: number,
-    updates: {
-      assigned_moderator?: number
-      status?: "open" | "assigned" | "resolved" | "closed"
-      severity?: "low" | "medium" | "high"
-    },
-  ): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, {
-      method: "PATCH",
-      headers: {
-        ...this.getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updates),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to update moderation case")
-    }
-
-    return response.json()
-  }
-
-  async getCareFeed(): Promise<CareFeedItem[]> {
-    const response = await fetch(`${API_BASE_URL}/moderations/care-feed/`, {
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch care feed")
-    }
-
-    return response.json()
-  }
-
-  async updateCaseStatus(caseId: number, status: string, notes?: string): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, {
-      method: "PATCH",
-      headers: {
-        ...this.getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to update case status")
-    }
-
-    return response.json()
-  }
-
-  async assignCase(caseId: number): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, {
-      method: "PATCH",
-      headers: {
-        ...this.getAuthHeaders(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: "assigned",
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to assign case")
     }
 
     return response.json()

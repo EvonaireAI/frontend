@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authService } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
+import { roleDashboardLabel } from "@/lib/roles"
 import { Loader2, ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
@@ -23,6 +24,7 @@ export default function ProfilePage() {
     last_name: "",
   })
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -41,6 +43,17 @@ export default function ProfilePage() {
       last_name: user.last_name || "",
     })
   }, [authLoading, user, router])
+
+  // Build a local preview URL for the pending file and clean it up afterwards.
+  useEffect(() => {
+    if (!profilePicture) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(profilePicture)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [profilePicture])
 
   const initials = useMemo(() => {
     if (!user) return "U"
@@ -134,27 +147,43 @@ export default function ProfilePage() {
 
               <div className="flex items-center space-x-6">
                 <Avatar className="w-24 h-24">
-                <AvatarImage
-                  src={user.profile_picture || "/placeholder.svg"}
-                  alt={`${user.first_name} ${user.last_name}`}
-                />
-                <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
-              </Avatar>
+                  <AvatarImage
+                    src={previewUrl || user.profile_picture || "/placeholder.svg"}
+                    alt={`${user.first_name} ${user.last_name}`}
+                  />
+                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                </Avatar>
                 <div>
-                  <Label htmlFor="profile_picture" className="cursor-pointer">
-                    <div className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700">
-                      <Upload className="w-4 h-4" />
-                      <span>Change profile picture</span>
-                    </div>
-                  </Label>
-                  <Input
+                  {/*
+                    Real, focusable file input activated by its label. It's kept
+                    visually hidden with sr-only positioning (NOT display:none /
+                    hidden) because iOS Safari won't trigger a display:none input
+                    from a <label htmlFor>. accept="image/*" lets mobile offer
+                    the camera + photo library.
+                  */}
+                  <input
                     id="profile_picture"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="hidden"
+                    className="sr-only"
                   />
-                  {profilePicture && <p className="text-xs text-gray-600 mt-1">Selected: {profilePicture.name}</p>}
+                  <Label
+                    htmlFor="profile_picture"
+                    className="inline-flex cursor-pointer items-center space-x-2 rounded-md border border-input px-3 py-2 text-sm text-blue-600 hover:bg-accent hover:text-blue-700 focus-within:ring-2 focus-within:ring-ring"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>{profilePicture ? "Change photo" : "Change profile picture"}</span>
+                  </Label>
+                  {profilePicture ? (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                      Selected: {profilePicture.name} — press Save Changes to upload.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      JPG or PNG. Camera or library on mobile.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -189,7 +218,7 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Input value={user.role} disabled className="bg-gray-50 dark:bg-gray-800 capitalize" />
+                <Input value={roleDashboardLabel(user.role)} disabled className="bg-gray-50 dark:bg-gray-800" />
                 <p className="text-xs text-gray-600 dark:text-gray-400">Role changes require admin approval.</p>
               </div>
 

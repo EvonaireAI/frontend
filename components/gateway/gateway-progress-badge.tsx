@@ -15,11 +15,15 @@ export function GatewayProgressBadge() {
     <Link
       href="/gateway-quiz"
       title="Your Gateway progress"
-      className="hidden items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+      aria-label={`Gateway progress: ${progress.answered_count} of ${progress.total}`}
+      // Visible at every breakpoint / orientation. The label collapses to just
+      // the count on narrow (portrait) widths so it never gets clipped or hidden.
+      className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
     >
-      <Compass className="h-3.5 w-3.5" />
+      <Compass className="h-3.5 w-3.5 shrink-0" />
       <span>
-        Gateway {progress.answered_count} / {progress.total}
+        <span className="hidden sm:inline">Gateway </span>
+        {progress.answered_count}/{progress.total}
       </span>
     </Link>
   )

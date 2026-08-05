@@ -24,7 +24,10 @@ export default function DashboardPage() {
       case "member":
         router.push("/member")
         break
+      // `superadmin` lands on the Steward Console too — the backend admits it
+      // everywhere `admin` is admitted.
       case "admin":
+      case "superadmin":
         router.push("/admin")
         break
       case "moderator":

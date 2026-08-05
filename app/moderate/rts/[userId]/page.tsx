@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { authService, type User } from "@/lib/auth"
+import { isGuardian } from "@/lib/roles"
 import { rtsService, type RTSScore, type RTSHistoryEntry, type RTSAuditResponse } from "@/lib/rts"
 import { ScoreBadge } from "@/components/rts/score-badge"
 import { ScoreHistory } from "@/components/rts/score-history"
@@ -33,7 +34,7 @@ export default function CreatorRTSDetail() {
         }
 
         const userData = await authService.getProfile()
-        if (!["moderator", "admin", "superadmin"].includes(userData.role)) {
+        if (!isGuardian(userData.role)) {
           router.push("/dashboard")
           return
         }
@@ -91,7 +92,7 @@ export default function CreatorRTSDetail() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
           <Button asChild variant="outline">
-            <Link href="/moderate">
+            <Link href="/moderate?tab=rts">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Link>
@@ -110,8 +111,8 @@ export default function CreatorRTSDetail() {
           {/* Current Score */}
           <Card>
             <CardHeader>
-              <CardTitle>Current RTS Score</CardTitle>
-              <CardDescription>Real-time Resonance Trust Score</CardDescription>
+              <CardTitle>Current Resonance Trust Synthesis</CardTitle>
+              <CardDescription>Real-time Resonance Trust Synthesis</CardDescription>
             </CardHeader>
             <CardContent>
               {score ? (
