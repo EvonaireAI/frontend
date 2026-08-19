@@ -111,7 +111,7 @@ export default function ProfilePage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="flex items-center space-x-4 mb-8">
           <Button asChild variant="outline" size="sm">
@@ -120,13 +120,13 @@ export default function ProfilePage() {
               Back to Dashboard
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white inline-flex items-center gap-2">
+          <h1 className="text-3xl font-serif text-cream tracking-wide inline-flex items-center gap-2">
             Profile Settings
             <GaiaInfoTip infoKey="profile.picture" ariaLabel="About profile settings" side="bottom" />
           </h1>
         </div>
 
-        <Card>
+        <Card className="bg-[#141f2a] border-gold/20 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>Update your profile information and settings</CardDescription>
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <Button type="submit" disabled={saving} className="w-full">
+              <Button type="submit" disabled={saving} className="w-full cursor-pointer">
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
