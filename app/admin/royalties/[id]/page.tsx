@@ -247,7 +247,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
           <AlertDialogTrigger asChild>
             <Button
               disabled={report.status !== "computed" || approving}
-              className="bg-primary text-primary-foreground hover:bg-gold-muted"
+              className="bg-primary text-primary-foreground hover:bg-gold-muted cursor-pointer"
             >
               {approving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -114,7 +114,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="flex items-center space-x-4 mb-8">
-          <Button asChild variant="outline" size="sm">
+          <Button asChild className="cursor-pointer">
             <Link href="/dashboard">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard

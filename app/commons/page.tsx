@@ -91,7 +91,7 @@ export default function CommonsBrowsePage() {
             One-off offerings from creators — classes, care sessions, bundles and premium rituals.
           </p>
         </div>
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" className="cursor-pointer">
           <Link href="/commons/library" className="flex items-center gap-2">
             <Library className="w-4 h-4" />
             My purchases
@@ -117,9 +117,9 @@ export default function CommonsBrowsePage() {
             variant="outline"
             size="sm"
           >
-            <ToggleGroupItem value="all">All</ToggleGroupItem>
-            <ToggleGroupItem value="L1_open">L1 · Open</ToggleGroupItem>
-            <ToggleGroupItem value="L2_guided">L2 · Guided</ToggleGroupItem>
+            <ToggleGroupItem value="all" className="cursor-pointer px-6">All</ToggleGroupItem>
+            <ToggleGroupItem value="L1_open" className="cursor-pointer px-6">L1 · Open</ToggleGroupItem>
+            <ToggleGroupItem value="L2_guided" className="cursor-pointer px-6">L2 · Guided</ToggleGroupItem>
           </ToggleGroup>
         </div>
         <div className="flex items-center gap-2">
@@ -131,9 +131,9 @@ export default function CommonsBrowsePage() {
             variant="outline"
             size="sm"
           >
-            <ToggleGroupItem value="all">All</ToggleGroupItem>
-            <ToggleGroupItem value="free">Free</ToggleGroupItem>
-            <ToggleGroupItem value="paid">Paid</ToggleGroupItem>
+            <ToggleGroupItem value="all" className="cursor-pointer px-6">All</ToggleGroupItem>
+            <ToggleGroupItem value="free" className="cursor-pointer px-6">Free</ToggleGroupItem>
+            <ToggleGroupItem value="paid" className="cursor-pointer px-6">Paid</ToggleGroupItem>
           </ToggleGroup>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function CommonsBrowsePage() {
         <Alert variant="destructive" className="mb-6">
           <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
             <span>{error}</span>
-            <Button variant="outline" size="sm" onClick={load}>
+            <Button variant="outline" size="sm" onClick={load} className="cursor-pointer">
               <RefreshCw className="w-4 h-4 mr-2" />
               Retry
             </Button>

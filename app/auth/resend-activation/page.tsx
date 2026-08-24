@@ -95,16 +95,17 @@ export default function ResendActivationPage() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Remember your password?{" "}
-                  <Link href="/auth/login" className="text-blue-600 hover:underline">
-                    Sign in
-                  </Link>
-                </p>
-              </div>
+
             </CardContent>
           </Card>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-cream/40">
+              {"Remember your password?  "}
+              <Link href="/auth/login" className="text-gold hover:text-gold-muted transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
 

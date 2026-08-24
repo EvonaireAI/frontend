@@ -217,9 +217,9 @@ export function Navigation() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-72 bg-card border-border p-0">
                   <SheetHeader className="p-4 border-b border-border text-left">
-                    <SheetTitle className="flex items-center gap-2 text-foreground">
+                    <SheetTitle className="flex items-center text-foreground">
                       <span className="flex items-center justify-center h-6 w-6 rounded-md bg-white p-0.5">
-                        <Image src="/brand/ea-mark.png" alt="" width={512} height={512} className="h-full w-full object-contain" />
+                        <Image src="/logo.svg" alt="" width={512} height={512} className="h-full w-full object-contain" />
                       </span>
                       Evonaire
                     </SheetTitle>
@@ -257,10 +257,8 @@ export function Navigation() {
             )}
 
             <Link href={getRoleDashboard(user.role)} className="flex items-center space-x-2">
-              {/* EA monogram has an opaque white background, so it sits inside a
-                  white rounded container to avoid a white box on the dark nav. */}
-              <span className="flex items-center justify-center h-8 w-8 rounded-lg bg-white p-0.5 shadow-sm">
-                <Image src="/brand/ea-mark.png" alt="Evonaire" width={512} height={512} className="h-full w-full object-contain" priority />
+              <span className="flex items-center justify-center h-10 w-10 rounded-lg p-0.5 shadow-sm">
+                <Image src="/logo.svg" alt="Evonaire" width={512} height={512} className="h-full w-full object-contain" priority />
               </span>
               <span className="text-lg font-bold text-foreground tracking-wide">Evonaire</span>
             </Link>
