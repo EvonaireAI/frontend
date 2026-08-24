@@ -31,9 +31,17 @@ export default function RegisterPage() {
     setSuccess("")
     setLoading(true)
     try {
-      const submitData = { ...formData }
-      // if (formData.role === "member") delete submitData.reason
-      // await authService.register(submitData)
+      const submitData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        password: formData.password,
+        ...(formData.role !== "member" && {
+          role: formData.role,
+          reason: formData.reason,
+        }),
+      }
+      await authService.register(submitData)
       setSuccess("Registration successful! Please check your email for an activation link.")
       setTimeout(() => router.push("/auth/login"), 3000)
     } catch (err) {
