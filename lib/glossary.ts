@@ -19,7 +19,7 @@ export const GLOSSARY = {
   /** A section INSIDE The Ledger — never a standalone nav entry. */
   billing: "Billing",
   reflectionRoom: "Reflection Room",
-  commons: "The Commons",
+  commons: "Symposium",
 
   // ── Creator-facing ─────────────────────────────────────────────────────────
   creatorStudio: "Creator Studio",

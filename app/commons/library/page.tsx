@@ -98,7 +98,7 @@ export default function PurchasesLibraryPage() {
           <h1 className="text-3xl font-bold text-foreground">My purchases</h1>
         </div>
         <p className="text-muted-foreground">
-          Offerings you own from the Commons — purchases, gifts and membership perks.
+          Offerings you own from the Symposium — purchases, gifts and membership perks.
         </p>
       </div>
 
@@ -136,7 +136,7 @@ export default function PurchasesLibraryPage() {
           <Button asChild variant="outline">
             <Link href="/commons" className="flex items-center gap-2 cursor-pointer">
               <Store className="w-4 h-4" />
-              Browse the Commons
+              Browse the Symposium
             </Link>
           </Button>
         </div>

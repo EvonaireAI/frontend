@@ -151,7 +151,7 @@ function DetailContent() {
             This listing isn&apos;t available, or hasn&apos;t been published.
           </p>
           <Button asChild variant="outline" className="mt-5">
-            <Link href="/commons">Back to the Commons</Link>
+            <Link href="/commons">Back to the Symposium</Link>
           </Button>
         </div>
       </div>
@@ -247,7 +247,7 @@ function BackLink() {
       className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors cursor-pointer"
     >
       <ArrowLeft className="w-4 h-4" />
-      The Commons
+      The Symposium
     </Link>
   )
 }

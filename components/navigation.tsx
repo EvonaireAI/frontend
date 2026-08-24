@@ -217,7 +217,7 @@ export function Navigation() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-72 bg-card border-border p-0">
                   <SheetHeader className="p-4 border-b border-border text-left">
-                    <SheetTitle className="flex items-center text-foreground">
+                    <SheetTitle className="flex items-center gap-2 text-foreground">
                       <span className="flex items-center justify-center h-6 w-6 rounded-md bg-white p-0.5">
                         <Image src="/logo.svg" alt="" width={512} height={512} className="h-full w-full object-contain" />
                       </span>

@@ -1,4 +1,4 @@
-// The Commons — marketplace where creators sell one-off offerings (classes,
+// The Symposium (formerly the Commons) — marketplace where creators sell one-off offerings (classes,
 // care sessions, bundles, premium rituals) at license levels L1_open /
 // L2_guided, paid via Stripe Checkout destination charges. All money fields
 // are integer cents. Browse endpoints work logged-out; everything else needs

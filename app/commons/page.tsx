@@ -85,7 +85,7 @@ export default function CommonsBrowsePage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <Store className="w-5 h-5 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">The Commons</h1>
+            <h1 className="text-3xl font-bold text-foreground">Symposium</h1>
           </div>
           <p className="text-muted-foreground">
             One-off offerings from creators — classes, care sessions, bundles and premium rituals.
@@ -118,8 +118,8 @@ export default function CommonsBrowsePage() {
             size="sm"
           >
             <ToggleGroupItem value="all" className="cursor-pointer px-6">All</ToggleGroupItem>
-            <ToggleGroupItem value="L1_open" className="cursor-pointer px-6">L1 · Open</ToggleGroupItem>
-            <ToggleGroupItem value="L2_guided" className="cursor-pointer px-6">L2 · Guided</ToggleGroupItem>
+            <ToggleGroupItem value="L1_open" className="cursor-pointer px-6">L1 · Public</ToggleGroupItem>
+            <ToggleGroupItem value="L2_guided" className="cursor-pointer px-6">L2 · Sanctuary</ToggleGroupItem>
           </ToggleGroup>
         </div>
         <div className="flex items-center gap-2">

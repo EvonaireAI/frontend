@@ -99,7 +99,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
         return
       }
       if (freeOnGuided) {
-        setPriceError("Free offerings must use the L1 · Open license.")
+        setPriceError("Free offerings must use the L1 · Public license.")
         return
       }
     }
@@ -174,7 +174,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
           </div>
 
           <div className="space-y-1.5">
-            <Label>Linked ritual (optional)</Label>
+            <Label>Linked Ritual (optional)</Label>
             <Select value={ritualId} onValueChange={setRitualId} disabled={earlyAccessOnly}>
               <SelectTrigger>
                 <SelectValue placeholder="None" />
@@ -192,7 +192,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>License level</Label>
+              <Label>License Level</Label>
               <Select
                 value={license}
                 onValueChange={(v) => setLicense(v as LicenseLevel)}
@@ -202,8 +202,8 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="L1_open">L1 · Open</SelectItem>
-                  <SelectItem value="L2_guided">L2 · Guided</SelectItem>
+                  <SelectItem value="L1_open">L1 · Public</SelectItem>
+                  <SelectItem value="L2_guided">L2 · Sanctuary</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -224,7 +224,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
           </div>
           {freeOnGuided && !earlyAccessOnly && (
             <p className="text-xs text-destructive">
-              Free offerings must use the L1 · Open license.
+              Free offerings must use the L1 · Public license.
             </p>
           )}
           {priceError && <p className="text-xs text-destructive">{priceError}</p>}
