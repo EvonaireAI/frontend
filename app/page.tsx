@@ -42,7 +42,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-navy relative overflow-hidden">
+    <div className="min-h-screen w-full max-w-[100vw] bg-dark-navy relative overflow-x-hidden">
       {/* Starfield background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="stars" />
@@ -79,7 +79,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 -mt-20">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full max-w-full px-4 -mt-20 overflow-x-hidden">
         {/* EVONAIRE dandelion — the brand logo, used directly as a transparent
             SVG so it floats on the dark hero (no white box, no frame). */}
         <div className="mb-8 animate-float">
@@ -92,7 +92,7 @@ export default function LandingPage() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-cream text-center mb-6 tracking-wide">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-cream text-center mb-6 tracking-wide px-2">
           Welcome To Evonaire
         </h1>
 
@@ -120,8 +120,8 @@ export default function LandingPage() {
       </main>
 
       {/* Pricing Section */}
-      <section id="pricing" className="relative z-10 py-24 px-4">
-        <div className="max-w-5xl mx-auto">
+      <section id="pricing" className="relative z-10 py-24 px-4 w-full max-w-full overflow-x-hidden">
+        <div className="max-w-5xl mx-auto w-full min-w-0">
           <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">Choose Your Plan</h2>
           <p className="text-cream/60 text-center max-w-xl mx-auto mb-16">
             Unlock deeper rituals, more sanctuaries, and richer insights. Start free — upgrade or
@@ -169,11 +169,11 @@ export default function LandingPage() {
                       {PRICING_MATRIX_ROWS.slice(0, 4).map((row) => {
                         const value = row.value(PLAN_ENTITLEMENTS[planKey])
                         return (
-                          <li key={row.label} className="flex items-center gap-2.5">
-                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-gold/20 flex-shrink-0">
+                          <li key={row.label} className="flex items-start gap-2.5 min-w-0">
+                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-gold/20 flex-shrink-0 mt-0.5">
                               <Check className="h-2.5 w-2.5 text-gold" />
                             </div>
-                            <span className="text-sm text-cream/80">
+                            <span className="text-sm text-cream/80 min-w-0 break-words">
                               {row.label}: {typeof value === "boolean" ? (value ? "Included" : "—") : value}
                             </span>
                           </li>
@@ -205,13 +205,13 @@ export default function LandingPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gold/15 bg-gold/5">
-                    <th className="text-left px-5 py-3.5 text-xs text-cream/50 font-medium uppercase tracking-wider w-1/3">
+                    <th className="text-left px-3 sm:px-5 py-3.5 text-xs text-cream/50 font-medium uppercase tracking-wider w-1/3">
                       Feature
                     </th>
                     {PRICING_PLANS.map((planKey) => (
                       <th
                         key={planKey}
-                        className={`px-3 py-3.5 text-xs font-medium uppercase tracking-wider text-center ${
+                        className={`px-2 sm:px-3 py-3.5 text-xs font-medium uppercase tracking-wider text-center ${
                           planKey === "evocore" ? "text-gold font-semibold" : "text-cream/50"
                         }`}
                       >
@@ -226,9 +226,9 @@ export default function LandingPage() {
                 <tbody className="divide-y divide-gold/10">
                   {PRICING_MATRIX_ROWS.map((row) => (
                     <tr key={row.label} className="hover:bg-gold/5 transition-colors">
-                      <td className="px-5 py-3 text-cream/80">{row.label}</td>
+                      <td className="px-3 sm:px-5 py-3 text-cream/80">{row.label}</td>
                       {PRICING_PLANS.map((planKey) => (
-                        <td key={planKey} className="px-3 py-3 text-center">
+                        <td key={planKey} className="px-2 sm:px-3 py-3 text-center">
                           <PricingCell value={row.value(PLAN_ENTITLEMENTS[planKey])} />
                         </td>
                       ))}
@@ -239,7 +239,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <p className="text-xs text-cream/40 text-center mt-8">
+          <p className="text-xs text-cream/40 text-center mt-8 px-2 break-words">
             All prices in USD · Safety features — pacing, care escalation, consent, and data
             deletion — are always free for everyone.
           </p>
@@ -247,8 +247,8 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="relative z-10 py-24 px-4">
-        <div className="max-w-6xl mx-auto">
+      <section id="features" className="relative z-10 py-24 px-4 w-full max-w-full overflow-x-hidden">
+        <div className="max-w-6xl mx-auto w-full min-w-0">
           <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">Built for Creators & Members</h2>
           <p className="text-cream/60 text-center max-w-xl mx-auto mb-16">
             Everything you need to share and experience sacred rituals in a protected environment.
@@ -297,14 +297,14 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 py-8 border-t border-gold/10">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="relative z-10 py-8 border-t border-gold/10 w-full max-w-full overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 w-full min-w-0">
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="Evonaire" width={32} height={32} />
             <span className="text-cream/60 text-sm">Evonaire</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
             <Link
               href="/privacy"
               className="text-cream/50 hover:text-gold text-xs transition-colors"
@@ -318,7 +318,7 @@ export default function LandingPage() {
               Terms of Service
             </Link>
           </div>
-          <p className="text-cream/40 text-xs">A sanctuary for rituals and reflections.</p>
+          <p className="text-cream/40 text-xs text-center break-words">A sanctuary for rituals and reflections.</p>
         </div>
       </footer>
 
