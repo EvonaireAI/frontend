@@ -3,13 +3,11 @@
 import { Suspense, useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Loader2, Shield } from "lucide-react"
 import { authService, type User } from "@/lib/auth"
-import { isGuardian, isSteward } from "@/lib/roles"
+import { isGuardian } from "@/lib/roles"
 import { GLOSSARY } from "@/lib/glossary"
 import { moderationService } from "@/lib/moderation"
-import { adminService } from "@/lib/admin"
 import type { GuardianOption } from "@/components/moderation/case-actions"
 import { DEFAULT_GUARDIAN_TAB, GUARDIAN_TABS, isGuardianTab, type GuardianTab } from "@/components/moderation/guardian/tabs"
 import { OverviewTab } from "@/components/moderation/guardian/overview-tab"
@@ -68,24 +66,13 @@ function GuardianWorkspace() {
   }, [router])
 
   // There is no guardian-directory endpoint, so the delegate picker is
-  // assembled from what the viewer can already see: the full roster for a
-  // steward (Trust & Care reports it), or whoever currently holds an active
-  // case for a guardian. `400 not_a_guardian` prunes anyone stale.
+  // assembled from whoever currently holds an active case.
   useEffect(() => {
     if (!user) return
     let cancelled = false
 
     const loadGuardians = async () => {
       try {
-        if (isSteward(user.role)) {
-          const trustCare = await adminService.getTrustCare(30)
-          if (cancelled) return
-          setGuardians(
-            trustCare.guardian_workload.map((row) => ({ id: row.guardian_id, email: row.guardian_email })),
-          )
-          return
-        }
-
         const active = await moderationService.listCases({ stage: "active" })
         if (cancelled) return
         const seen = new Map<number, GuardianOption>()
@@ -130,7 +117,6 @@ function GuardianWorkspace() {
               Protecting cultural safety and emotional wellbeing.
             </p>
           </div>
-          {isSteward(user.role) && <Badge variant="outline">Viewing as steward</Badge>}
         </div>
 
         <Tabs value={activeTab} onValueChange={setTab} className="space-y-6">

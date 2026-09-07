@@ -71,7 +71,7 @@ function Stat({ label, value, hint }: { label: string; value: number | string; h
   )
 }
 
-export function TrustCareTab() {
+export function TrustCareTab({ consoleBasePath = "/admin" }: { consoleBasePath?: string }) {
   const [days, setDays] = useState(7)
   const [data, setData] = useState<TrustCare | null>(null)
   const [loading, setLoading] = useState(true)
@@ -267,7 +267,7 @@ export function TrustCareTab() {
             />
             <p className="text-xs text-muted-foreground">
               The full trail is in{" "}
-              <Link href="/admin?tab=archive" className="text-primary hover:underline">
+              <Link href={`${consoleBasePath}?tab=archive`} className="text-primary hover:underline">
                 The Archive
               </Link>{" "}
               under Content protection.

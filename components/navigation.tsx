@@ -28,7 +28,7 @@ import { roleDashboardLabel, isSteward } from "@/lib/roles"
 import { GLOSSARY, COMING_SOON_SECTIONS } from "@/lib/glossary"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal } from "lucide-react"
+import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal, UserCheck } from "lucide-react"
 
 interface NavItem {
   href: string
@@ -104,7 +104,7 @@ export function Navigation() {
         return "/member"
       case "superadmin":
       case "admin":
-        return "/admin"
+        return "/steward"
       case "moderator":
         return "/moderate"
       default:
@@ -156,11 +156,12 @@ export function Navigation() {
       case "superadmin":
       case "admin":
         items.push(
-          { href: "/admin", label: GLOSSARY.stewardConsole, icon: <Shield className="w-4 h-4" /> },
+          { href: "/steward", label: GLOSSARY.stewardConsole, icon: <Shield className="w-4 h-4" /> },
+          { href: "/steward/requests", label: GLOSSARY.stewardRequests, icon: <UserCheck className="w-4 h-4" /> },
           { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <ClipboardCheck className="w-4 h-4" /> },
-          { href: "/admin?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
-          { href: "/admin?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
-          { href: "/admin?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
+          { href: "/steward?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
+          { href: "/steward?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
+          { href: "/steward?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
           { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
           { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" />, overflow: true },
         )
@@ -357,7 +358,7 @@ export function Navigation() {
                 </DropdownMenuItem>
                 {isSteward(user.role) && (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center">
+                    <Link href="/steward" className="flex items-center">
                       <Shield className="mr-2 h-4 w-4" />
                       <span>{GLOSSARY.stewardConsole}</span>
                     </Link>
