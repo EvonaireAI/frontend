@@ -36,8 +36,8 @@ const PREFERENCE_OPTIONS = [
   },
   {
     key: "dyslexiaFriendly" as const,
-    label: "Dyslexia friendly",
-    description: "Change the font to a dyslexia friendly font.",
+    label: "Alternate readable font",
+    description: "Change the font to an alternate readable font.",
   },
 ]
 
