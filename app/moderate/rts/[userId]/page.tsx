@@ -14,6 +14,7 @@ import { Loader2, ArrowLeft, FileText, Activity, Flag, TrendingUp } from "lucide
 import Link from "next/link"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CreatorRtsDetailView } from "@/components/rts/creator-rts-detail-view"
 
 export default function CreatorRTSDetail() {
   const [user, setUser] = useState<User | null>(null)

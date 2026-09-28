@@ -11,9 +11,11 @@ import Link from "next/link"
 
 interface CreatorScoreTableProps {
   creators: RTSCreatorSummary[]
+  /** Base path for creator detail links, e.g. `/moderate/rts` or `/steward/rts`. */
+  rtsDetailBasePath?: string
 }
 
-export function CreatorScoreTable({ creators }: CreatorScoreTableProps) {
+export function CreatorScoreTable({ creators, rtsDetailBasePath = "/moderate/rts" }: CreatorScoreTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   const filteredCreators = creators.filter(
@@ -71,7 +73,7 @@ export function CreatorScoreTable({ creators }: CreatorScoreTableProps) {
                     </Badge>
                   </div>
                   <Button asChild variant="ghost" size="sm">
-                    <Link href={`/moderate/rts/${creator.user.id}`}>
+                    <Link href={`${rtsDetailBasePath}/${creator.user.id}`}>
                       <Eye className="w-4 h-4" />
                     </Link>
                   </Button>

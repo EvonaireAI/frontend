@@ -3,11 +3,13 @@
 import { Suspense, useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 import { Loader2, Shield } from "lucide-react"
 import { authService, type User } from "@/lib/auth"
 import { isGuardian } from "@/lib/roles"
 import { GLOSSARY } from "@/lib/glossary"
 import { moderationService } from "@/lib/moderation"
+import { adminService } from "@/lib/admin"
 import type { GuardianOption } from "@/components/moderation/case-actions"
 import { DEFAULT_GUARDIAN_TAB, GUARDIAN_TABS, isGuardianTab, type GuardianTab } from "@/components/moderation/guardian/tabs"
 import { OverviewTab } from "@/components/moderation/guardian/overview-tab"
@@ -66,7 +68,9 @@ function GuardianWorkspace() {
   }, [router])
 
   // There is no guardian-directory endpoint, so the delegate picker is
-  // assembled from whoever currently holds an active case.
+  // assembled from what the viewer can already see: the full roster for a
+  // steward (Trust & Care reports it), or whoever currently holds an active
+  // case for a guardian. `400 not_a_guardian` prunes anyone stale.
   useEffect(() => {
     if (!user) return
     let cancelled = false
@@ -123,7 +127,7 @@ function GuardianWorkspace() {
           {/* The tab bar scrolls sideways rather than wrapping or clipping on
               a 375px viewport. */}
           <div className="-mx-4 overflow-x-auto px-4 pb-1">
-            <TabsList className="inline-flex w-max">
+            <TabsList className="w-full">
               {GUARDIAN_TABS.map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id} className="whitespace-nowrap">
                   {tab.label}

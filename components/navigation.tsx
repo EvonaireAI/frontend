@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
-import { roleDashboardLabel, isSteward } from "@/lib/roles"
+import { roleDashboardLabel, isGuardian, isSteward } from "@/lib/roles"
 import { GLOSSARY, COMING_SOON_SECTIONS } from "@/lib/glossary"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
 import { format } from "date-fns"
-import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal, UserCheck } from "lucide-react"
+import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal } from "lucide-react"
 
 interface NavItem {
   href: string
@@ -37,6 +37,14 @@ interface NavItem {
   /** Desktop-only: move out of the inline bar into the "More" dropdown. */
   overflow?: boolean
 }
+
+/** Primary destinations while working in the Guardian Dashboard workspace. */
+const GUARDIAN_CONSOLE_NAV: NavItem[] = [
+  { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <Shield className="w-4 h-4" /> },
+  { href: "/moderate?tab=pending", label: "Pending Reviews", icon: <ClipboardCheck className="w-4 h-4" /> },
+  { href: "/commons", label: GLOSSARY.symposium, icon: <Store className="w-4 h-4" /> },
+  { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
+]
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -156,26 +164,32 @@ export function Navigation() {
       case "superadmin":
       case "admin":
         items.push(
-          { href: "/steward", label: GLOSSARY.stewardConsole, icon: <Shield className="w-4 h-4" /> },
-          { href: "/steward/requests", label: GLOSSARY.stewardRequests, icon: <UserCheck className="w-4 h-4" /> },
+          { href: "/steward", label: GLOSSARY.stewardDashboard, icon: <Shield className="w-4 h-4" /> },
           { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <ClipboardCheck className="w-4 h-4" /> },
-          { href: "/steward?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
-          { href: "/steward?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
-          { href: "/steward?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
-          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
+          // { href: "/steward?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
+          // { href: "/steward?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
+          // { href: "/steward?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
+          { href: "/commons", label: GLOSSARY.symposium, icon: <Store className="w-4 h-4" />, overflow: true },
           { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" />, overflow: true },
         )
         break
       case "moderator":
-        items.push(
-          { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <Shield className="w-4 h-4" /> },
-          { href: "/moderate?tab=pending", label: "Pending Reviews", icon: <ClipboardCheck className="w-4 h-4" /> },
-          { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
-          { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
-        )
+        items.push(...GUARDIAN_CONSOLE_NAV)
         break
     }
 
+    return items
+  }
+
+  /** Stewards use separate dashboards — don't cross-link while inside one console. */
+  function filterConsoleCrossLinks(items: NavItem[], currentPath: string | null): NavItem[] {
+    if (!currentPath) return items
+    if (currentPath.startsWith("/moderate")) {
+      return items.filter((item) => !item.href.startsWith("/steward"))
+    }
+    if (currentPath.startsWith("/steward")) {
+      return items.filter((item) => !item.href.startsWith("/moderate"))
+    }
     return items
   }
 
@@ -194,7 +208,10 @@ export function Navigation() {
     return null
   }
 
-  const navigationItems = getNavigationItems(user.role)
+  const navigationItems =
+    pathname?.startsWith("/moderate") && isGuardian(user.role)
+      ? GUARDIAN_CONSOLE_NAV
+      : filterConsoleCrossLinks(getNavigationItems(user.role), pathname)
   const inlineItems = navigationItems.filter((item) => !item.overflow)
   const overflowItems = navigationItems.filter((item) => item.overflow)
 
@@ -322,13 +339,15 @@ export function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={user.profile_picture || "/placeholder.svg"}
-                      alt={`${user.first_name} ${user.last_name}`}
-                    />
+                    {user.profile_picture ? (
+                      <AvatarImage
+                        src={user.profile_picture}
+                        alt={`${user.first_name} ${user.last_name}`}
+                      />
+                    ) : null}
                     <AvatarFallback>
-                      {user.first_name[0]}
-                      {user.last_name[0]}
+                      {user.first_name?.[0]}
+                      {user.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -356,11 +375,11 @@ export function Navigation() {
                     <span>Profile Settings</span>
                   </Link>
                 </DropdownMenuItem>
-                {isSteward(user.role) && (
+                {isSteward(user.role) && !pathname?.startsWith("/steward") && (
                   <DropdownMenuItem asChild>
                     <Link href="/steward" className="flex items-center">
                       <Shield className="mr-2 h-4 w-4" />
-                      <span>{GLOSSARY.stewardConsole}</span>
+                      <span>{GLOSSARY.stewardDashboard}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}

@@ -40,7 +40,7 @@ export const GLOSSARY = {
   careEscalation: "Care Escalation",
 
   // ── Steward (D4) surfaces ──────────────────────────────────────────────────
-  stewardConsole: "Steward Console",
+  stewardDashboard: "Steward Dashboard",
   stewardRequests: "Steward Requests",
   resonanceConfiguration: "Resonance Configuration",
   archive: "The Archive",

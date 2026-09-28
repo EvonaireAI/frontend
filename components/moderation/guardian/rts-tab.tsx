@@ -15,7 +15,14 @@ import { rtsService, type RTSAlert, type RTSCreatorSummary } from "@/lib/rts"
 // score list, drilling into one creator at /moderate/rts/<id>. The weights are
 // shown but not editable — `PATCH /api/rts/config/` is steward-only.
 
-export function RtsTab() {
+interface RtsTabProps {
+  /** Base path for creator detail links, e.g. `/moderate/rts` or `/steward/rts`. */
+  rtsDetailBasePath?: string
+  /** Hide the read-only config summary (stewards edit config on the Resonance tab). */
+  showConfigView?: boolean
+}
+
+export function RtsTab({ rtsDetailBasePath = "/moderate/rts", showConfigView = true }: RtsTabProps) {
   const [creators, setCreators] = useState<RTSCreatorSummary[]>([])
   const [alerts, setAlerts] = useState<RTSAlert[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,7 +97,7 @@ export function RtsTab() {
                           {name && <p className="break-all text-xs text-muted-foreground">{alert.email}</p>}
                         </div>
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/moderate/rts/${alert.id}`}>
+                          <Link href={`${rtsDetailBasePath}/${alert.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             Open
                           </Link>
@@ -103,9 +110,9 @@ export function RtsTab() {
             </CardContent>
           </Card>
 
-          <CreatorScoreTable creators={creators} />
+          <CreatorScoreTable creators={creators} rtsDetailBasePath={rtsDetailBasePath} />
 
-          <ConfigView />
+          {showConfigView && <ConfigView />}
         </>
       )}
     </div>
