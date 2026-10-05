@@ -19,7 +19,7 @@ export const GLOSSARY = {
   /** A section INSIDE The Ledger — never a standalone nav entry. */
   billing: "Billing",
   reflectionRoom: "Reflection Room",
-  commons: "The Commons",
+  commons: "Symposium",
 
   // ── Creator-facing ─────────────────────────────────────────────────────────
   creatorStudio: "Creator Studio",
@@ -40,7 +40,7 @@ export const GLOSSARY = {
   careEscalation: "Care Escalation",
 
   // ── Steward (D4) surfaces ──────────────────────────────────────────────────
-  stewardConsole: "Steward Console",
+  stewardDashboard: "Steward Dashboard",
   stewardRequests: "Steward Requests",
   resonanceConfiguration: "Resonance Configuration",
   archive: "The Archive",

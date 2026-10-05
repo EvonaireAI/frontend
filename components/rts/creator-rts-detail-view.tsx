@@ -1,57 +1,31 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { authService, type User } from "@/lib/auth"
-import { isGuardian } from "@/lib/roles"
 import { rtsService, type RTSScore, type RTSHistoryEntry, type RTSAuditResponse } from "@/lib/rts"
 import { ScoreBadge } from "@/components/rts/score-badge"
 import { ScoreHistory } from "@/components/rts/score-history"
 import { FlagForm } from "@/components/rts/flag-form"
-import { Loader2, ArrowLeft, FileText, Activity, Flag, TrendingUp } from "lucide-react"
+import { ArrowLeft, FileText, Activity, Flag, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CreatorRtsDetailView } from "@/components/rts/creator-rts-detail-view"
 
-export default function CreatorRTSDetail() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+interface CreatorRtsDetailViewProps {
+  userId: number
+  backHref: string
+  backLabel?: string
+}
+
+export function CreatorRtsDetailView({
+  userId,
+  backHref,
+  backLabel = "Back to Dashboard",
+}: CreatorRtsDetailViewProps) {
   const [score, setScore] = useState<RTSScore | null>(null)
   const [history, setHistory] = useState<RTSHistoryEntry[]>([])
   const [audit, setAudit] = useState<RTSAuditResponse | null>(null)
-  const router = useRouter()
-  const params = useParams()
-  const userId = Number.parseInt(params.userId as string)
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        if (!authService.isAuthenticated()) {
-          router.push("/auth/login")
-          return
-        }
-
-        const userData = await authService.getProfile()
-        if (!isGuardian(userData.role)) {
-          router.push("/dashboard")
-          return
-        }
-
-        setUser(userData)
-        await loadRTSData()
-      } catch (err) {
-        console.error("Failed to load data:", err)
-        router.push("/auth/login")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-  }, [router, userId])
 
   const loadRTSData = async () => {
     try {
@@ -69,21 +43,13 @@ export default function CreatorRTSDetail() {
     }
   }
 
+  useEffect(() => {
+    loadRTSData()
+  }, [userId])
+
   const handleFlagSuccess = () => {
     loadRTSData()
     toast.success("Care flag created and RTS updated")
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
   }
 
   const currentBand = score ? rtsService.getScoreBand(score.current_score) : "critical"
@@ -93,9 +59,9 @@ export default function CreatorRTSDetail() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
           <Button asChild variant="outline">
-            <Link href="/moderate?tab=rts">
+            <Link href={backHref}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              {backLabel}
             </Link>
           </Button>
           <div>
@@ -109,7 +75,6 @@ export default function CreatorRTSDetail() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Current Score */}
           <Card>
             <CardHeader>
               <CardTitle>Current Resonance Trust Synthesis</CardTitle>
@@ -132,16 +97,13 @@ export default function CreatorRTSDetail() {
             </CardContent>
           </Card>
 
-          {/* Create Flag */}
           <FlagForm userId={userId} onSubmitSuccess={handleFlagSuccess} />
         </div>
 
-        {/* Score History */}
         <div className="mt-6">
           <ScoreHistory history={history} />
         </div>
 
-        {/* Audit Trail with Tabs */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

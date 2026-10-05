@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { authService, type User } from "@/lib/auth"
-import { isGuardian } from "@/lib/roles"
+import { isSteward } from "@/lib/roles"
 import { rtsService, type RTSScore, type RTSHistoryEntry, type RTSAuditResponse } from "@/lib/rts"
 import { ScoreBadge } from "@/components/rts/score-badge"
 import { ScoreHistory } from "@/components/rts/score-history"
@@ -14,9 +14,8 @@ import { Loader2, ArrowLeft, FileText, Activity, Flag, TrendingUp } from "lucide
 import Link from "next/link"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CreatorRtsDetailView } from "@/components/rts/creator-rts-detail-view"
 
-export default function CreatorRTSDetail() {
+export default function StewardCreatorRTSDetail() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [score, setScore] = useState<RTSScore | null>(null)
@@ -35,7 +34,7 @@ export default function CreatorRTSDetail() {
         }
 
         const userData = await authService.getProfile()
-        if (!isGuardian(userData.role)) {
+        if (!isSteward(userData.role)) {
           router.push("/dashboard")
           return
         }
@@ -93,9 +92,9 @@ export default function CreatorRTSDetail() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
           <Button asChild variant="outline">
-            <Link href="/moderate?tab=rts">
+            <Link href="/steward?tab=trust-care">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Trust & Care
             </Link>
           </Button>
           <div>

@@ -71,7 +71,14 @@ function Stat({ label, value, hint }: { label: string; value: number | string; h
   )
 }
 
-export function TrustCareTab() {
+export function TrustCareTab({
+  consoleBasePath = "/admin",
+  includeGuardianLinks = false,
+}: {
+  consoleBasePath?: string
+  /** When false, omit links into the Guardian Dashboard (steward workspace). */
+  includeGuardianLinks?: boolean
+}) {
   const [days, setDays] = useState(7)
   const [data, setData] = useState<TrustCare | null>(null)
   const [loading, setLoading] = useState(true)
@@ -156,12 +163,14 @@ export function TrustCareTab() {
               <CardTitle className="text-base">Care cases</CardTitle>
               <CardDescription>Stage counts now, plus movement over the window.</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/moderate?tab=pending">
-                Work the queue
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {includeGuardianLinks && (
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/moderate?tab=pending">
+                  Work the queue
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -231,12 +240,14 @@ export function TrustCareTab() {
               hint={`${interventions.opened_in_window.toLocaleString()} opened in window`}
             />
             <Breakdown title="By type" entries={Object.entries(interventions.by_type ?? {})} empty="No interventions." />
-            <Button asChild variant="ghost" size="sm" className="px-0">
-              <Link href="/moderate?tab=rts">
-                RTS Monitoring
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {includeGuardianLinks && (
+              <Button asChild variant="ghost" size="sm" className="px-0">
+                <Link href="/moderate?tab=rts">
+                  RTS Monitoring
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -267,7 +278,7 @@ export function TrustCareTab() {
             />
             <p className="text-xs text-muted-foreground">
               The full trail is in{" "}
-              <Link href="/admin?tab=archive" className="text-primary hover:underline">
+              <Link href={`${consoleBasePath}?tab=archive`} className="text-primary hover:underline">
                 The Archive
               </Link>{" "}
               under Content protection.
@@ -307,9 +318,13 @@ export function TrustCareTab() {
                         {row.resolved_in_window.toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href="/moderate?tab=active">Open</Link>
-                        </Button>
+                        {includeGuardianLinks ? (
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href="/moderate?tab=active">Open</Link>
+                          </Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

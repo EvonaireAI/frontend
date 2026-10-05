@@ -35,54 +35,83 @@ export default function ResendActivationPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Resend Activation</CardTitle>
-          <CardDescription>Enter your email to receive a new activation link</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <div className="min-h-screen bg-dark-navy flex flex-col">
+      {/* min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 */}
 
-            {message && (
-              <Alert>
-                <AlertDescription>{message}</AlertDescription>
-              </Alert>
-            )}
+      <header className="p-6">
+        <Link href="/" className="inline-flex items-center gap-3 group">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
+            alt="Evonaire"
+            width={44}
+            height={44}
+            className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
+          />
+          <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300">
+            Evonaire
+          </span>
+        </Link>
+      </header>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Enter your email address"
-              />
-            </div>
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Resend Activation</h1>
+            <p className="text-cream/50 text-sm">Enter your email to receive a new activation link</p>
+          </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Resend Activation Link
-            </Button>
-          </form>
+          <Card className="w-full max-w-md justify-center" >
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
+                {message && (
+                  <Alert>
+                    <AlertDescription>{message}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-cream/70 text-sm font-medium">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="Enter your email address"
+                    className="w-full bg-dark-navy border border-gold/20 rounded-md px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold/60"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Resend Activation Link
+                </Button>
+              </form>
+
+
+            </CardContent>
+          </Card>
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{" "}
-              <Link href="/auth/login" className="text-blue-600 hover:underline">
+            <p className="text-sm text-cream/40">
+              {"Remember your password?  "}
+              <Link href="/auth/login" className="text-gold hover:text-gold-muted transition-colors">
                 Sign in
               </Link>
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
+
+
+
+
     </div>
   )
 }

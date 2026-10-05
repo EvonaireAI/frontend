@@ -1,9 +1,16 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { Lexend } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { AppShell } from "@/components/app-shell"
 import "./globals.css"
+
+const lexend = Lexend({
+  subsets: ["latin"],
+  variable: "--font-dyslexia-friendly",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Evonaire - Sacred Rituals & Reflections",
@@ -25,7 +32,7 @@ html {
   `
 
   return (
-    <html lang="en">
+    <html lang="en" className={lexend.variable}>
       <head>
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: fontStyle }} />
       </head>

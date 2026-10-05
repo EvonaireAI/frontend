@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Shield } from "lucide-react"
 import { authService, type User } from "@/lib/auth"
-import { isGuardian, isSteward } from "@/lib/roles"
+import { isGuardian } from "@/lib/roles"
 import { GLOSSARY } from "@/lib/glossary"
 import { moderationService } from "@/lib/moderation"
 import { adminService } from "@/lib/admin"
@@ -77,15 +77,6 @@ function GuardianWorkspace() {
 
     const loadGuardians = async () => {
       try {
-        if (isSteward(user.role)) {
-          const trustCare = await adminService.getTrustCare(30)
-          if (cancelled) return
-          setGuardians(
-            trustCare.guardian_workload.map((row) => ({ id: row.guardian_id, email: row.guardian_email })),
-          )
-          return
-        }
-
         const active = await moderationService.listCases({ stage: "active" })
         if (cancelled) return
         const seen = new Map<number, GuardianOption>()
@@ -130,14 +121,13 @@ function GuardianWorkspace() {
               Protecting cultural safety and emotional wellbeing.
             </p>
           </div>
-          {isSteward(user.role) && <Badge variant="outline">Viewing as steward</Badge>}
         </div>
 
         <Tabs value={activeTab} onValueChange={setTab} className="space-y-6">
           {/* The tab bar scrolls sideways rather than wrapping or clipping on
               a 375px viewport. */}
           <div className="-mx-4 overflow-x-auto px-4 pb-1">
-            <TabsList className="inline-flex w-max">
+            <TabsList className="w-full">
               {GUARDIAN_TABS.map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id} className="whitespace-nowrap">
                   {tab.label}

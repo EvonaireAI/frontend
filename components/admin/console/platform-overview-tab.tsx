@@ -19,6 +19,8 @@ import type { StewardTab } from "./tabs"
 
 interface PlatformOverviewTabProps extends PlatformOverviewState {
   onNavigate: (tab: StewardTab) => void
+  /** When false, omit links into the Guardian Dashboard (steward workspace). */
+  includeGuardianLinks?: boolean
 }
 
 function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -39,6 +41,7 @@ export function PlatformOverviewTab({
   error,
   reload: load,
   onNavigate,
+  includeGuardianLinks = false,
 }: PlatformOverviewTabProps) {
   const router = useRouter()
 
@@ -76,9 +79,17 @@ export function PlatformOverviewTab({
   // has no review surface yet and must not pretend otherwise.
   const pendingRows: Array<{ label: string; value: number; go?: () => void; note?: string }> = [
     { label: "Steward requests", value: pending.role_requests, go: () => onNavigate("requests") },
-    { label: "Care cases", value: pending.care_cases, go: () => router.push("/moderate?tab=pending") },
-    { label: "Rituals", value: pending.rituals, go: () => router.push("/moderate?tab=library") },
-    { label: "Commons listings", value: pending.commons_listings, go: () => onNavigate("commons") },
+    {
+      label: "Care cases",
+      value: pending.care_cases,
+      go: includeGuardianLinks ? () => router.push("/moderate?tab=pending") : undefined,
+    },
+    {
+      label: "Rituals",
+      value: pending.rituals,
+      go: includeGuardianLinks ? () => router.push("/moderate?tab=library") : undefined,
+    },
+    { label: "Symposium listings", value: pending.commons_listings, go: () => onNavigate("commons") },
     { label: "Agora content", value: pending.agora_content, go: () => onNavigate("trust-care") },
     { label: "Royalty periods", value: pending.royalty_periods, go: () => onNavigate("earnings") },
   ]
@@ -262,13 +273,19 @@ export function PlatformOverviewTab({
             <Stat label="RTS care flags" value={community.rts_care_flags_7d} />
             <Stat label="Blessings" value={community.blessings_7d} />
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Individual cases are worked in the{" "}
-            <Link href="/moderate?tab=pending" className="text-primary hover:underline">
-              Guardian Dashboard
-            </Link>
-            .
-          </p>
+          {includeGuardianLinks ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Individual cases are worked in the{" "}
+              <Link href="/moderate?tab=pending" className="text-primary hover:underline">
+                Guardian Dashboard
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Care case counts reflect guardian queue activity; stewards review aggregates here in Trust &amp; Care.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

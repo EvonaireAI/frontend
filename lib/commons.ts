@@ -1,4 +1,4 @@
-// The Commons — marketplace where creators sell one-off offerings (classes,
+// The Symposium (formerly the Commons) — marketplace where creators sell one-off offerings (classes,
 // care sessions, bundles, premium rituals) at license levels L1_open /
 // L2_guided, paid via Stripe Checkout destination charges. All money fields
 // are integer cents. Browse endpoints work logged-out; everything else needs
@@ -353,6 +353,7 @@ export async function fetchReviewQueue(): Promise<MyListing[]> {
   const res = await fetch(`${API_BASE_URL}/commons/review-queue/`, {
     headers: getAuthHeaders(),
   })
+  if (res.status === 404) return []
   if (!res.ok) throw await toCommonsError(res, "Failed to load the review queue")
   const data = await res.json()
   return data.queue ?? []

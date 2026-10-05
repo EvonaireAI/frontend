@@ -96,7 +96,9 @@ export function StewardRequestsTab() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={request.user.profile_picture || "/placeholder.svg"} />
+                      {request.user.profile_picture ? (
+                        <AvatarImage src={request.user.profile_picture} alt="" />
+                      ) : null}
                       <AvatarFallback>
                         {request.user.first_name?.[0]}
                         {request.user.last_name?.[0]}
