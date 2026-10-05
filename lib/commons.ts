@@ -353,6 +353,7 @@ export async function fetchReviewQueue(): Promise<MyListing[]> {
   const res = await fetch(`${API_BASE_URL}/commons/review-queue/`, {
     headers: getAuthHeaders(),
   })
+  if (res.status === 404) return []
   if (!res.ok) throw await toCommonsError(res, "Failed to load the review queue")
   const data = await res.json()
   return data.queue ?? []

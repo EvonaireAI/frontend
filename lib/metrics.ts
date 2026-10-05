@@ -63,13 +63,17 @@ class MetricsService {
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  private async get<T>(path: string): Promise<T> {
+  private async get<T>(path: string, notFoundFallback?: T): Promise<T> {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       headers: this.getAuthHeaders(),
     })
 
     if (response.status === 403) {
       throw new MetricsForbiddenError()
+    }
+
+    if (response.status === 404 && notFoundFallback !== undefined) {
+      return notFoundFallback
     }
 
     if (!response.ok) {
@@ -84,15 +88,62 @@ class MetricsService {
   }
 
   async getTimeseries(months = 12): Promise<MetricsTimeseries> {
-    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${months}`)
+    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${months}`, { months: [] })
   }
 
   async getFunnel(months = 3): Promise<MetricsFunnel> {
-    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${months}`)
+    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${months}`, {
+      window_start: new Date().toISOString(),
+      months,
+      registered_users: 0,
+      free_actives: 0,
+      conversions_to_paid: 0,
+      conversion_rate: 0,
+      median_days_to_convert: null,
+    })
   }
 }
 
 export const metricsService = new MetricsService()
+
+/** Row shape from `admin/overview.memberships` (plan_name) vs metrics API (display_name). */
+type MembershipPlanRow = Partial<PlanCount> & { plan_name?: string }
+
+/** Steward `admin/overview.memberships` matches this shape; fallbacks often omit fields. */
+export function normalizeMetricsOverview(
+  source:
+    | (Omit<Partial<MetricsOverview>, "by_plan"> & { by_plan?: MembershipPlanRow[] })
+    | null
+    | undefined,
+): MetricsOverview | null {
+  if (!source) return null
+
+  const mrr_cents = source.mrr_cents ?? 0
+  const arpu_cents = source.arpu_cents ?? 0
+  const arpa_all_actives_cents = source.arpa_all_actives_cents ?? arpu_cents
+
+  const by_plan: PlanCount[] = Array.isArray(source.by_plan)
+    ? source.by_plan.map((row, index) => ({
+        plan: String(row.plan ?? row.plan_name ?? `tier-${index}`),
+        display_name: String(row.display_name ?? row.plan_name ?? row.plan ?? "Plan"),
+        count: typeof row.count === "number" ? row.count : 0,
+      }))
+    : []
+
+  return {
+    mrr_cents,
+    mrr_dollars: source.mrr_dollars ?? mrr_cents / 100,
+    active_subscriptions: source.active_subscriptions ?? 0,
+    by_plan,
+    arpu_cents,
+    arpu_dollars: source.arpu_dollars ?? arpu_cents / 100,
+    arpa_all_actives_cents,
+    arpa_all_actives_dollars: source.arpa_all_actives_dollars ?? arpa_all_actives_cents / 100,
+    scheduled_to_cancel: source.scheduled_to_cancel ?? 0,
+    past_due: source.past_due ?? 0,
+    as_of: source.as_of ?? new Date().toISOString(),
+  }
+}
 
 // --- display helpers ---
 

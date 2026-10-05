@@ -7,7 +7,7 @@ import { TierDonut, TierDonutSkeleton } from "@/components/admin/metrics/tier-do
 import { MrrTrend } from "@/components/admin/metrics/mrr-trend"
 import { ConversionFunnel } from "@/components/admin/metrics/conversion-funnel"
 import { RefreshCw } from "lucide-react"
-import type { MetricsOverview } from "@/lib/metrics"
+import { normalizeMetricsOverview } from "@/lib/metrics"
 import type { PlatformOverviewState } from "./use-platform-overview"
 
 // Revenue, tier mix, churn and free-to-paid conversion — the Session 02
@@ -20,7 +20,7 @@ import type { PlatformOverviewState } from "./use-platform-overview"
 
 export function MembershipsTab({ overview, loading, error, reload }: PlatformOverviewState) {
   // Same payload, different name on the wire — the console fetched it once.
-  const metrics = (overview?.memberships ?? null) as MetricsOverview | null
+  const metrics = normalizeMetricsOverview(overview?.memberships)
 
   return (
     <div className="space-y-6">

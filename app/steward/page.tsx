@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -26,6 +26,19 @@ import { IntelligenceTab } from "@/components/admin/console/intelligence-tab"
 import { ArchiveTab } from "@/components/admin/console/archive-tab"
 import { PlatformConfigTab } from "@/components/admin/console/platform-config-tab"
 
+/** Radix keeps inactive panels in the tree — only mount the active tab's data hooks. */
+function StewardTabPanel({
+  tab,
+  activeTab,
+  children,
+}: {
+  tab: StewardConsoleTab
+  activeTab: StewardConsoleTab
+  children: ReactNode
+}) {
+  return <TabsContent value={tab}>{activeTab === tab ? children : null}</TabsContent>
+}
+
 function StewardWorkspace() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,6 +61,8 @@ function StewardWorkspace() {
   )
 
   useEffect(() => {
+    let cancelled = false
+
     const load = async () => {
       try {
         if (!authService.isAuthenticated()) {
@@ -60,16 +75,19 @@ function StewardWorkspace() {
           router.push("/dashboard")
           return
         }
-        setUser(profile)
+        if (!cancelled) setUser(profile)
       } catch (error) {
         console.error("Failed to load the steward profile:", error)
         router.push("/auth/login")
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     load()
+    return () => {
+      cancelled = true
+    }
   }, [router])
 
   const overviewState = usePlatformOverview()
@@ -77,13 +95,19 @@ function StewardWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[50vh] items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center text-muted-foreground">
+        <p>Redirecting…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/5">
@@ -114,36 +138,36 @@ function StewardWorkspace() {
             </TabsList>
           </div>
 
-          <TabsContent value="overview">
+          <StewardTabPanel tab="overview" activeTab={activeTab}>
             <PlatformOverviewTab {...overviewState} onNavigate={setTab} />
-          </TabsContent>
-          <TabsContent value="requests">
+          </StewardTabPanel>
+          <StewardTabPanel tab="requests" activeTab={activeTab}>
             <StewardRequestsTab />
-          </TabsContent>
-          <TabsContent value="trust-care">
+          </StewardTabPanel>
+          <StewardTabPanel tab="trust-care" activeTab={activeTab}>
             <TrustCareTab consoleBasePath="/steward" />
-          </TabsContent>
-          <TabsContent value="resonance">
+          </StewardTabPanel>
+          <StewardTabPanel tab="resonance" activeTab={activeTab}>
             <ConfigForm />
-          </TabsContent>
-          <TabsContent value="memberships">
+          </StewardTabPanel>
+          <StewardTabPanel tab="memberships" activeTab={activeTab}>
             <MembershipsTab {...overviewState} />
-          </TabsContent>
-          <TabsContent value="earnings">
+          </StewardTabPanel>
+          <StewardTabPanel tab="earnings" activeTab={activeTab}>
             <EarningsTab />
-          </TabsContent>
-          <TabsContent value="symposium">
+          </StewardTabPanel>
+          <StewardTabPanel tab="symposium" activeTab={activeTab}>
             <CommonsTab />
-          </TabsContent>
-          <TabsContent value="intelligence">
+          </StewardTabPanel>
+          <StewardTabPanel tab="intelligence" activeTab={activeTab}>
             <IntelligenceTab />
-          </TabsContent>
-          <TabsContent value="archive">
+          </StewardTabPanel>
+          <StewardTabPanel tab="archive" activeTab={activeTab}>
             <ArchiveTab />
-          </TabsContent>
-          <TabsContent value="configuration">
+          </StewardTabPanel>
+          <StewardTabPanel tab="configuration" activeTab={activeTab}>
             <PlatformConfigTab onNavigate={setTab} />
-          </TabsContent>
+          </StewardTabPanel>
         </Tabs>
       </div>
     </div>
@@ -154,7 +178,7 @@ export default function StewardDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-[50vh] items-center justify-center py-24">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       }

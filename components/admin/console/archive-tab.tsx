@@ -25,6 +25,10 @@ import {
 
 const PAGE_SIZE = 50
 
+/** Match member search, report modal, and other filled field controls sitewide. */
+const ARCHIVE_FILTER_FIELD_CLASS =
+  "h-9 w-full bg-input border-border text-foreground shadow-xs dark:bg-input/30"
+
 /** Documented action codes per source. `type` narrows the list; an unlisted
  *  code is still valid to type by hand, which is why this is a hint and not a
  *  closed vocabulary in the request. */
@@ -298,7 +302,7 @@ export function ArchiveTab() {
             <Skeleton key={index} className="h-16 w-full" />
           ))}
         </div>
-      ) : !data || data.entries.length === 0 ? (
+      ) : error ? null : !data || data.entries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
           <p className="font-medium text-foreground">Nothing matches these filters</p>
           <p className="mt-1 text-sm text-muted-foreground">Try a wider date range or all sources.</p>
