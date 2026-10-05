@@ -2,7 +2,7 @@
 
 import type { MouseEvent } from "react"
 import Link from "next/link"
-import { Shield, Heart, Check } from "lucide-react"
+import { Shield, Heart, Check, Sprout } from "lucide-react"
 import {
   PRICING_PLANS,
   PLAN_PRICES,
@@ -58,7 +58,7 @@ export default function LandingPage() {
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Pricing
-        </a>
+        </Link>
         <a
           href="#features"
           onClick={(e) => scrollToSection(e, "features")}
@@ -284,7 +284,7 @@ export default function LandingPage() {
                   circle as the other feature icons (no white box). */}
               <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.svg" alt="" className="w-8 h-8 object-contain" />
+                <Sprout className="w-6 h-6 text-gold" />
               </div>
               <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
               <p className="text-cream/60 text-sm leading-relaxed">
