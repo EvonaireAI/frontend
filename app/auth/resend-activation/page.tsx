@@ -55,56 +55,57 @@ export default function ResendActivationPage() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+        <div className="w-full max-w-md">
           <div className="text-center mb-10">
             <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Resend Activation</h1>
             <p className="text-cream/50 text-sm">Enter your email to receive a new activation link</p>
           </div>
 
-        <Card className="w-full max-w-md justify-center" >
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+          <Card className="w-full max-w-md justify-center" >
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-              {message && (
-                <Alert>
-                  <AlertDescription>{message}</AlertDescription>
-                </Alert>
-              )}
+                {message && (
+                  <Alert>
+                    <AlertDescription>{message}</AlertDescription>
+                  </Alert>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-cream/70 text-sm font-medium">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="Enter your email address"
-                  className="w-full bg-dark-navy border border-gold/20 rounded-md px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold/60"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-cream/70 text-sm font-medium">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="Enter your email address"
+                    className="w-full bg-dark-navy border border-gold/20 rounded-md px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold/60"
+                  />
+                </div>
 
-              <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Resend Activation Link
-              </Button>
-            </form>
+                <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Resend Activation Link
+                </Button>
+              </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Remember your password?{" "}
-                <Link href="/auth/login" className="text-blue-600 hover:underline">
-                  Sign in
-                </Link>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+
+            </CardContent>
+          </Card>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-cream/40">
+              {"Remember your password?  "}
+              <Link href="/auth/login" className="text-gold hover:text-gold-muted transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
 

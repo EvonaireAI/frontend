@@ -98,7 +98,7 @@ export default function PurchasesLibraryPage() {
           <h1 className="text-3xl font-bold text-foreground">My purchases</h1>
         </div>
         <p className="text-muted-foreground">
-          Offerings you own from the Commons — purchases, gifts and membership perks.
+          Offerings you own from the Symposium — purchases, gifts and membership perks.
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export default function PurchasesLibraryPage() {
         <Alert variant="destructive" className="mb-6">
           <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
             <span>{error}</span>
-            <Button variant="outline" size="sm" onClick={load}>
+            <Button variant="outline" size="sm" onClick={load} className="cursor-pointer">
               <RefreshCw className="w-4 h-4 mr-2" />
               Retry
             </Button>
@@ -134,9 +134,9 @@ export default function PurchasesLibraryPage() {
             Offerings you buy or receive as gifts will appear here.
           </p>
           <Button asChild variant="outline">
-            <Link href="/commons" className="flex items-center gap-2">
+            <Link href="/commons" className="flex items-center gap-2 cursor-pointer">
               <Store className="w-4 h-4" />
-              Browse the Commons
+              Browse the Symposium
             </Link>
           </Button>
         </div>
@@ -190,16 +190,16 @@ export default function PurchasesLibraryPage() {
 
                   <div className="flex flex-col items-end gap-2">
                     <Button asChild variant="ghost" size="sm">
-                      <Link href={`/commons/listings/${p.listing.id}`}>Details</Link>
+                      <Link href={`/commons/listings/${p.listing.id}`} className="cursor-pointer">Details</Link>
                     </Button>
                     {/* Only active entries link to playback. */}
                     {isActive && p.listing.ritual && (
-                      <Button asChild size="sm">
+                      <Button asChild size="sm" className="cursor-pointer">
                         <Link
                           href={`/member/ritual/${p.listing.ritual.id}`}
                           className="flex items-center gap-2"
                         >
-                          <Play className="w-4 h-4" />
+                          <Play className="w-4 h-4 cursor-pointer" />
                           Play
                         </Link>
                       </Button>
