@@ -54,7 +54,9 @@ export function OverviewCardsSkeleton() {
 }
 
 export function OverviewCards({ overview }: { overview: MetricsOverview }) {
-  const updated = format(new Date(overview.as_of), "MMM d, yyyy h:mm a")
+  const asOf = overview.as_of ? new Date(overview.as_of) : null
+  const updated =
+    asOf && !Number.isNaN(asOf.getTime()) ? format(asOf, "MMM d, yyyy h:mm a") : "recently"
 
   return (
     <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">

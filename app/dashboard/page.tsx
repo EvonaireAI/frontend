@@ -28,7 +28,7 @@ export default function DashboardPage() {
       // everywhere `admin` is admitted.
       case "admin":
       case "superadmin":
-        router.push("/admin")
+        router.push("/steward")
         break
       case "moderator":
         router.push("/moderate")

@@ -143,3 +143,49 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Accessibility preferences */
+
+html[data-a11y-reduced-motion] *,
+html[data-a11y-reduced-motion] *::before,
+html[data-a11y-reduced-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-paused-animations] *,
+html[data-a11y-paused-animations] *::before,
+html[data-a11y-paused-animations] *::after {
+  animation-play-state: paused !important;
+}
+
+html[data-a11y-bigger-text] {
+  font-size: 112.5%; 
+}
+
+html[data-a11y-bigger-spacing] body {
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+html[data-a11y-high-contrast] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffe08a;
+  --primary-foreground: #000000;
+  --muted-foreground: #e5e5e5;
+  --border: #ffffff;
+  --cream: #ffffff;
+  --gold: #ffe08a;
+}
+
+html[data-a11y-dyslexia-friendly],
+html[data-a11y-dyslexia-friendly] body,
+html[data-a11y-dyslexia-friendly] .font-serif {
+  font-family: var(--font-dyslexia-friendly), sans-serif !important;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+

@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState, type ReactNode } from "react"
-import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { MetricsForbiddenError } from "@/lib/metrics"
@@ -12,7 +11,6 @@ import { RefreshCw } from "lucide-react"
 // rendering an empty dashboard. `fetcher` must be referentially stable
 // (wrap it in useCallback keyed on its params); a new fetcher refetches.
 export function useMetricsZone<T>(fetcher: () => Promise<T>) {
-  const router = useRouter()
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -24,14 +22,15 @@ export function useMetricsZone<T>(fetcher: () => Promise<T>) {
       setData(await fetcher())
     } catch (err) {
       if (err instanceof MetricsForbiddenError) {
-        router.replace("/dashboard")
+        // Stewards hit metrics from the console — show an error, don't yank the whole page away.
+        setError(true)
         return
       }
       setError(true)
     } finally {
       setLoading(false)
     }
-  }, [fetcher, router])
+  }, [fetcher])
 
   useEffect(() => {
     load()

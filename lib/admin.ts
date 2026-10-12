@@ -1,4 +1,7 @@
 // Steward Console data layer (Session 11).
+
+import { caseStage, unwrapList, type ModerationCase } from "./moderation"
+
 //
 // Three steward-only aggregates: the Platform Overview (the CEO's five
 // questions in one request), Trust & Care (oversight over the Guardian queues)
@@ -227,24 +230,297 @@ function buildQuery(filters: object): string {
   return query ? `?${query}` : ""
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+function emptyRoyaltiesSummary(): RoyaltiesSummary {
+  return {
+    shadow_mode: true,
+    current_period_key: null,
+    current_period: null,
+    latest_paid_period: null,
+    periods_awaiting_approval: 0,
+    outstanding_creator_balance_cents: 0,
+    minimum_payout_cents: 0,
+  }
+}
+
+function emptyMembershipsSummary(): MembershipsSummary {
+  return { mrr_cents: 0, active_subscriptions: 0, arpu_cents: 0, by_plan: [] }
+}
+
+/** When `/admin/overview/` is missing (older API), stitch counts from existing routes. */
+async function buildPlatformOverviewFallback(): Promise<PlatformOverview> {
+  const headers = authHeaders()
+  const asOf = new Date().toISOString()
+  const weekAgo = Date.now() - WEEK_MS
+
+  const roleRequestsPromise = fetch(`${API_BASE_URL}/admin/role-requests/`, { headers }).then(async (res) => {
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  })
+
+  const casesPromise = fetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
+    if (!res.ok) return [] as ModerationCase[]
+    return unwrapList<ModerationCase>(await res.json()).results
+  })
+
+  const ritualsPromise = fetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  })
+
+  const listingsPromise = fetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
+    if (!res.ok) return 0
+    const data = (await res.json()) as { queue?: unknown[] }
+    return Array.isArray(data.queue) ? data.queue.length : 0
+  })
+
+  const membershipsPromise = fetch(`${API_BASE_URL}/payments/metrics/overview/`, { headers }).then(async (res) => {
+    if (!res.ok) return null
+    return (await res.json()) as MembershipsSummary
+  })
+
+  const [roleRequests, cases, pendingRituals, commonsListings, membershipsPayload] = await Promise.all([
+    roleRequestsPromise,
+    casesPromise,
+    ritualsPromise,
+    listingsPromise,
+    membershipsPromise,
+  ])
+
+  let care_cases = 0
+  let escalations_open = 0
+  let care_cases_opened_7d = 0
+  let care_cases_resolved_7d = 0
+  let member_reports_7d = 0
+
+  for (const c of cases) {
+    const stage = caseStage(c)
+    if (stage === "pending_review" || stage === "active") care_cases++
+    if (c.crisis_escalated && (stage === "pending_review" || stage === "active")) escalations_open++
+    if (new Date(c.created_at).getTime() >= weekAgo) care_cases_opened_7d++
+    if (stage === "resolved" && new Date(c.updated_at).getTime() >= weekAgo) care_cases_resolved_7d++
+    if (c.reporter && new Date(c.created_at).getTime() >= weekAgo) member_reports_7d++
+  }
+
+  const role_requests = roleRequests.length
+  const rituals = pendingRituals.length
+  const agora_content = 0
+  const royalty_periods = 0
+
+  const pending_reviews: PendingReviewCounts = {
+    role_requests,
+    care_cases,
+    rituals,
+    commons_listings: commonsListings,
+    agora_content,
+    royalty_periods,
+    total: role_requests + care_cases + rituals + commonsListings + agora_content + royalty_periods,
+  }
+
+  return {
+    platform_health: {
+      members_total: 0,
+      members_active: 0,
+      members_joined_7d: 0,
+      creators_active: 0,
+      guardians_active: 0,
+      stewards_active: 0,
+      sanctuaries_active: 0,
+      rituals_approved: 0,
+      listings_published: 0,
+      care_cases_live: care_cases,
+      escalations_open,
+      rts_interventions_open: 0,
+    },
+    pending_reviews,
+    memberships: membershipsPayload ?? emptyMembershipsSummary(),
+    royalties: emptyRoyaltiesSummary(),
+    community: {
+      care_cases_opened_7d,
+      care_cases_resolved_7d,
+      member_reports_7d,
+      agora_care_flags_7d: 0,
+      rts_care_flags_7d: 0,
+      blessings_7d: 0,
+    },
+    as_of: asOf,
+  }
+}
+
+function aggregateTrustCareFromCases(cases: ModerationCase[], days: number): TrustCare {
+  const windowStart = Date.now() - days * 24 * 60 * 60 * 1000
+  const inWindow = (iso: string) => new Date(iso).getTime() >= windowStart
+
+  let pending_review = 0
+  let active = 0
+  let resolved = 0
+  let archived = 0
+  let escalations_open = 0
+  let escalations_total = 0
+  let opened_in_window = 0
+  let resolved_in_window = 0
+
+  const live_by_severity: Record<string, number> = {}
+  const live_by_violation_type: Record<string, number> = {}
+
+  let reports_total = 0
+  let reports_in_window = 0
+  let ai_flagged_total = 0
+  const reports_by_violation: Record<string, number> = {}
+
+  const workload = new Map<
+    number,
+    { guardian_email: string; active: number; resolved_in_window: number }
+  >()
+
+  for (const c of cases) {
+    const stage = caseStage(c)
+
+    if (stage === "pending_review") pending_review++
+    if (stage === "active") active++
+    if (stage === "resolved") resolved++
+    if (stage === "archived") archived++
+
+    if (inWindow(c.created_at)) opened_in_window++
+    if (stage === "resolved" && inWindow(c.updated_at)) resolved_in_window++
+
+    if (c.crisis_escalated) {
+      escalations_total++
+      if (stage === "pending_review" || stage === "active") escalations_open++
+    }
+
+    if (stage === "pending_review" || stage === "active") {
+      const sev = c.severity ?? "low"
+      live_by_severity[sev] = (live_by_severity[sev] ?? 0) + 1
+      const vt = c.violation_type || "unspecified"
+      live_by_violation_type[vt] = (live_by_violation_type[vt] ?? 0) + 1
+    }
+
+    if (c.reporter) {
+      reports_total++
+      if (inWindow(c.created_at)) reports_in_window++
+      const rvt = c.violation_type || "unspecified"
+      reports_by_violation[rvt] = (reports_by_violation[rvt] ?? 0) + 1
+    }
+    if (c.flagged_by_ai) ai_flagged_total++
+
+    if (c.assigned_moderator != null) {
+      const guardian_id = c.assigned_moderator
+      const existing = workload.get(guardian_id) ?? {
+        guardian_email: c.assigned_moderator_email ?? `Guardian #${guardian_id}`,
+        active: 0,
+        resolved_in_window: 0,
+      }
+      if (stage === "active") existing.active++
+      if (stage === "resolved" && inWindow(c.updated_at)) existing.resolved_in_window++
+      workload.set(guardian_id, existing)
+    }
+  }
+
+  return {
+    window_days: days,
+    cases: {
+      pending_review,
+      active,
+      resolved,
+      archived,
+      escalations_open,
+      escalations_total,
+      opened_in_window,
+      resolved_in_window,
+      live_by_severity,
+      live_by_violation_type,
+    },
+    reports: {
+      total: reports_total,
+      in_window: reports_in_window,
+      ai_flagged_total,
+      by_violation_type: reports_by_violation,
+    },
+    agora_flags: {
+      total: 0,
+      in_window: 0,
+      content_pending_review: 0,
+      content_removed_by_moderation: 0,
+      by_reason: {},
+    },
+    rts_interventions: {
+      open: 0,
+      opened_in_window: 0,
+      by_type: {},
+    },
+    guardian_workload: [...workload.entries()].map(([guardian_id, row]) => ({
+      guardian_id,
+      guardian_email: row.guardian_email,
+      active: row.active,
+      resolved_in_window: row.resolved_in_window,
+    })),
+    appeals: {
+      supported: false,
+      count: 0,
+      detail: "Appeals will appear here once the appeals workflow ships.",
+    },
+    as_of: new Date().toISOString(),
+  }
+}
+
+/** When `/admin/trust-care/` is missing (older API), derive Trust & Care from cases. */
+async function buildTrustCareFallback(days: number): Promise<TrustCare> {
+  const headers = authHeaders()
+  const response = await fetch(`${API_BASE_URL}/moderations/cases/`, { headers })
+  const cases = response.ok
+    ? unwrapList<ModerationCase>(await response.json()).results
+    : []
+  return aggregateTrustCareFromCases(cases, days)
+}
+
+const ARCHIVE_AVAILABLE_TYPES: ArchiveType[] = [
+  "sanctuary",
+  "moderation",
+  "royalty",
+  "subscription",
+  "security",
+]
+
+/** When `/admin/archive/` is missing (older API), return an empty page the tab can render. */
+function buildArchiveEmptyPage(filters: ArchiveFilters): ArchivePage {
+  const limit = filters.limit ?? 50
+  const offset = filters.offset ?? 0
+  return {
+    total: 0,
+    limit,
+    offset,
+    has_more: false,
+    types: ARCHIVE_AVAILABLE_TYPES,
+    available_types: ARCHIVE_AVAILABLE_TYPES,
+    entries: [],
+  }
+}
+
 export const adminService = {
   async getPlatformOverview(): Promise<PlatformOverview> {
     const response = await fetch(`${API_BASE_URL}/admin/overview/`, { headers: authHeaders() })
-    if (!response.ok) throw await toError(response, "Failed to load the platform overview")
-    return response.json()
+    if (response.ok) return response.json()
+    if (response.status === 404) return buildPlatformOverviewFallback()
+    throw await toError(response, "Failed to load the platform overview")
   },
 
   /** `days` sets the trailing window for every `*_in_window` figure (max 365). */
   async getTrustCare(days = 7): Promise<TrustCare> {
     const response = await fetch(`${API_BASE_URL}/admin/trust-care/?days=${days}`, { headers: authHeaders() })
-    if (!response.ok) throw await toError(response, "Failed to load Trust & Care")
-    return response.json()
+    if (response.ok) return response.json()
+    if (response.status === 404) return buildTrustCareFallback(days)
+    throw await toError(response, "Failed to load Trust & Care")
   },
 
   async getArchive(filters: ArchiveFilters = {}): Promise<ArchivePage> {
     const response = await fetch(`${API_BASE_URL}/admin/archive/${buildQuery(filters)}`, { headers: authHeaders() })
-    if (!response.ok) throw await toError(response, "Failed to load The Archive")
-    return response.json()
+    if (response.ok) return response.json()
+    if (response.status === 404) return buildArchiveEmptyPage(filters)
+    throw await toError(response, "Failed to load The Archive")
   },
 }
 

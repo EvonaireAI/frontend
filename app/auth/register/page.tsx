@@ -31,8 +31,16 @@ export default function RegisterPage() {
     setSuccess("")
     setLoading(true)
     try {
-      const submitData = { ...formData }
-      if (formData.role === "member") delete submitData.reason
+      const submitData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        password: formData.password,
+        ...(formData.role !== "member" && {
+          role: formData.role,
+          reason: formData.reason,
+        }),
+      }
       await authService.register(submitData)
       setSuccess("Registration successful! Please check your email for an activation link.")
       setTimeout(() => router.push("/auth/login"), 3000)
@@ -166,7 +174,7 @@ export default function RegisterPage() {
                   Role
                 </label>
                 <Select value={formData.role} onValueChange={(v) => handleInputChange("role", v)}>
-                  <SelectTrigger className="bg-dark-navy border-gold/20 text-cream rounded-xl h-12 focus:ring-gold/30 focus:border-gold/60">
+                  <SelectTrigger className="bg-dark-navy border-gold/20 text-cream rounded-xl h-12 focus:ring-gold/30 focus:border-gold/60 cursor-pointer">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#141f2a] border-gold/20 text-cream">
@@ -206,7 +214,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2"
+                className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2 cursor-pointer"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Create Account

@@ -92,7 +92,7 @@ export default function ConsentPage() {
     <div className="min-h-screen bg-dark-navy flex flex-col">
       {/* Header */}
       <header className="p-6 border-b border-gold/10">
-        <Link href="/" className="inline-flex items-center gap-3 group">
+        <Link href="/" className="inline-flex items-center gap-3 group cursor-pointer">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
@@ -122,7 +122,7 @@ export default function ConsentPage() {
           <div className="flex border-b border-gold/10">
             <button
               onClick={() => setActiveDoc("privacy")}
-              className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                 activeDoc === "privacy"
                   ? "bg-gold/10 text-gold border-b-2 border-gold"
                   : "text-cream/60 hover:text-cream hover:bg-gold/5"
@@ -133,7 +133,7 @@ export default function ConsentPage() {
             </button>
             <button
               onClick={() => setActiveDoc("terms")}
-              className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                 activeDoc === "terms"
                   ? "bg-gold/10 text-gold border-b-2 border-gold"
                   : "text-cream/60 hover:text-cream hover:bg-gold/5"
@@ -171,7 +171,7 @@ export default function ConsentPage() {
                   checked={privacyAccepted}
                   onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
                   disabled={!privacyScrolled}
-                  className="mt-0.5 border-gold/40 data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                  className="mt-0.5 border-gold/40 data-[state=checked]:bg-gold data-[state=checked]:border-gold cursor-pointer"
                 />
                 <label
                   htmlFor="privacy-checkbox"
@@ -212,7 +212,7 @@ export default function ConsentPage() {
                   checked={termsAccepted}
                   onCheckedChange={(checked) => setTermsAccepted(checked === true)}
                   disabled={!termsScrolled}
-                  className="mt-0.5 border-gold/40 data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                  className="mt-0.5 border-gold/40 data-[state=checked]:bg-gold data-[state=checked]:border-gold cursor-pointer"
                 />
                 <label
                   htmlFor="terms-checkbox"
@@ -251,7 +251,7 @@ export default function ConsentPage() {
             <Button
               onClick={handleSubmit}
               disabled={!privacyAccepted || !termsAccepted || submitting}
-              className="w-full sm:w-auto min-w-[180px] bg-gold text-dark-navy hover:bg-gold-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto min-w-[180px] bg-gold text-dark-navy hover:bg-gold-muted disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? (
                 <>

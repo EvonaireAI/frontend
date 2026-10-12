@@ -12,6 +12,8 @@ import { GatewayNudge } from "@/components/gateway/gateway-nudge"
 import { GatewayCompletionModalHost } from "@/components/gateway/gateway-completion-modal"
 import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
+import { AccessibilityProvider } from "@/lib/accessibility-context"
+import { AccessibilityWidget } from "@/components/accessibility/accessibility-widget"
 import { Toaster } from "@/components/ui/sonner"
 
 /**
@@ -40,27 +42,35 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   if (isStandalone(pathname)) {
-    return <>{children}</>
+    return (
+      <AccessibilityProvider>
+        {children}
+        <AccessibilityWidget />
+      </AccessibilityProvider>
+    )
   }
 
   return (
-    <AuthProvider>
-      <EntitlementsProvider>
-        <GatewayProvider>
-          <ConsentGuard>
-            <div className="min-h-screen flex flex-col">
-              <Navigation />
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </div>
-            <GaiaChatWidget />
-            <UpgradeModalHost />
-            <GatewayCompletionModalHost />
-            <GatewayNudge />
-            <Toaster richColors position="top-right" />
-          </ConsentGuard>
-        </GatewayProvider>
-      </EntitlementsProvider>
-    </AuthProvider>
+    <AccessibilityProvider>
+      <AuthProvider>
+        <EntitlementsProvider>
+          <GatewayProvider>
+            <ConsentGuard>
+              <div className="min-h-screen flex flex-col">
+                <Navigation />
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </div>
+              <GaiaChatWidget />
+              <AccessibilityWidget />
+              <UpgradeModalHost />
+              <GatewayCompletionModalHost />
+              <GatewayNudge />
+              <Toaster richColors position="top-right" />
+            </ConsentGuard>
+          </GatewayProvider>
+        </EntitlementsProvider>
+      </AuthProvider>
+    </AccessibilityProvider>
   )
 }

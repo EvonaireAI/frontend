@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,7 +23,6 @@ import { RefreshCw } from "lucide-react"
 // /admin/royalties/<id>; a row click still goes there.
 
 export function EarningsTab() {
-  const router = useRouter()
   const [data, setData] = useState<RoyaltyPeriodList | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -36,7 +34,7 @@ export function EarningsTab() {
       setData(await royaltiesService.getPeriods())
     } catch (err) {
       if (err instanceof RoyaltiesForbiddenError) {
-        router.replace("/dashboard")
+        setError(true)
         return
       }
       console.error("Failed to load royalty periods:", err)
@@ -44,7 +42,7 @@ export function EarningsTab() {
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [])
 
   useEffect(() => {
     load()

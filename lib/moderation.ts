@@ -191,13 +191,105 @@ function buildQuery(filters: object): string {
   return query ? `?${query}` : ""
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+/** When `/moderations/overview/` is missing (older API), derive the same shape locally. */
+async function buildGuardianOverviewFallback(): Promise<GuardianOverview> {
+  const headers = authHeaders()
+
+  const casesPromise = fetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
+    if (!res.ok) throw await toError(res, "Failed to load care cases")
+    return unwrapList<ModerationCase>(await res.json()).results
+  })
+
+  const ritualsPromise = fetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  })
+
+  const mePromise = fetch(`${API_BASE_URL}/me/`, { headers }).then(async (res) => {
+    if (!res.ok) return null
+    const data = (await res.json()) as { id?: number }
+    return typeof data.id === "number" ? data.id : null
+  })
+
+  const listingsPromise = fetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
+    if (!res.ok) return 0
+    const data = (await res.json()) as { queue?: unknown[] }
+    return Array.isArray(data.queue) ? data.queue.length : 0
+  })
+
+  const [cases, pendingRituals, currentUserId, listingsAwaiting] = await Promise.all([
+    casesPromise,
+    ritualsPromise,
+    mePromise,
+    listingsPromise,
+  ])
+
+  const asOf = new Date().toISOString()
+  const weekAgo = Date.now() - WEEK_MS
+
+  let pending_review = 0
+  let active = 0
+  let active_mine = 0
+  let resolved_this_week = 0
+  let escalations_open = 0
+  let escalations_total = 0
+  let archived = 0
+
+  const live_by_severity: Record<CaseSeverity, number> = { high: 0, medium: 0, low: 0 }
+  const live_by_violation_type: Record<string, number> = {}
+
+  for (const c of cases) {
+    const stage = caseStage(c)
+
+    if (stage === "pending_review") pending_review++
+    if (stage === "active") {
+      active++
+      if (currentUserId != null && c.assigned_moderator === currentUserId) active_mine++
+    }
+    if (stage === "resolved" && new Date(c.updated_at).getTime() >= weekAgo) resolved_this_week++
+    if (stage === "archived") archived++
+
+    if (c.crisis_escalated) {
+      escalations_total++
+      if (stage === "pending_review" || stage === "active") escalations_open++
+    }
+
+    if (stage === "pending_review" || stage === "active") {
+      const sev = c.severity ?? "low"
+      if (sev === "high" || sev === "medium" || sev === "low") live_by_severity[sev]++
+      const vt = c.violation_type || "unspecified"
+      live_by_violation_type[vt] = (live_by_violation_type[vt] ?? 0) + 1
+    }
+  }
+
+  return {
+    pending_review,
+    active,
+    active_mine,
+    resolved_this_week,
+    escalations_open,
+    escalations_total,
+    archived,
+    rituals_awaiting_review: pendingRituals.length,
+    listings_awaiting_review: listingsAwaiting,
+    live_by_severity,
+    live_by_violation_type,
+    as_of: asOf,
+  }
+}
+
 // ── Reads ───────────────────────────────────────────────────────────────────
 
 export const moderationService = {
   async getOverview(): Promise<GuardianOverview> {
     const response = await fetch(`${API_BASE_URL}/moderations/overview/`, { headers: authHeaders() })
-    if (!response.ok) throw await toError(response, "Failed to load the Guardian overview")
-    return response.json()
+    if (response.ok) return response.json()
+    // Older backends expose cases + ritual queue but not the Session 11 aggregate
+    if (response.status === 404) return buildGuardianOverviewFallback()
+    throw await toError(response, "Failed to load the Guardian overview")
   },
 
   /** One list serves Pending Reviews, Active Cases and Case History. */

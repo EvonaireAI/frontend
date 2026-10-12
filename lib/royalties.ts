@@ -183,7 +183,26 @@ class RoyaltiesService {
   }
 
   async getPeriods(): Promise<RoyaltyPeriodList> {
-    return this.request<RoyaltyPeriodList>("/royalties/periods/")
+    const response = await fetch(`${API_BASE_URL}/royalties/periods/`, {
+      headers: this.getAuthHeaders(),
+    })
+    if (response.status === 403) {
+      throw new RoyaltiesForbiddenError()
+    }
+    if (response.status === 404) {
+      return { shadow_mode: true, periods: [] }
+    }
+    if (!response.ok) {
+      let detail = "Request failed"
+      try {
+        const body = await response.json()
+        if (typeof body.detail === "string") detail = body.detail
+      } catch {
+        // non-JSON error body — keep the fallback message
+      }
+      throw new RoyaltiesApiError(response.status, detail)
+    }
+    return response.json()
   }
 
   async getPeriodReport(id: number): Promise<RoyaltyPeriodReport> {

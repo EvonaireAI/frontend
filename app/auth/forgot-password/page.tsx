@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-dark-navy flex flex-col">
       <header className="p-6">
-        <Link href="/" className="inline-flex items-center gap-3 group">
+        <Link href="/" className="inline-flex items-center gap-3 group cursor-pointer">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
           />
-          <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300">
+          <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300 cursor-pointer">
             Evonaire
           </span>
         </Link>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <Link
                   href="/auth/login"
-                  className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)]"
+                  className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] cursor-pointer"
                 >
                   Back to Sign In
                 </Link>
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2"
+                  className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2 cursor-pointer"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   Send Reset Link
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
             <p className="text-center text-cream/40 text-sm mt-6">
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-1 text-gold/70 hover:text-gold transition-colors"
+                className="inline-flex items-center gap-1 text-gold/70 hover:text-gold transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3 h-3" />
                 Back to Sign In

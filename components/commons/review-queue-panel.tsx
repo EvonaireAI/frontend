@@ -126,7 +126,7 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
             <Skeleton key={index} className="h-32 w-full" />
           ))}
         </div>
-      ) : queue.length === 0 ? (
+      ) : !error && queue.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-12 text-center">
           <Check className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
           <p className="font-medium text-foreground">Queue is clear</p>

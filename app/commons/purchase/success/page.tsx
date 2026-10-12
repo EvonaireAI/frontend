@@ -92,14 +92,14 @@ function SuccessContent() {
                 <Button asChild className="w-full">
                   <Link
                     href={`/member/ritual/${purchase.listing.ritual.id}`}
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Play className="w-4 h-4" />
                     Play ritual
                   </Link>
                 </Button>
               )}
-              <Button asChild variant={purchase?.listing.ritual ? "outline" : "default"} className="w-full">
+              <Button asChild variant={purchase?.listing.ritual ? "outline" : "default"} className="w-full cursor-pointer">
                 <Link href="/commons/library" className="flex items-center justify-center gap-2">
                   <Library className="w-4 h-4" />
                   View my purchases
@@ -119,7 +119,7 @@ function SuccessContent() {
               Your payment went through. It can take a moment to appear — your library will update
               shortly.
             </p>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full cursor-pointer">
               <Link href="/commons/library" className="flex items-center justify-center gap-2">
                 <Library className="w-4 h-4" />
                 Go to my purchases

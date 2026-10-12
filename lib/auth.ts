@@ -3,12 +3,17 @@ import { throwIfEntitlementDenied } from "./entitlements"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
-export type SubscriptionPlan = "free" | "evocore" | "evobloom" | "evoluxe"
+export type SubscriptionPlan = "Wanderer" | "Scholar" | "Steward" | "evoluxe"
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete"
 
-export const PAID_PLANS: SubscriptionPlan[] = ["evocore", "evobloom", "evoluxe"]
+export const PAID_PLANS: SubscriptionPlan[] = ["Wanderer", "Scholar", "Steward", "evoluxe"]
 
-export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = PLAN_MARKETING_NAMES
+export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = {
+  Wanderer: "Wanderer",
+  Scholar: "Scholar",
+  Steward: "Steward",
+  evoluxe: "evoluxe",
+}
 
 export function getSubscriptionAccess(plan?: SubscriptionPlan, status?: SubscriptionStatus) {
   const isPaidActive =
