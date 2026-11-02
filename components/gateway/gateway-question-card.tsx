@@ -25,7 +25,7 @@ interface GatewayQuestionCardProps {
 }
 
 // Renders a single Gateway question with its options, submits the answer, and
-// shows a brief, un-gamified reveal of the intended answer. Shared by the gentle
+// acknowledges receipt without revealing correctness. Shared by the gentle
 // nudge and the finish-your-Gateway modal.
 export function GatewayQuestionCard({
   question,
@@ -64,18 +64,10 @@ export function GatewayQuestionCard({
   if (result) {
     return (
       <div className="space-y-4">
-        {result.is_correct ? (
-          <div className="flex items-start gap-2 text-sm text-foreground">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            <span>That resonates.</span>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            The intended reflection was{" "}
-            <span className="font-medium text-foreground">{result.correct_option}</span>
-            {result.correct_option_text ? ` — ${cleanNarration(result.correct_option_text)}` : ""}.
-          </p>
-        )}
+        <div className="flex items-start gap-2 text-sm text-foreground">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span>Your reflection is received.</span>
+        </div>
         {result.completion_message && (
           <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-foreground">
             {cleanNarration(result.completion_message)}

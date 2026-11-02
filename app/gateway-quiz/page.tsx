@@ -73,6 +73,11 @@ export default function GatewayQuizPage() {
         setContent(contentData)
 
         if (statusData.status === "completed") {
+          if (!statusData.passed) {
+            // Finished below the passing score — start/ resets the attempt.
+            setStage("intro")
+            return
+          }
           setCompletionMessage(contentData.completion_message)
           setStage("complete")
           return
@@ -137,10 +142,25 @@ export default function GatewayQuizPage() {
     }
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!lastResult) return
     if (lastResult.status === "completed") {
-      setStage("complete")
+      if (lastResult.passed) {
+        setStage("complete")
+        return
+      }
+      // Below the passing score — restart resets the attempt server-side.
+      try {
+        const attempt = await gatewayQuizService.start()
+        setLastResult(null)
+        setSelectedOption(null)
+        setCurrentQuestionNumber(attempt.next_question_number ?? 1)
+        setStage("question")
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unable to restart the quiz"
+        setError(message)
+        toast.error(message)
+      }
       return
     }
     setCurrentQuestionNumber(lastResult.next_question_number ?? currentQuestionNumber + 1)
@@ -386,15 +406,19 @@ interface GuidancePanelProps {
 
 function GuidancePanel({ question, result, totalQuestions, onContinue }: GuidancePanelProps) {
   const isFinal = result.status === "completed"
-  const correctText = result.correct_option_text || question.options[result.correct_option]
-  const aligned = result.is_correct
-  const headline = aligned
-    ? "Your reflection resonates with the sanctuary."
-    : "A gentle thread of guidance for you."
+  const passed = result.passed === true
 
-  const body = aligned
-    ? "The path you chose holds the same care Evonaire is built on. Carry it forward."
-    : `The wisdom we hold here points toward ${result.correct_option} — ${correctText}. Each question is an invitation, not a measure. Receive this gently and continue with us.`
+  const headline = !isFinal
+    ? "Your reflection is received."
+    : passed
+      ? "Your reflections resonate with the sanctuary."
+      : "The Gateway asks you to walk it once more."
+
+  const body = !isFinal
+    ? "There is no score to watch on the way through. Continue when you are ready."
+    : passed
+      ? `${result.correct_count ?? 0} of ${result.total_questions} reflections aligned with the sanctuary's wisdom. Carry it forward.`
+      : `${result.correct_count ?? 0} of ${result.total_questions} reflections aligned, and ${result.required_correct_count} are asked. Sit with the questions again when you are ready.`
 
   const progressPct = Math.round((question.question_number / totalQuestions) * 100)
 
@@ -418,24 +442,12 @@ function GuidancePanel({ question, result, totalQuestions, onContinue }: Guidanc
 
         <p className="text-cream/80 leading-relaxed mb-6">{body}</p>
 
-        <div className="rounded-xl border border-gold/15 bg-dark-navy/60 p-5">
-          <p className="text-cream/40 text-xs uppercase tracking-widest mb-2">The question</p>
-          <p className="text-cream/90 font-serif leading-relaxed mb-4">
-            {question.question_text}
-          </p>
-          <p className="text-cream/40 text-xs uppercase tracking-widest mb-2">The Evonaire path</p>
-          <p className="text-cream leading-relaxed">
-            <span className="text-gold font-semibold mr-2">{result.correct_option}.</span>
-            {correctText}
-          </p>
-        </div>
-
         <div className="mt-8 flex justify-end">
           <button
             onClick={onContinue}
             className="inline-flex items-center justify-center gap-2 min-w-[180px] h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.25)]"
           >
-            {isFinal ? "View the Gateway" : "Continue"}
+            {isFinal ? (passed ? "View the Gateway" : "Begin again") : "Continue"}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
