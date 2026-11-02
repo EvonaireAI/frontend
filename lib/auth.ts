@@ -274,6 +274,11 @@ class AuthService {
 
     const data = await response.json()
     localStorage.setItem("access_token", data.access)
+    // Backends that rotate refresh tokens (e.g. SimpleJWT
+    // ROTATE_REFRESH_TOKENS) return a new `refresh` and blacklist the old
+    // one — keep it or the next refresh fails. Non-rotating backends omit
+    // the field, so leave the stored token alone when it is absent.
+    if (data.refresh) localStorage.setItem("refresh_token", data.refresh)
     return data
   }
 
