@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { authService, type User, type LoginResponse } from "@/lib/auth"
+import { AuthSession } from "@/lib/auth-session"
 import { isAuthStorageKey } from "@/lib/auth-storage"
 
 interface AuthContextType {
@@ -17,14 +18,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session] = useState(() => new AuthSession())
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [consentsAccepted, setConsentsAccepted] = useState(false)
 
   const refreshUser = useCallback(async () => {
+    const generation = session.current
     try {
       if (authService.isAuthenticated()) {
         const userData = await authService.getProfile()
+        if (!session.owns(generation)) return
         setUser(userData)
         setConsentsAccepted(userData.consents_accepted ?? false)
       } else {
@@ -32,10 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setConsentsAccepted(false)
       }
     } catch {
-      setUser(null)
-      setConsentsAccepted(false)
+      // A failure from a superseded session must not clear the next
+      // session's committed state.
+      if (session.owns(generation)) {
+        setUser(null)
+        setConsentsAccepted(false)
+      }
     }
-  }, [])
+  }, [session])
 
   useEffect(() => {
     const init = async () => {
@@ -66,25 +74,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser])
 
   const login = useCallback(async (email: string, password: string): Promise<LoginResponse> => {
+    const generation = session.begin()
     const data = await authService.login(email, password)
     const userData = await authService.getProfile()
-    setUser(userData)
-    const consented = data.consents_accepted ?? userData.consents_accepted ?? false
-    setConsentsAccepted(consented)
+    // A login superseded by a newer attempt or a logout still returns its
+    // response to the caller, but must not commit the old account's state.
+    if (session.owns(generation)) {
+      setUser(userData)
+      const consented = data.consents_accepted ?? userData.consents_accepted ?? false
+      setConsentsAccepted(consented)
+    }
     return data
-  }, [])
+  }, [session])
 
   const logout = useCallback(() => {
+    session.end()
     authService.logout()
     setUser(null)
     setConsentsAccepted(false)
-  }, [])
+  }, [session])
 
   const acceptConsent = useCallback(async (privacyPolicy: boolean, termsOfService: boolean) => {
+    const generation = session.current
     await authService.acceptConsent(privacyPolicy, termsOfService)
+    if (!session.owns(generation)) return
     setConsentsAccepted(true)
     await refreshUser()
-  }, [refreshUser])
+  }, [session, refreshUser])
 
   return (
     <AuthContext.Provider
