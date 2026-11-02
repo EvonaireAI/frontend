@@ -7,6 +7,7 @@ import {
   onEntitlementDenial,
   type EntitlementsResponse,
 } from "@/lib/entitlements"
+import { SessionScope } from "@/lib/session-scope"
 import { planDisplayName } from "@/lib/plans"
 
 interface EntitlementsContextType {
@@ -21,29 +22,39 @@ const EntitlementsContext = createContext<EntitlementsContextType | undefined>(u
 
 export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const [scope] = useState(() => new SessionScope())
   const [entitlements, setEntitlements] = useState<EntitlementsResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
   const refreshEntitlements = useCallback(async () => {
+    const session = scope.current
+    if (!session) return
     try {
       setLoading(true)
       const data = await fetchEntitlements()
-      setEntitlements(data)
+      if (scope.isCurrent(session)) setEntitlements(data)
     } catch {
       // Keep the last known entitlements; UI falls back to plan info on the user object
     } finally {
-      setLoading(false)
+      // A stale response must not clear the next session's loading state.
+      if (scope.isCurrent(session)) setLoading(false)
     }
-  }, [])
+  }, [scope])
 
   // Fetch once after login (whenever the authenticated user changes)
   useEffect(() => {
-    if (user) {
-      refreshEntitlements()
-    } else {
+    if (!user) {
+      scope.deactivate()
       setEntitlements(null)
+      setLoading(false)
+      return
     }
-  }, [user, refreshEntitlements])
+    // A different account must not see the previous account's entitlements
+    // while its own load is in flight or after it fails. Key on the
+    // immutable id when present; email is editable on the account.
+    if (scope.activate(String(user.id ?? user.email))) setEntitlements(null)
+    refreshEntitlements()
+  }, [user, scope, refreshEntitlements])
 
   // Refetch after any entitlement 403 so locked states stay accurate
   useEffect(() => {
