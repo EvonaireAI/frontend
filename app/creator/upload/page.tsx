@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
+import { audioFileError, extensionForAudioType, preferredRecordingType } from "@/lib/audio-upload"
 import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, Loader2 } from "lucide-react"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
@@ -24,6 +25,7 @@ export default function RitualUpload() {
   const [recordingTime, setRecordingTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [mediaError, setMediaError] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
 
@@ -67,9 +69,16 @@ export default function RitualUpload() {
   }, [router])
 
   const startRecording = async () => {
+    setMediaError("")
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
+      // MediaRecorder picks a browser-default container when unconstrained
+      // (Chrome: audio/webm, Safari: audio/mp4). Pin a preference so the blob
+      // type below is a deliberate choice, not whatever happened to come out.
+      const mimeType = preferredRecordingType((type) => MediaRecorder.isTypeSupported(type))
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream)
       mediaRecorderRef.current = mediaRecorder
 
       const chunks: BlobPart[] = []
@@ -78,7 +87,12 @@ export default function RitualUpload() {
       }
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/mp3" })
+        // Label the blob with the container the recorder actually produced.
+        // Declaring "audio/mp3" on webm/mp4 bytes misstates the file to the
+        // backend and to every downstream validator and player.
+        const blob = new Blob(chunks, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        })
         setRecordedBlob(blob)
         stream.getTracks().forEach((track) => track.stop())
       }
@@ -99,6 +113,7 @@ export default function RitualUpload() {
       }, 1000)
     } catch (err) {
       console.error("Failed to start recording:", err)
+      setMediaError("Microphone access is needed to record. Allow it in the browser, or upload a file below.")
     }
   }
 
@@ -116,8 +131,11 @@ export default function RitualUpload() {
     if (recordedBlob && !isPlaying) {
       const url = URL.createObjectURL(recordedBlob)
       audioRef.current = new Audio(url)
+      audioRef.current.onended = () => {
+        URL.revokeObjectURL(url)
+        setIsPlaying(false)
+      }
       audioRef.current.play()
-      audioRef.current.onended = () => setIsPlaying(false)
       setIsPlaying(true)
     } else if (audioRef.current && isPlaying) {
       audioRef.current.pause()
@@ -130,16 +148,28 @@ export default function RitualUpload() {
     setRecordingTime(0)
     setIsPlaying(false)
     if (audioRef.current) {
+      const src = audioRef.current.src
       audioRef.current.pause()
+      if (src.startsWith("blob:")) URL.revokeObjectURL(src)
     }
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file && file.type.startsWith("audio/")) {
-      setUploadedFile(file)
-      setRecordedBlob(null) // Clear recording if file is uploaded
+    if (!file) return
+
+    // accept="audio/*" is only a picker hint; check the type for real.
+    const rejection = audioFileError(file)
+    if (rejection) {
+      setMediaError(rejection)
+      setUploadedFile(null)
+      event.target.value = "" // re-arm so the same file can be picked again
+      return
     }
+
+    setMediaError("")
+    setUploadedFile(file)
+    setRecordedBlob(null) // Clear recording if file is uploaded
   }
 
   const addTag = () => {
@@ -172,7 +202,8 @@ export default function RitualUpload() {
       })
 
       if (recordedBlob) {
-        submitData.append("audio_file", recordedBlob, "recording.mp3")
+        const extension = extensionForAudioType(recordedBlob.type)
+        submitData.append("audio_file", recordedBlob, `recording.${extension}`)
       } else if (uploadedFile) {
         submitData.append("audio_file", uploadedFile)
       }
@@ -181,6 +212,7 @@ export default function RitualUpload() {
       router.push("/creator")
     } catch (err) {
       console.error("Failed to upload ritual:", err)
+      setMediaError("The upload failed. Your audio is still here — try again.")
     } finally {
       setUploading(false)
     }
@@ -274,6 +306,10 @@ export default function RitualUpload() {
                   {uploadedFile && <p className="text-sm text-muted-foreground mt-2">Selected: {uploadedFile.name}</p>}
                 </div>
               </div>
+
+              {mediaError && (
+                <p className="text-sm text-red-400 text-center">{mediaError}</p>
+              )}
             </CardContent>
           </Card>
 
