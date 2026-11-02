@@ -8,6 +8,8 @@
 // require staff. Both 403 otherwise, surfaced as RoyaltiesForbiddenError so
 // pages redirect instead of rendering broken.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export class RoyaltiesForbiddenError extends Error {
@@ -150,7 +152,7 @@ class RoyaltiesService {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await authedFetch(`${API_BASE_URL}${path}`, {
       ...init,
       headers: this.getAuthHeaders(),
     })
@@ -179,11 +181,11 @@ class RoyaltiesService {
 
   // period is "YYYY-MM"; 404 = no computed period for that month
   async getStatement(period: string): Promise<CreatorStatement> {
-    return this.request<CreatorStatement>(`/royalties/statement/?period=${period}`)
+    return this.request<CreatorStatement>(`/royalties/statement/?period=${encodeURIComponent(period)}`)
   }
 
   async getPeriods(): Promise<RoyaltyPeriodList> {
-    const response = await fetch(`${API_BASE_URL}/royalties/periods/`, {
+    const response = await authedFetch(`${API_BASE_URL}/royalties/periods/`, {
       headers: this.getAuthHeaders(),
     })
     if (response.status === 403) {
@@ -206,12 +208,12 @@ class RoyaltiesService {
   }
 
   async getPeriodReport(id: number): Promise<RoyaltyPeriodReport> {
-    return this.request<RoyaltyPeriodReport>(`/royalties/periods/${id}/report/`)
+    return this.request<RoyaltyPeriodReport>(`/royalties/periods/${encodeURIComponent(id)}/report/`)
   }
 
   // 409 when the period isn't in `computed` anymore — refetch and show detail
   async approvePeriod(id: number): Promise<RoyaltyPeriod> {
-    return this.request<RoyaltyPeriod>(`/royalties/periods/${id}/approve/`, { method: "POST" })
+    return this.request<RoyaltyPeriod>(`/royalties/periods/${encodeURIComponent(id)}/approve/`, { method: "POST" })
   }
 }
 

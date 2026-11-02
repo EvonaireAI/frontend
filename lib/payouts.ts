@@ -1,3 +1,5 @@
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export interface ConnectStatus {
@@ -52,7 +54,7 @@ async function toPayoutsError(res: Response, fallback: string): Promise<PayoutsA
 }
 
 export async function fetchConnectStatus(): Promise<ConnectStatus> {
-  const res = await fetch(`${API_BASE_URL}/payments/connect/status/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/connect/status/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw await toPayoutsError(res, "Failed to check payout status")
@@ -63,7 +65,7 @@ export async function fetchConnectStatus(): Promise<ConnectStatus> {
 // never prefetch or cache. Safe to call repeatedly; the same Stripe
 // account is reused, only the link is fresh.
 export async function createOnboardingLink(): Promise<{ onboarding_url: string }> {
-  const res = await fetch(`${API_BASE_URL}/payments/connect/onboarding/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/connect/onboarding/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -74,7 +76,7 @@ export async function createOnboardingLink(): Promise<{ onboarding_url: string }
 // Single-use login link to the creator's Stripe Express dashboard —
 // same fetch-at-click-time rule as the onboarding link.
 export async function createDashboardLink(): Promise<{ dashboard_url: string }> {
-  const res = await fetch(`${API_BASE_URL}/payments/connect/dashboard-link/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/connect/dashboard-link/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })

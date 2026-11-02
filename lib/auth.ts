@@ -1,5 +1,8 @@
 import { PLAN_MARKETING_NAMES } from "./plans"
 import { throwIfEntitlementDenied } from "./entitlements"
+import { authedFetch } from "./authed-fetch"
+import { clearDeviceId } from "./device-identity"
+import { toApiError } from "./api-errors"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -203,8 +206,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Registration failed")
+      const error = await response.json().catch(() => null)
+      throw toApiError(error, "Registration failed", response.status)
     }
 
     return response.json()
@@ -218,8 +221,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Login failed")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Login failed")
     }
 
     const data = await response.json()
@@ -230,11 +233,11 @@ class AuthService {
   }
 
   async activate(code: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/activate/${code}/`)
+    const response = await fetch(`${API_BASE_URL}/auth/activate/${encodeURIComponent(code)}/`)
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Activation failed")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Activation failed")
     }
 
     return response.json()
@@ -248,8 +251,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to resend activation")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to resend activation")
     }
 
     return response.json()
@@ -273,24 +276,35 @@ class AuthService {
 
     const data = await response.json()
     localStorage.setItem("access_token", data.access)
+    // Backends that rotate refresh tokens (e.g. SimpleJWT
+    // ROTATE_REFRESH_TOKENS) return a new `refresh` and blacklist the old
+    // one — keep it or the next refresh fails. Non-rotating backends omit
+    // the field, so leave the stored token alone when it is absent.
+    if (data.refresh) localStorage.setItem("refresh_token", data.refresh)
     return data
   }
 
   async getProfile(): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/me/`, {
+    const requestProfile = () => fetch(`${API_BASE_URL}/me/`, {
       headers: this.getAuthHeaders(),
     })
+    let response = await requestProfile()
+
+    if (response.status === 401) {
+      try {
+        await this.refreshToken()
+      } catch {
+        this.logout()
+        throw new Error("Authentication required")
+      }
+      response = await requestProfile()
+      if (response.status === 401) {
+        this.logout()
+        throw new Error("Authentication required")
+      }
+    }
 
     if (!response.ok) {
-      if (response.status === 401) {
-        try {
-          await this.refreshToken()
-          return this.getProfile()
-        } catch {
-          this.logout()
-          throw new Error("Authentication required")
-        }
-      }
       throw new Error("Failed to fetch profile")
     }
 
@@ -298,7 +312,7 @@ class AuthService {
   }
 
   async updateProfile(data: FormData): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/me/`, {
+    const response = await authedFetch(`${API_BASE_URL}/me/`, {
       method: "PATCH",
       headers: this.getAuthHeaders(),
       body: data,
@@ -312,7 +326,7 @@ class AuthService {
   }
 
   async getRoleRequests(): Promise<RoleRequest[]> {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -324,7 +338,7 @@ class AuthService {
   }
 
   async approveRoleRequest(id: number) {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/${id}/approve/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/${encodeURIComponent(id)}/approve/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -337,7 +351,7 @@ class AuthService {
   }
 
   async rejectRoleRequest(id: number) {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/${id}/reject/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/${encodeURIComponent(id)}/reject/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -350,22 +364,22 @@ class AuthService {
   }
 
   async uploadRitual(data: FormData): Promise<Ritual> {
-    const response = await fetch(`${API_BASE_URL}/rituals/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
       body: data,
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to upload ritual")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to upload ritual")
     }
 
     return response.json()
   }
 
   async getMyRituals(): Promise<Ritual[]> {
-    const response = await fetch(`${API_BASE_URL}/rituals/mine/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/mine/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -377,7 +391,7 @@ class AuthService {
   }
 
   async updateRitual(id: number, data: Partial<RitualUpload>): Promise<Ritual> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${encodeURIComponent(id)}/`, {
       method: "PATCH",
       headers: {
         ...this.getAuthHeaders(),
@@ -394,7 +408,7 @@ class AuthService {
   }
 
   async deleteRitual(id: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${encodeURIComponent(id)}/`, {
       method: "DELETE",
       headers: this.getAuthHeaders(),
     })
@@ -405,7 +419,7 @@ class AuthService {
   }
 
   async getRitualAnalytics(id: number): Promise<RitualAnalytics> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/analytics/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${encodeURIComponent(id)}/analytics/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -417,7 +431,7 @@ class AuthService {
   }
 
   async getRitualFeedback(id: number): Promise<RitualFeedback[]> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${encodeURIComponent(id)}/feedback/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -434,7 +448,7 @@ class AuthService {
     if (tags && tags.length > 0) params.append("tags", tags.join(","))
 
     // Send auth when available so locked/required_plan reflect the caller's plan
-    const response = await fetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -450,11 +464,11 @@ class AuthService {
   }
 
   getRitualStreamUrl(id: number): string {
-    return `${API_BASE_URL}/rituals/${id}/stream/`
+    return `${API_BASE_URL}/rituals/${encodeURIComponent(id)}/stream/`
   }
 
   async blessRitual(ritualId: number): Promise<Blessing> {
-    const response = await fetch(`${API_BASE_URL}/analytics/blessings/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/blessings/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -474,7 +488,7 @@ class AuthService {
   }
 
   async submitFeedback(feedback: FeedbackSubmission): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/feedback/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -495,7 +509,7 @@ class AuthService {
    * second play.
    */
   async startPlaySession(ritualId: number): Promise<PlaySession> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -514,7 +528,7 @@ class AuthService {
   }
 
   async updatePlayProgress(playId: number, currentTime: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/${playId}/progress/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/${encodeURIComponent(playId)}/progress/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -529,7 +543,7 @@ class AuthService {
   }
 
   async completePlaySession(playId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/${playId}/complete/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/${encodeURIComponent(playId)}/complete/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -540,7 +554,7 @@ class AuthService {
   }
 
   async getCreatorDashboardMetrics(): Promise<CreatorDashboardMetrics> {
-    const response = await fetch(`${API_BASE_URL}/analytics/creator/dashboard/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/creator/dashboard/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -552,7 +566,7 @@ class AuthService {
   }
 
   async getCreatorFeedback(): Promise<CreatorFeedbackItem[]> {
-    const response = await fetch(`${API_BASE_URL}/analytics/creator/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/creator/feedback/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -586,10 +600,10 @@ class AuthService {
       body: JSON.stringify({ token, new_password: newPassword, confirm_password: confirmPassword }),
     })
     if (!response.ok) {
-      const error = await response.json()
+      const error = await readJson(response)
       throw new Error(
-        error.detail ||
-          (Array.isArray(error.confirm_password) ? error.confirm_password[0] : undefined) ||
+        error?.detail ||
+          (Array.isArray(error?.confirm_password) ? error.confirm_password[0] : undefined) ||
           "Failed to reset password",
       )
     }
@@ -603,6 +617,9 @@ class AuthService {
   logout() {
     localStorage.removeItem("access_token")
     localStorage.removeItem("refresh_token")
+    // The metering device id is scoped to one signed-in session, so accounts
+    // that share a browser cannot be linked through it.
+    clearDeviceId()
     document.cookie = `session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
   }
 
@@ -616,7 +633,7 @@ class AuthService {
     consents_accepted: boolean
     consent_accepted_at: string
   }> {
-    const response = await fetch(`${API_BASE_URL}/auth/consent/`, {
+    const response = await authedFetch(`${API_BASE_URL}/auth/consent/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -629,8 +646,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to accept consent")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to accept consent")
     }
 
     return response.json()
@@ -643,7 +660,7 @@ class AuthService {
     violation_type: "cultural_harm" | "safety_risk" | "misinformation" | "inappropriate_content" | "spam" | "other"
     description: string
   }): Promise<{ detail: string; case_id: number }> {
-    const response = await fetch(`${API_BASE_URL}/moderations/report/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/report/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -653,8 +670,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to submit report")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to submit report")
     }
 
     return response.json()
@@ -671,7 +688,7 @@ class AuthService {
     progress_seconds: number
     is_completed: boolean
   }>> {
-    const response = await fetch(`${API_BASE_URL}/analytics/me/plays/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/me/plays/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -689,7 +706,7 @@ class AuthService {
     ritual_care_level: string
     created_at: string
   }>> {
-    const response = await fetch(`${API_BASE_URL}/analytics/me/blessings/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/me/blessings/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -712,7 +729,7 @@ class AuthService {
     member_since: string
     requested_at: string
   }>> {
-    const response = await fetch(`${API_BASE_URL}/sanctuaries/joined/`, {
+    const response = await authedFetch(`${API_BASE_URL}/sanctuaries/joined/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -730,7 +747,7 @@ class AuthService {
   // never appears correctly in Care History or The Archive.
 
   async getPendingRituals(): Promise<PendingRitual[]> {
-    const response = await fetch(`${API_BASE_URL}/moderations/rituals/pending/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/rituals/pending/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -742,7 +759,7 @@ class AuthService {
   }
 
   async reviewRitual(ritualId: number, action: "approve" | "reject", note?: string): Promise<ReviewResponse> {
-    const response = await fetch(`${API_BASE_URL}/moderations/rituals/${ritualId}/review/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/rituals/${encodeURIComponent(ritualId)}/review/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -752,11 +769,22 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to review ritual")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to review ritual")
     }
 
     return response.json()
+  }
+}
+
+// Read an error body without assuming it is JSON — a proxy/WAF error page or
+// an empty 502 must still produce the caller's fallback message, not a
+// SyntaxError from response.json(). Same helper as lib/sanctuaries.ts.
+async function readJson(response: Response): Promise<any> {
+  try {
+    return await response.json()
+  } catch {
+    return null
   }
 }
 

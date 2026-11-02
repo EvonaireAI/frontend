@@ -3,6 +3,8 @@
 // Aggregates are computed nightly server-side, so the current day is always
 // empty. Qualified minutes are what royalties are based on.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export class ListeningForbiddenError extends Error {
@@ -48,8 +50,8 @@ class ListeningService {
 
   // period is "YYYY-MM"; omitted = current UTC month
   async getCreatorListening(period?: string): Promise<CreatorListening> {
-    const query = period ? `?period=${period}` : ""
-    const response = await fetch(`${API_BASE_URL}/analytics/creator/listening/${query}`, {
+    const query = period ? `?period=${encodeURIComponent(period)}` : ""
+    const response = await authedFetch(`${API_BASE_URL}/analytics/creator/listening/${query}`, {
       headers: this.getAuthHeaders(),
     })
 

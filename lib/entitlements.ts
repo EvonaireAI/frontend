@@ -1,3 +1,5 @@
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 function getAuthHeaders(): Record<string, string> {
@@ -120,7 +122,7 @@ export function openUpgradeModal(params: {
 // ── API ─────────────────────────────────────────────────────────────────────────
 
 export async function fetchEntitlements(): Promise<EntitlementsResponse> {
-  const response = await fetch(`${API_BASE_URL}/payments/entitlements/`, {
+  const response = await authedFetch(`${API_BASE_URL}/payments/entitlements/`, {
     headers: getAuthHeaders(),
   })
   if (!response.ok) {

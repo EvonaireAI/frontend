@@ -92,6 +92,7 @@ function ResetPasswordForm() {
           <input
             id="new_password"
             type={showNew ? "text" : "password"}
+            autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
@@ -117,6 +118,7 @@ function ResetPasswordForm() {
           <input
             id="confirm_password"
             type={showConfirm ? "text" : "password"}
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required

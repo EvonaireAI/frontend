@@ -1,8 +1,8 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 import { usePathname } from "next/navigation"
-import { AuthProvider } from "@/lib/auth-context"
+import { AuthProvider, useAuth } from "@/lib/auth-context"
 import { EntitlementsProvider } from "@/lib/entitlements-context"
 import { GatewayProvider } from "@/lib/gateway-context"
 import { UpgradeModalHost } from "@/components/payments/upgrade-modal"
@@ -38,6 +38,22 @@ function isStandalone(pathname: string | null): boolean {
   )
 }
 
+/**
+ * Everything below AuthProvider holds per-account state: entitlement and
+ * gateway progress, the upgrade and completion modals, the nudge, and the
+ * Gaia chat thread. React preserves that state across an account switch
+ * because the component types at every position stay the same, so the new
+ * account would inherit whatever the previous account left open.
+ *
+ * Keying this boundary on the authenticated user id forces a real remount
+ * when the account changes. A profile refresh for the same account keeps the
+ * same id and remounts nothing.
+ */
+function AccountScoped({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  return <Fragment key={user?.id ?? "anonymous"}>{children}</Fragment>
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
@@ -53,23 +69,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <AccessibilityProvider>
       <AuthProvider>
-        <EntitlementsProvider>
-          <GatewayProvider>
-            <ConsentGuard>
-              <div className="min-h-screen flex flex-col">
-                <Navigation />
-                <div className="flex-1">{children}</div>
-                <Footer />
-              </div>
-              <GaiaChatWidget />
-              <AccessibilityWidget />
-              <UpgradeModalHost />
-              <GatewayCompletionModalHost />
-              <GatewayNudge />
-              <Toaster richColors position="top-right" />
-            </ConsentGuard>
-          </GatewayProvider>
-        </EntitlementsProvider>
+        <AccountScoped>
+          <EntitlementsProvider>
+            <GatewayProvider>
+              <ConsentGuard>
+                <div className="min-h-screen flex flex-col">
+                  <Navigation />
+                  <div className="flex-1">{children}</div>
+                  <Footer />
+                </div>
+                <GaiaChatWidget />
+                <AccessibilityWidget />
+                <UpgradeModalHost />
+                <GatewayCompletionModalHost />
+                <GatewayNudge />
+                <Toaster richColors position="top-right" />
+              </ConsentGuard>
+            </GatewayProvider>
+          </EntitlementsProvider>
+        </AccountScoped>
       </AuthProvider>
     </AccessibilityProvider>
   )

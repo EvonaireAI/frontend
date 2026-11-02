@@ -3,6 +3,8 @@
 // MetricsForbiddenError so the dashboard can redirect instead of rendering.
 // Money fields are integer cents unless the name says `dollars`.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export class MetricsForbiddenError extends Error {
@@ -64,7 +66,7 @@ class MetricsService {
   }
 
   private async get<T>(path: string, notFoundFallback?: T): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await authedFetch(`${API_BASE_URL}${path}`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -88,11 +90,11 @@ class MetricsService {
   }
 
   async getTimeseries(months = 12): Promise<MetricsTimeseries> {
-    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${months}`, { months: [] })
+    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${encodeURIComponent(months)}`, { months: [] })
   }
 
   async getFunnel(months = 3): Promise<MetricsFunnel> {
-    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${months}`, {
+    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${encodeURIComponent(months)}`, {
       window_start: new Date().toISOString(),
       months,
       registered_users: 0,

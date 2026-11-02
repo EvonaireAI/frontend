@@ -1,4 +1,5 @@
 import { PLAN_MARKETING_NAMES, PLAN_PRICES, type PlanKey } from "./plans"
+import { authedFetch } from "./authed-fetch"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -48,7 +49,7 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 export async function fetchSubscription(): Promise<SubscriptionDetails> {
-  const res = await fetch(`${API_BASE_URL}/payments/subscription/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/subscription/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw new Error("Failed to fetch subscription")
@@ -56,7 +57,7 @@ export async function fetchSubscription(): Promise<SubscriptionDetails> {
 }
 
 export async function fetchInvoices(): Promise<{ invoices: Invoice[] }> {
-  const res = await fetch(`${API_BASE_URL}/payments/invoices/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/invoices/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw new Error("Failed to fetch invoices")
@@ -64,7 +65,7 @@ export async function fetchInvoices(): Promise<{ invoices: Invoice[] }> {
 }
 
 export async function cancelSubscription(): Promise<{ detail: string }> {
-  const res = await fetch(`${API_BASE_URL}/payments/cancel/`, {
+  const res = await authedFetch(`${API_BASE_URL}/payments/cancel/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })

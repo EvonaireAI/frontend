@@ -11,6 +11,7 @@ import {
   PayoutsApiError,
   type ConnectStatus,
 } from "@/lib/payouts"
+import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -77,6 +78,9 @@ function PayoutsContent() {
     setPhase("reconnecting")
     try {
       const { onboarding_url } = await createOnboardingLink()
+      if (!isAllowedExternalUrl(onboarding_url)) {
+        throw new Error("Stripe returned an unexpected URL")
+      }
       window.location.assign(onboarding_url)
     } catch (err) {
       if (err instanceof PayoutsApiError && err.status === 403) {
@@ -110,6 +114,9 @@ function PayoutsContent() {
     setOnboardingBusy(true)
     try {
       const { onboarding_url } = await createOnboardingLink()
+      if (!isAllowedExternalUrl(onboarding_url)) {
+        throw new Error("Stripe returned an unexpected URL")
+      }
       // Full redirect — Stripe onboarding cannot run in an iframe.
       // Leave the button spinning while the browser navigates.
       window.location.assign(onboarding_url)
@@ -127,7 +134,10 @@ function PayoutsContent() {
     setDashboardBusy(true)
     try {
       const { dashboard_url } = await createDashboardLink()
-      window.open(dashboard_url, "_blank")
+      if (!isAllowedExternalUrl(dashboard_url)) {
+        throw new Error("Stripe returned an unexpected URL")
+      }
+      window.open(dashboard_url, "_blank", "noopener")
     } catch (err) {
       if (err instanceof PayoutsApiError && err.status === 403) {
         router.replace("/dashboard")
