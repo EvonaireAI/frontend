@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { paymentService } from "@/lib/payments"
+import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { useEntitlements } from "@/lib/entitlements-context"
 import {
@@ -45,10 +46,10 @@ export default function UpgradePage() {
     try {
       // gateway_incomplete finishes the Gateway inline, then retries checkout.
       const session = await runGatedAction(() => paymentService.createCheckoutSession(planKey))
-      if (session.session_url) {
+      if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {
-        throw new Error("No checkout URL received")
+        throw new Error("Checkout returned an unexpected URL")
       }
     } catch (err) {
       if (err instanceof GatewayCancelledError) {

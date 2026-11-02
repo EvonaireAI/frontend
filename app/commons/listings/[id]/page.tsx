@@ -25,6 +25,7 @@ import {
   CommonsApiError,
   type Listing,
 } from "@/lib/commons"
+import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { LicenseChip, EarlyAccessBadge } from "@/components/commons/listing-chips"
 
 function DetailContent() {
@@ -82,9 +83,11 @@ function DetailContent() {
         // Granted instantly, no redirect — flip to the owned state.
         toast.success("Added to your library")
         setListing({ ...listing, has_access: true })
-      } else {
+      } else if (isAllowedExternalUrl(result.session_url)) {
         // Same redirect pattern as the subscription checkout.
         window.location.href = result.session_url
+      } else {
+        throw new Error("Checkout returned an unexpected URL")
       }
     } catch (err) {
       if (err instanceof CommonsApiError && err.isEarlyAccess) {

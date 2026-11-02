@@ -1,5 +1,6 @@
 import { throwIfGated } from "./gateway-quiz"
 import { authedFetch } from "./authed-fetch"
+import { isAllowedExternalUrl } from "./external-navigation"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -66,6 +67,9 @@ class PaymentService {
 
   async redirectToCheckout(sessionUrl: string): Promise<void> {
     if (typeof window !== "undefined") {
+      if (!isAllowedExternalUrl(sessionUrl)) {
+        throw new Error("Refusing to navigate to an unexpected checkout URL")
+      }
       window.location.href = sessionUrl
     }
   }
