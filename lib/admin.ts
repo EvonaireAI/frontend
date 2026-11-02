@@ -11,6 +11,8 @@ import { caseStage, unwrapList, type ModerationCase } from "./moderation"
 // `role="superadmin"` as well as `role="admin"`. Gate the UI with
 // `isSteward()` from lib/roles, never with `role === "admin"`.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 function authHeaders(): Record<string, string> {
@@ -254,30 +256,30 @@ async function buildPlatformOverviewFallback(): Promise<PlatformOverview> {
   const asOf = new Date().toISOString()
   const weekAgo = Date.now() - WEEK_MS
 
-  const roleRequestsPromise = fetch(`${API_BASE_URL}/admin/role-requests/`, { headers }).then(async (res) => {
+  const roleRequestsPromise = authedFetch(`${API_BASE_URL}/admin/role-requests/`, { headers }).then(async (res) => {
     if (!res.ok) return []
     const data = await res.json()
     return Array.isArray(data) ? data : []
   })
 
-  const casesPromise = fetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
+  const casesPromise = authedFetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
     if (!res.ok) return [] as ModerationCase[]
     return unwrapList<ModerationCase>(await res.json()).results
   })
 
-  const ritualsPromise = fetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
+  const ritualsPromise = authedFetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
     if (!res.ok) return []
     const data = await res.json()
     return Array.isArray(data) ? data : []
   })
 
-  const listingsPromise = fetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
+  const listingsPromise = authedFetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
     if (!res.ok) return 0
     const data = (await res.json()) as { queue?: unknown[] }
     return Array.isArray(data.queue) ? data.queue.length : 0
   })
 
-  const membershipsPromise = fetch(`${API_BASE_URL}/payments/metrics/overview/`, { headers }).then(async (res) => {
+  const membershipsPromise = authedFetch(`${API_BASE_URL}/payments/metrics/overview/`, { headers }).then(async (res) => {
     if (!res.ok) return null
     return (await res.json()) as MembershipsSummary
   })
@@ -470,7 +472,7 @@ function aggregateTrustCareFromCases(cases: ModerationCase[], days: number): Tru
 /** When `/admin/trust-care/` is missing (older API), derive Trust & Care from cases. */
 async function buildTrustCareFallback(days: number): Promise<TrustCare> {
   const headers = authHeaders()
-  const response = await fetch(`${API_BASE_URL}/moderations/cases/`, { headers })
+  const response = await authedFetch(`${API_BASE_URL}/moderations/cases/`, { headers })
   const cases = response.ok
     ? unwrapList<ModerationCase>(await response.json()).results
     : []
@@ -502,7 +504,7 @@ function buildArchiveEmptyPage(filters: ArchiveFilters): ArchivePage {
 
 export const adminService = {
   async getPlatformOverview(): Promise<PlatformOverview> {
-    const response = await fetch(`${API_BASE_URL}/admin/overview/`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/admin/overview/`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildPlatformOverviewFallback()
     throw await toError(response, "Failed to load the platform overview")
@@ -510,14 +512,14 @@ export const adminService = {
 
   /** `days` sets the trailing window for every `*_in_window` figure (max 365). */
   async getTrustCare(days = 7): Promise<TrustCare> {
-    const response = await fetch(`${API_BASE_URL}/admin/trust-care/?days=${days}`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/admin/trust-care/?days=${days}`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildTrustCareFallback(days)
     throw await toError(response, "Failed to load Trust & Care")
   },
 
   async getArchive(filters: ArchiveFilters = {}): Promise<ArchivePage> {
-    const response = await fetch(`${API_BASE_URL}/admin/archive/${buildQuery(filters)}`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/admin/archive/${buildQuery(filters)}`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildArchiveEmptyPage(filters)
     throw await toError(response, "Failed to load The Archive")

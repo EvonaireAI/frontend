@@ -4,6 +4,8 @@ import {
   isEntitlementDenial,
 } from "./entitlements"
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export type GatewayQuizStatus = "not_started" | "in_progress" | "completed"
@@ -91,7 +93,7 @@ async function parseError(response: Response, fallback: string): Promise<never> 
 
 export const gatewayQuizService = {
   async getStatus(): Promise<GatewayQuizAttempt> {
-    const response = await fetch(`${API_BASE_URL}/gateway-quiz/status/`, {
+    const response = await authedFetch(`${API_BASE_URL}/gateway-quiz/status/`, {
       headers: authHeaders(),
     })
     if (!response.ok) {
@@ -104,7 +106,7 @@ export const gatewayQuizService = {
   // the backend picks which questions to serve.
   async getNext(count = 1): Promise<GatewayQuizNext> {
     const clamped = Math.min(5, Math.max(1, Math.floor(count)))
-    const response = await fetch(
+    const response = await authedFetch(
       `${API_BASE_URL}/gateway-quiz/next/?count=${clamped}`,
       { headers: authHeaders() },
     )
@@ -115,7 +117,7 @@ export const gatewayQuizService = {
   },
 
   async getContent(): Promise<GatewayQuizContent> {
-    const response = await fetch(`${API_BASE_URL}/gateway-quiz/`, {
+    const response = await authedFetch(`${API_BASE_URL}/gateway-quiz/`, {
       headers: authHeaders(),
     })
     if (!response.ok) {
@@ -125,7 +127,7 @@ export const gatewayQuizService = {
   },
 
   async start(): Promise<GatewayQuizAttempt> {
-    const response = await fetch(`${API_BASE_URL}/gateway-quiz/start/`, {
+    const response = await authedFetch(`${API_BASE_URL}/gateway-quiz/start/`, {
       method: "POST",
       headers: authHeaders(),
     })
@@ -139,7 +141,7 @@ export const gatewayQuizService = {
     questionNumber: number,
     selectedOption: GatewayQuizOptionKey,
   ): Promise<GatewayQuizAnswerResult> {
-    const response = await fetch(`${API_BASE_URL}/gateway-quiz/answer/`, {
+    const response = await authedFetch(`${API_BASE_URL}/gateway-quiz/answer/`, {
       method: "POST",
       headers: {
         ...authHeaders(),

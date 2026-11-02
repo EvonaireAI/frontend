@@ -1,4 +1,5 @@
 import { throwIfGated } from "./gateway-quiz"
+import { authedFetch } from "./authed-fetch"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -26,7 +27,7 @@ class PaymentService {
   }
 
   async getPaymentConfig(): Promise<PaymentConfig> {
-    const response = await fetch(`${API_BASE_URL}/payments/config/`, {
+    const response = await authedFetch(`${API_BASE_URL}/payments/config/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -42,7 +43,7 @@ class PaymentService {
     const config = await this.getPaymentConfig()
     const finalPriceId = priceId || config.default_price_id
 
-    const response = await fetch(`${API_BASE_URL}/payments/checkout-session/`, {
+    const response = await authedFetch(`${API_BASE_URL}/payments/checkout-session/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),

@@ -1,5 +1,6 @@
 import { PLAN_MARKETING_NAMES } from "./plans"
 import { throwIfEntitlementDenied } from "./entitlements"
+import { authedFetch } from "./authed-fetch"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -298,7 +299,7 @@ class AuthService {
   }
 
   async updateProfile(data: FormData): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/me/`, {
+    const response = await authedFetch(`${API_BASE_URL}/me/`, {
       method: "PATCH",
       headers: this.getAuthHeaders(),
       body: data,
@@ -312,7 +313,7 @@ class AuthService {
   }
 
   async getRoleRequests(): Promise<RoleRequest[]> {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -324,7 +325,7 @@ class AuthService {
   }
 
   async approveRoleRequest(id: number) {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/${id}/approve/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/${id}/approve/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -337,7 +338,7 @@ class AuthService {
   }
 
   async rejectRoleRequest(id: number) {
-    const response = await fetch(`${API_BASE_URL}/admin/role-requests/${id}/reject/`, {
+    const response = await authedFetch(`${API_BASE_URL}/admin/role-requests/${id}/reject/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -350,7 +351,7 @@ class AuthService {
   }
 
   async uploadRitual(data: FormData): Promise<Ritual> {
-    const response = await fetch(`${API_BASE_URL}/rituals/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
       body: data,
@@ -365,7 +366,7 @@ class AuthService {
   }
 
   async getMyRituals(): Promise<Ritual[]> {
-    const response = await fetch(`${API_BASE_URL}/rituals/mine/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/mine/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -377,7 +378,7 @@ class AuthService {
   }
 
   async updateRitual(id: number, data: Partial<RitualUpload>): Promise<Ritual> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${id}/`, {
       method: "PATCH",
       headers: {
         ...this.getAuthHeaders(),
@@ -394,7 +395,7 @@ class AuthService {
   }
 
   async deleteRitual(id: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${id}/`, {
       method: "DELETE",
       headers: this.getAuthHeaders(),
     })
@@ -405,7 +406,7 @@ class AuthService {
   }
 
   async getRitualAnalytics(id: number): Promise<RitualAnalytics> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/analytics/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${id}/analytics/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -417,7 +418,7 @@ class AuthService {
   }
 
   async getRitualFeedback(id: number): Promise<RitualFeedback[]> {
-    const response = await fetch(`${API_BASE_URL}/rituals/${id}/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/${id}/feedback/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -434,7 +435,7 @@ class AuthService {
     if (tags && tags.length > 0) params.append("tags", tags.join(","))
 
     // Send auth when available so locked/required_plan reflect the caller's plan
-    const response = await fetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
+    const response = await authedFetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -454,7 +455,7 @@ class AuthService {
   }
 
   async blessRitual(ritualId: number): Promise<Blessing> {
-    const response = await fetch(`${API_BASE_URL}/analytics/blessings/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/blessings/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -474,7 +475,7 @@ class AuthService {
   }
 
   async submitFeedback(feedback: FeedbackSubmission): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/feedback/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -495,7 +496,7 @@ class AuthService {
    * second play.
    */
   async startPlaySession(ritualId: number): Promise<PlaySession> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -514,7 +515,7 @@ class AuthService {
   }
 
   async updatePlayProgress(playId: number, currentTime: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/${playId}/progress/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/${playId}/progress/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -529,7 +530,7 @@ class AuthService {
   }
 
   async completePlaySession(playId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/analytics/plays/${playId}/complete/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/plays/${playId}/complete/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })
@@ -540,7 +541,7 @@ class AuthService {
   }
 
   async getCreatorDashboardMetrics(): Promise<CreatorDashboardMetrics> {
-    const response = await fetch(`${API_BASE_URL}/analytics/creator/dashboard/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/creator/dashboard/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -552,7 +553,7 @@ class AuthService {
   }
 
   async getCreatorFeedback(): Promise<CreatorFeedbackItem[]> {
-    const response = await fetch(`${API_BASE_URL}/analytics/creator/feedback/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/creator/feedback/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -616,7 +617,7 @@ class AuthService {
     consents_accepted: boolean
     consent_accepted_at: string
   }> {
-    const response = await fetch(`${API_BASE_URL}/auth/consent/`, {
+    const response = await authedFetch(`${API_BASE_URL}/auth/consent/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -643,7 +644,7 @@ class AuthService {
     violation_type: "cultural_harm" | "safety_risk" | "misinformation" | "inappropriate_content" | "spam" | "other"
     description: string
   }): Promise<{ detail: string; case_id: number }> {
-    const response = await fetch(`${API_BASE_URL}/moderations/report/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/report/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -671,7 +672,7 @@ class AuthService {
     progress_seconds: number
     is_completed: boolean
   }>> {
-    const response = await fetch(`${API_BASE_URL}/analytics/me/plays/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/me/plays/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -689,7 +690,7 @@ class AuthService {
     ritual_care_level: string
     created_at: string
   }>> {
-    const response = await fetch(`${API_BASE_URL}/analytics/me/blessings/`, {
+    const response = await authedFetch(`${API_BASE_URL}/analytics/me/blessings/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -712,7 +713,7 @@ class AuthService {
     member_since: string
     requested_at: string
   }>> {
-    const response = await fetch(`${API_BASE_URL}/sanctuaries/joined/`, {
+    const response = await authedFetch(`${API_BASE_URL}/sanctuaries/joined/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -730,7 +731,7 @@ class AuthService {
   // never appears correctly in Care History or The Archive.
 
   async getPendingRituals(): Promise<PendingRitual[]> {
-    const response = await fetch(`${API_BASE_URL}/moderations/rituals/pending/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/rituals/pending/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -742,7 +743,7 @@ class AuthService {
   }
 
   async reviewRitual(ritualId: number, action: "approve" | "reject", note?: string): Promise<ReviewResponse> {
-    const response = await fetch(`${API_BASE_URL}/moderations/rituals/${ritualId}/review/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/rituals/${ritualId}/review/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),

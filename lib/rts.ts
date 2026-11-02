@@ -1,6 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 import { unwrapList } from "./moderation"
+import { authedFetch } from "./authed-fetch"
 
 // RTS Types
 export interface RTSScore {
@@ -157,7 +158,7 @@ class RTSService {
 
   // Creator endpoints
   async getMyScore(): Promise<RTSScore> {
-    const response = await fetch(`${API_BASE_URL}/rts/me/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/me/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -169,7 +170,7 @@ class RTSService {
   }
 
   async getMyHistory(): Promise<RTSHistoryEntry[]> {
-    const response = await fetch(`${API_BASE_URL}/rts/history/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/history/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -181,7 +182,7 @@ class RTSService {
   }
 
   async submitSelfAssessment(assessment: RTSSelfAssessment): Promise<{ message: string; new_score: number }> {
-    const response = await fetch(`${API_BASE_URL}/rts/assessment/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/assessment/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -200,7 +201,7 @@ class RTSService {
   // Guardian endpoints (moderator / admin / superadmin only since Session 11 —
   // hide the controls for anyone else rather than letting a 403 reach the UI).
   async getAllCreators(): Promise<RTSCreatorSummary[]> {
-    const response = await fetch(`${API_BASE_URL}/rts/creators/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/creators/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -214,7 +215,7 @@ class RTSService {
   }
 
   async getCreatorScore(userId: number): Promise<RTSScore> {
-    const response = await fetch(`${API_BASE_URL}/rts/${userId}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/${userId}/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -226,7 +227,7 @@ class RTSService {
   }
 
   async getCreatorHistory(userId: number): Promise<RTSHistoryEntry[]> {
-    const response = await fetch(`${API_BASE_URL}/rts/history/${userId}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/history/${userId}/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -238,7 +239,7 @@ class RTSService {
   }
 
   async getCreatorAudit(userId: number): Promise<RTSAuditResponse> {
-    const response = await fetch(`${API_BASE_URL}/rts/audit/${userId}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/audit/${userId}/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -255,7 +256,7 @@ class RTSService {
    * `POST /api/moderations/report/` (authService.submitReport) instead.
    */
   async createFlag(flag: RTSFlag): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/rts/flag/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/flag/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -280,7 +281,7 @@ class RTSService {
   }
 
   async getAlerts(): Promise<RTSAlert[]> {
-    const response = await fetch(`${API_BASE_URL}/rts/alerts/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/alerts/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -296,7 +297,7 @@ class RTSService {
   // Guardians may READ the config (see getConfig) but must not be shown an
   // edit affordance.
   async getConfig(): Promise<RTSConfig> {
-    const response = await fetch(`${API_BASE_URL}/rts/config/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/config/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -310,7 +311,7 @@ class RTSService {
   }
 
   async updateConfig(configId: number, updates: Partial<RTSConfig>): Promise<RTSConfig> {
-    const response = await fetch(`${API_BASE_URL}/rts/config/${configId}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/config/${configId}/`, {
       method: "PATCH",
       headers: {
         ...this.getAuthHeaders(),
@@ -328,7 +329,7 @@ class RTSService {
 
   /** Steward-only — rewrites one user's score platform-wide. */
   async recalculateUser(userId: number): Promise<{ detail?: string; current_score?: number }> {
-    const response = await fetch(`${API_BASE_URL}/rts/recalculate/${userId}/`, {
+    const response = await authedFetch(`${API_BASE_URL}/rts/recalculate/${userId}/`, {
       method: "POST",
       headers: this.getAuthHeaders(),
     })

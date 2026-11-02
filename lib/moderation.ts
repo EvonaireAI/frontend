@@ -10,6 +10,8 @@
 // never PATCH `status` directly, or the timestamps and actor stamps go
 // unwritten.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 function authHeaders(): Record<string, string> {
@@ -197,24 +199,24 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 async function buildGuardianOverviewFallback(): Promise<GuardianOverview> {
   const headers = authHeaders()
 
-  const casesPromise = fetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
+  const casesPromise = authedFetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
     if (!res.ok) throw await toError(res, "Failed to load care cases")
     return unwrapList<ModerationCase>(await res.json()).results
   })
 
-  const ritualsPromise = fetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
+  const ritualsPromise = authedFetch(`${API_BASE_URL}/moderations/rituals/pending/`, { headers }).then(async (res) => {
     if (!res.ok) return []
     const data = await res.json()
     return Array.isArray(data) ? data : []
   })
 
-  const mePromise = fetch(`${API_BASE_URL}/me/`, { headers }).then(async (res) => {
+  const mePromise = authedFetch(`${API_BASE_URL}/me/`, { headers }).then(async (res) => {
     if (!res.ok) return null
     const data = (await res.json()) as { id?: number }
     return typeof data.id === "number" ? data.id : null
   })
 
-  const listingsPromise = fetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
+  const listingsPromise = authedFetch(`${API_BASE_URL}/commons/review-queue/`, { headers }).then(async (res) => {
     if (!res.ok) return 0
     const data = (await res.json()) as { queue?: unknown[] }
     return Array.isArray(data.queue) ? data.queue.length : 0
@@ -285,7 +287,7 @@ async function buildGuardianOverviewFallback(): Promise<GuardianOverview> {
 
 export const moderationService = {
   async getOverview(): Promise<GuardianOverview> {
-    const response = await fetch(`${API_BASE_URL}/moderations/overview/`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/moderations/overview/`, { headers: authHeaders() })
     if (response.ok) return response.json()
     // Older backends expose cases + ritual queue but not the Session 11 aggregate
     if (response.status === 404) return buildGuardianOverviewFallback()
@@ -294,7 +296,7 @@ export const moderationService = {
 
   /** One list serves Pending Reviews, Active Cases and Case History. */
   async listCases(filters: CaseFilters = {}): Promise<ListPage<ModerationCase>> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${buildQuery(filters)}`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${buildQuery(filters)}`, {
       headers: authHeaders(),
     })
     if (!response.ok) throw await toError(response, "Failed to load care cases")
@@ -302,13 +304,13 @@ export const moderationService = {
   },
 
   async getCase(caseId: number): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${caseId}/`, { headers: authHeaders() })
     if (!response.ok) throw await toError(response, "Failed to load the care case")
     return response.json()
   },
 
   async getCareFeed(limit = 50): Promise<CareFeedItem[]> {
-    const response = await fetch(`${API_BASE_URL}/moderations/care-feed/?limit=${limit}`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/care-feed/?limit=${limit}`, {
       headers: authHeaders(),
     })
     if (!response.ok) throw await toError(response, "Failed to load the Care Feed")
@@ -327,7 +329,7 @@ export const moderationService = {
     caseId: number,
     body: { moderator_id?: number; release?: boolean; note?: string } = {},
   ): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/assign/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${caseId}/assign/`, {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -338,7 +340,7 @@ export const moderationService = {
 
   /** `resolution_note` is required — it becomes the Care History record. */
   async resolveCase(caseId: number, resolutionNote: string): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/resolve/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${caseId}/resolve/`, {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ resolution_note: resolutionNote }),
@@ -349,7 +351,7 @@ export const moderationService = {
 
   /** Terminal, and resolve-first: `400 not_resolved` on anything unresolved. */
   async archiveCase(caseId: number, note?: string): Promise<ModerationCase> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/archive/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${caseId}/archive/`, {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(note ? { note } : {}),
@@ -362,7 +364,7 @@ export const moderationService = {
     caseId: number,
     notes: string,
   ): Promise<{ detail: string; case_id: number; severity: string; crisis_escalated: boolean; intervention_id: number }> {
-    const response = await fetch(`${API_BASE_URL}/moderations/cases/${caseId}/escalate/`, {
+    const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${caseId}/escalate/`, {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ notes }),

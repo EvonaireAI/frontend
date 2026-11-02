@@ -21,6 +21,7 @@
 // nothing if we inflate it.
 
 import { licenseLabel, type LicenseLevel } from "./commons"
+import { authedFetch } from "./authed-fetch"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -416,7 +417,7 @@ export async function fetchMyContent(params?: {
   if (params?.offset) query.set("offset", String(params.offset))
   const suffix = query.toString() ? `?${query}` : ""
 
-  const response = await fetch(`${API_BASE_URL}/claimchain/content/${suffix}`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/content/${suffix}`, {
     headers: getAuthHeaders(),
   })
   if (!response.ok) throw await readError(response)
@@ -431,7 +432,7 @@ export async function fetchMyContent(params?: {
  * treat 404 as "not yours or not there" and say nothing more.
  */
 export async function fetchContentProvenance(ritualId: number): Promise<ContentProvenance> {
-  const response = await fetch(`${API_BASE_URL}/claimchain/content/${ritualId}/`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/content/${ritualId}/`, {
     headers: getAuthHeaders(),
   })
   if (!response.ok) throw await readError(response)
@@ -453,7 +454,7 @@ export async function fetchLicenses(params?: {
   if (params?.limit) query.set("limit", String(params.limit))
   const suffix = query.toString() ? `?${query}` : ""
 
-  const response = await fetch(`${API_BASE_URL}/claimchain/licenses/${suffix}`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/licenses/${suffix}`, {
     headers: getAuthHeaders(),
   })
   if (!response.ok) throw await readError(response)
@@ -474,7 +475,7 @@ export const REVOKE_REASON_MIN_LENGTH = 20
  * of refetching the page — the creator should see exactly what changed.
  */
 export async function revokeLicense(licenseId: number, reason: string): Promise<LicenseRecord> {
-  const response = await fetch(`${API_BASE_URL}/claimchain/licenses/${licenseId}/revoke/`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/licenses/${licenseId}/revoke/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ reason }),
@@ -508,7 +509,7 @@ export async function refetchLicense(
  * and removed.
  */
 export async function fetchVerification(claimToken: string): Promise<Verification | null> {
-  const response = await fetch(`${API_BASE_URL}/verify/${encodeURIComponent(claimToken)}/`, {
+  const response = await authedFetch(`${API_BASE_URL}/verify/${encodeURIComponent(claimToken)}/`, {
     cache: "no-store",
   })
   if (response.status === 404) return null

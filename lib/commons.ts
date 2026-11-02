@@ -4,6 +4,8 @@
 // are integer cents. Browse endpoints work logged-out; everything else needs
 // a Bearer access token.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 function getAuthHeaders(): Record<string, string> {
@@ -217,7 +219,7 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Listi
   if (filters.limit !== undefined) params.set("limit", String(filters.limit))
 
   const qs = params.toString()
-  const res = await fetch(`${API_BASE_URL}/commons/listings/${qs ? `?${qs}` : ""}`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/listings/${qs ? `?${qs}` : ""}`, {
     // Send auth when available so has_access / early-access visibility reflect
     // the caller; the endpoint also works logged-out.
     headers: getAuthHeaders(),
@@ -227,7 +229,7 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Listi
 }
 
 export async function fetchListing(id: number): Promise<Listing> {
-  const res = await fetch(`${API_BASE_URL}/commons/listings/${id}/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/listings/${id}/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw await toCommonsError(res, "Failed to load this listing")
@@ -240,7 +242,7 @@ export async function checkoutListing(
   id: number,
   urls: { success_url: string; cancel_url: string },
 ): Promise<CheckoutResult> {
-  const res = await fetch(`${API_BASE_URL}/commons/listings/${id}/checkout/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/listings/${id}/checkout/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(urls),
@@ -252,7 +254,7 @@ export async function checkoutListing(
 // ── My purchases ─────────────────────────────────────────────────────────────
 
 export async function fetchPurchases(): Promise<Purchase[]> {
-  const res = await fetch(`${API_BASE_URL}/commons/purchases/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/purchases/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw await toCommonsError(res, "Failed to load your library")
@@ -263,7 +265,7 @@ export async function fetchPurchases(): Promise<Purchase[]> {
 // ── Creator listing manager ──────────────────────────────────────────────────
 
 export async function fetchMyListings(): Promise<MyListing[]> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/`, {
     headers: getAuthHeaders(),
   })
   if (!res.ok) throw await toCommonsError(res, "Failed to load your listings")
@@ -281,7 +283,7 @@ export interface ListingDraftInput {
 }
 
 export async function createListing(input: ListingDraftInput): Promise<MyListing> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -294,7 +296,7 @@ export async function updateListing(
   id: number,
   patch: Partial<ListingDraftInput>,
 ): Promise<MyListing> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/${id}/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/${id}/`, {
     method: "PATCH",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(patch),
@@ -304,7 +306,7 @@ export async function updateListing(
 }
 
 export async function submitForReview(id: number): Promise<MyListing> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/${id}/submit-for-review/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/${id}/submit-for-review/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -313,7 +315,7 @@ export async function submitForReview(id: number): Promise<MyListing> {
 }
 
 export async function pauseListing(id: number): Promise<MyListing> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/${id}/pause/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/${id}/pause/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -322,7 +324,7 @@ export async function pauseListing(id: number): Promise<MyListing> {
 }
 
 export async function resumeListing(id: number): Promise<MyListing> {
-  const res = await fetch(`${API_BASE_URL}/commons/my-listings/${id}/resume/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/${id}/resume/`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -338,7 +340,7 @@ export interface GiftInput {
 }
 
 export async function giftListing(id: number, input: GiftInput): Promise<Gift> {
-  const res = await fetch(`${API_BASE_URL}/commons/listings/${id}/gift/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/listings/${id}/gift/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -350,7 +352,7 @@ export async function giftListing(id: number, input: GiftInput): Promise<Gift> {
 // ── Moderator review queue ───────────────────────────────────────────────────
 
 export async function fetchReviewQueue(): Promise<MyListing[]> {
-  const res = await fetch(`${API_BASE_URL}/commons/review-queue/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/review-queue/`, {
     headers: getAuthHeaders(),
   })
   if (res.status === 404) return []
@@ -364,7 +366,7 @@ export type ReviewDecision =
   | { decision: "reject"; note: string }
 
 export async function submitReviewDecision(id: number, body: ReviewDecision): Promise<any> {
-  const res = await fetch(`${API_BASE_URL}/commons/review-queue/${id}/decision/`, {
+  const res = await authedFetch(`${API_BASE_URL}/commons/review-queue/${id}/decision/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
