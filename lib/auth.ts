@@ -283,20 +283,26 @@ class AuthService {
   }
 
   async getProfile(): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/me/`, {
+    const requestProfile = () => fetch(`${API_BASE_URL}/me/`, {
       headers: this.getAuthHeaders(),
     })
+    let response = await requestProfile()
+
+    if (response.status === 401) {
+      try {
+        await this.refreshToken()
+      } catch {
+        this.logout()
+        throw new Error("Authentication required")
+      }
+      response = await requestProfile()
+      if (response.status === 401) {
+        this.logout()
+        throw new Error("Authentication required")
+      }
+    }
 
     if (!response.ok) {
-      if (response.status === 401) {
-        try {
-          await this.refreshToken()
-          return this.getProfile()
-        } catch {
-          this.logout()
-          throw new Error("Authentication required")
-        }
-      }
       throw new Error("Failed to fetch profile")
     }
 
