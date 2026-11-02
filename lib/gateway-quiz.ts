@@ -21,10 +21,13 @@ export interface GatewayProgress {
 
 export interface GatewayQuizAttempt extends GatewayProgress {
   status: GatewayQuizStatus
+  passed: boolean
   last_question_number: number
   next_question_number: number | null
-  correct_count: number
+  // null until the attempt completes — the backend withholds the live score
+  correct_count: number | null
   total_questions: number
+  required_correct_count: number
   started_at: string | null
   completed_at: string | null
 }
@@ -51,9 +54,6 @@ export interface GatewayQuizContent {
 }
 
 export interface GatewayQuizAnswerResult extends GatewayQuizAttempt {
-  is_correct: boolean
-  correct_option: GatewayQuizOptionKey
-  correct_option_text: string
   completion_message?: string
 }
 
