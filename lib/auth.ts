@@ -18,12 +18,13 @@ export const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = {
   evoluxe: "evoluxe",
 }
 
-export function getSubscriptionAccess(plan?: SubscriptionPlan, status?: SubscriptionStatus) {
+export function getSubscriptionAccess(plan?: SubscriptionPlan | "free", status?: SubscriptionStatus) {
   const isPaidActive =
     !!plan &&
+    plan !== "free" &&
     PAID_PLANS.includes(plan) &&
     (status === "active" || status === "trialing")
-  const isPastDue = !!plan && PAID_PLANS.includes(plan) && status === "past_due"
+  const isPastDue = !!plan && plan !== "free" && PAID_PLANS.includes(plan) && status === "past_due"
   const isFree = !isPaidActive
   return { isPaidActive, isPastDue, isFree }
 }

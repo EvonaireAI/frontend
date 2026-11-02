@@ -78,7 +78,7 @@ export function ProtectedAudioPreview({
         onEnded={onEnded}
         preload="none"
         controlsList="nodownload"
-        disablePictureInPicture
+        {...({ disablePictureInPicture: true })}
       >
         Your browser does not support the audio element.
       </audio>

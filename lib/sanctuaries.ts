@@ -32,6 +32,7 @@ export interface Sanctuary {
   tags: Tag[]
   owner: User
   active_members_count: number
+  member_count?: number
   membership_status?: "pending" | "approved" | "rejected" | "revoked" | "canceled" | null
   created_at: string
   updated_at: string
