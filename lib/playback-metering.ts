@@ -21,10 +21,10 @@
 
 import { authService } from "./auth"
 import { throwIfEntitlementDenied } from "./entitlements"
+import { getDeviceId } from "./device-identity"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
-const DEVICE_ID_KEY = "evonaire_device_id"
 const DEFAULT_HEARTBEAT_SECONDS = 25
 const START_RETRY_DELAY_MS = 5000
 // Floor for the rotation timer, so a misconfigured server cannot make us
@@ -122,21 +122,6 @@ export interface MeterCallbacks {
   onRestricted?: (detail: string | null) => void
   /** The active session changed (including to null). Drives the watermark label. */
   onSessionChange?: (sessionId: number | null) => void
-}
-
-// Stable opaque per-browser id, hashed server-side. Never anything personal.
-function getDeviceId(): string | undefined {
-  if (typeof window === "undefined") return undefined
-  try {
-    let id = localStorage.getItem(DEVICE_ID_KEY)
-    if (!id) {
-      id = crypto.randomUUID()
-      localStorage.setItem(DEVICE_ID_KEY, id)
-    }
-    return id
-  } catch {
-    return undefined
-  }
 }
 
 function getAuthHeaders(): Record<string, string> {
