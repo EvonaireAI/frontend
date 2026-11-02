@@ -1,4 +1,6 @@
 import { throwIfGated } from "./gateway-quiz"
+import { authedFetch } from "./authed-fetch"
+import { isAllowedExternalUrl } from "./external-navigation"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -26,7 +28,7 @@ class PaymentService {
   }
 
   async getPaymentConfig(): Promise<PaymentConfig> {
-    const response = await fetch(`${API_BASE_URL}/payments/config/`, {
+    const response = await authedFetch(`${API_BASE_URL}/payments/config/`, {
       headers: this.getAuthHeaders(),
     })
 
@@ -42,7 +44,7 @@ class PaymentService {
     const config = await this.getPaymentConfig()
     const finalPriceId = priceId || config.default_price_id
 
-    const response = await fetch(`${API_BASE_URL}/payments/checkout-session/`, {
+    const response = await authedFetch(`${API_BASE_URL}/payments/checkout-session/`, {
       method: "POST",
       headers: {
         ...this.getAuthHeaders(),
@@ -65,6 +67,9 @@ class PaymentService {
 
   async redirectToCheckout(sessionUrl: string): Promise<void> {
     if (typeof window !== "undefined") {
+      if (!isAllowedExternalUrl(sessionUrl)) {
+        throw new Error("Refusing to navigate to an unexpected checkout URL")
+      }
       window.location.href = sessionUrl
     }
   }

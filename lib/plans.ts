@@ -8,7 +8,7 @@ export const PLAN_MARKETING_NAMES: Record<PlanKey, string> = {
   free: "Wanderer",
   evocore: "Seeker",
   evobloom: "Scholar",
-  evoluxe: "Evoluxe", // unlaunched — never shown on the pricing page
+  evoluxe: "Sustainer", // unlaunched — never shown on the pricing page
 }
 
 export const PLAN_PRICES: Record<PlanKey, number> = {

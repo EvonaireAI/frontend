@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { authService } from "@/lib/auth"
+import { ApiError, type FieldErrorMap } from "@/lib/api-errors"
 import { roleShortLabel } from "@/lib/roles"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 
@@ -21,6 +22,7 @@ export default function RegisterPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({})
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -28,6 +30,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setFieldErrors({})
     setSuccess("")
     setLoading(true)
     try {
@@ -45,7 +48,23 @@ export default function RegisterPage() {
       setSuccess("Registration successful! Please check your email for an activation link.")
       setTimeout(() => router.push("/auth/login"), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed")
+      if (err instanceof ApiError) {
+        // Errors naming a form field render under that input; anything else
+        // (detail, non_field_errors, fields we do not expose) stays in the
+        // top-level alert.
+        const known: FieldErrorMap = {}
+        const rest: string[] = []
+        for (const [field, messages] of Object.entries(err.fields)) {
+          const visible = field in formData && (field !== "reason" || formData.role !== "member")
+          if (visible) known[field] = messages
+          else rest.push(`${field}: ${messages.join(" ")}`)
+        }
+        setFieldErrors(known)
+        const globalMessage = [err.nonFieldMessage, ...rest].filter(Boolean).join(" ")
+        setError(globalMessage || (Object.keys(known).length === 0 ? err.message : ""))
+      } else {
+        setError(err instanceof Error ? err.message : "Registration failed")
+      }
     } finally {
       setLoading(false)
     }
@@ -53,10 +72,24 @@ export default function RegisterPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    setFieldErrors((prev) => {
+      if (!(field in prev)) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
   }
+
+  const fieldError = (name: keyof typeof formData) =>
+    fieldErrors[name]?.length ? (
+      <p className="text-red-300/90 text-xs">{fieldErrors[name].join(" ")}</p>
+    ) : null
 
   const inputClass =
     "w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all"
+
+  const inputClassFor = (name: keyof typeof formData) =>
+    fieldErrors[name]?.length ? inputClass.replace("border-gold/20", "border-red-500/60") : inputClass
 
   return (
     <div className="min-h-screen bg-dark-navy flex flex-col">
@@ -107,12 +140,15 @@ export default function RegisterPage() {
                   </label>
                   <input
                     id="first_name"
+                    autoComplete="given-name"
                     value={formData.first_name}
                     onChange={(e) => handleInputChange("first_name", e.target.value)}
                     required
                     placeholder="Jane"
-                    className={inputClass}
+                    className={inputClassFor("first_name")}
+                    aria-invalid={!!fieldErrors.first_name}
                   />
+                  {fieldError("first_name")}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="last_name" className="text-cream/70 text-sm font-medium">
@@ -120,12 +156,15 @@ export default function RegisterPage() {
                   </label>
                   <input
                     id="last_name"
+                    autoComplete="family-name"
                     value={formData.last_name}
                     onChange={(e) => handleInputChange("last_name", e.target.value)}
                     required
                     placeholder="Doe"
-                    className={inputClass}
+                    className={inputClassFor("last_name")}
+                    aria-invalid={!!fieldErrors.last_name}
                   />
+                  {fieldError("last_name")}
                 </div>
               </div>
 
@@ -136,12 +175,15 @@ export default function RegisterPage() {
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
                   placeholder="you@example.com"
-                  className={inputClass}
+                  className={inputClassFor("email")}
+                  aria-invalid={!!fieldErrors.email}
                 />
+                {fieldError("email")}
               </div>
 
               <div className="space-y-2">
@@ -152,11 +194,13 @@ export default function RegisterPage() {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     required
                     placeholder="Choose a strong password"
-                    className={`${inputClass} pr-12`}
+                    className={`${inputClassFor("password")} pr-12`}
+                    aria-invalid={!!fieldErrors.password}
                   />
                   <button
                     type="button"
@@ -167,6 +211,7 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {fieldError("password")}
               </div>
 
               <div className="space-y-2">
@@ -192,6 +237,7 @@ export default function RegisterPage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {fieldError("role")}
               </div>
 
               {(formData.role === "creator" || formData.role === "moderator") && (
@@ -208,6 +254,7 @@ export default function RegisterPage() {
                     rows={3}
                     className="w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all resize-none"
                   />
+                  {fieldError("reason")}
                 </div>
               )}
 

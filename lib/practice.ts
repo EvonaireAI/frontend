@@ -5,6 +5,7 @@
 // comparative and nothing is a streak; render them plainly and let them be.
 
 import { authService } from "./auth"
+import { authedFetch } from "./authed-fetch"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -35,7 +36,7 @@ export interface PracticeSummary extends PracticePeriod {
  * `me/plays/` and `me/blessings/` rather than showing an error.
  */
 export async function fetchPracticeSummary(): Promise<PracticeSummary> {
-  const response = await fetch(`${API_BASE_URL}/analytics/me/summary/`, {
+  const response = await authedFetch(`${API_BASE_URL}/analytics/me/summary/`, {
     headers: authService.getAuthHeaders(),
   })
 

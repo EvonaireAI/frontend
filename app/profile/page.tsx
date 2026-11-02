@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authService } from "@/lib/auth"
+import { avatarFileError } from "@/lib/image-upload"
 import { useAuth } from "@/lib/auth-context"
 import { roleDashboardLabel } from "@/lib/roles"
 import { Loader2, ArrowLeft, Upload } from "lucide-react"
@@ -95,9 +96,19 @@ export default function ProfilePage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setProfilePicture(file)
+    if (!file) return
+
+    const problem = avatarFileError(file)
+    if (problem) {
+      setError(problem)
+      setProfilePicture(null)
+      // Let the same file be chosen again after a rejection.
+      e.target.value = ""
+      return
     }
+
+    setError("")
+    setProfilePicture(file)
   }
 
   if (authLoading) {
@@ -183,7 +194,7 @@ export default function ProfilePage() {
                     </p>
                   ) : (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      JPG or PNG. Camera or library on mobile.
+                      PNG, JPEG, WebP, or GIF. Camera or library on mobile.
                     </p>
                   )}
                 </div>

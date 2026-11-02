@@ -8,6 +8,8 @@
 // require staff. Both 403 otherwise, surfaced as RoyaltiesForbiddenError so
 // pages redirect instead of rendering broken.
 
+import { authedFetch } from "./authed-fetch"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 export class RoyaltiesForbiddenError extends Error {
@@ -150,7 +152,7 @@ class RoyaltiesService {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await authedFetch(`${API_BASE_URL}${path}`, {
       ...init,
       headers: this.getAuthHeaders(),
     })
@@ -183,7 +185,7 @@ class RoyaltiesService {
   }
 
   async getPeriods(): Promise<RoyaltyPeriodList> {
-    const response = await fetch(`${API_BASE_URL}/royalties/periods/`, {
+    const response = await authedFetch(`${API_BASE_URL}/royalties/periods/`, {
       headers: this.getAuthHeaders(),
     })
     if (response.status === 403) {

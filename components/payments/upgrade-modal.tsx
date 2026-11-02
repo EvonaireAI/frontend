@@ -16,6 +16,7 @@ import {
   type PlanKey,
 } from "@/lib/plans"
 import { paymentService } from "@/lib/payments"
+import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { Loader2, Lock, Sparkles } from "lucide-react"
 
@@ -115,10 +116,10 @@ export function UpgradeModalHost() {
     try {
       // gateway_incomplete finishes the Gateway inline, then retries checkout.
       const session = await runGatedAction(() => paymentService.createCheckoutSession(requiredPlan))
-      if (session.session_url) {
+      if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {
-        throw new Error("No checkout URL received")
+        throw new Error("Checkout returned an unexpected URL")
       }
     } catch (err) {
       if (err instanceof GatewayCancelledError) {

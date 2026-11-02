@@ -58,7 +58,7 @@ export default function LandingPage() {
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
           Pricing
-        </Link>
+        </a>
         <a
           href="#features"
           onClick={(e) => scrollToSection(e, "features")}
