@@ -2,6 +2,7 @@ import { PLAN_MARKETING_NAMES } from "./plans"
 import { throwIfEntitlementDenied } from "./entitlements"
 import { authedFetch } from "./authed-fetch"
 import { clearDeviceId } from "./device-identity"
+import { toApiError } from "./api-errors"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -205,8 +206,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Registration failed")
+      const error = await response.json().catch(() => null)
+      throw toApiError(error, "Registration failed", response.status)
     }
 
     return response.json()
