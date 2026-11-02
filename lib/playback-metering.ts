@@ -19,6 +19,7 @@
 // Protection". Tokens live 180s, rotate at rotate_after_seconds, and minting a
 // new one invalidates the previous. Stream URLs are never persisted or logged.
 
+import { authService } from "./auth"
 import { throwIfEntitlementDenied } from "./entitlements"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
@@ -146,7 +147,7 @@ function getAuthHeaders(): Record<string, string> {
 
 // keepalive lets beats/ends survive tab hide and unload; sendBeacon is not an
 // option because SimpleJWT needs the Authorization header.
-function post(path: string, body: object): Promise<Response> {
+function send(path: string, body: object): Promise<Response> {
   return fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
     keepalive: true,
@@ -156,6 +157,68 @@ function post(path: string, body: object): Promise<Response> {
     },
     body: JSON.stringify(body),
   })
+}
+
+// Access tokens expire mid-listen. Refresh once and retry on 401 so a
+// continuous session keeps metering instead of silently dropping every beat
+// until reload. Concurrent 401s share the in-flight refresh — a second
+// refresh with a just-rotated (now blacklisted) token would clear the
+// session outright.
+let refreshInFlight: Promise<unknown> | null = null
+
+function refreshAccessToken(): Promise<unknown> {
+  if (!refreshInFlight) {
+    refreshInFlight = authService.refreshToken().finally(() => {
+      refreshInFlight = null
+    })
+  }
+  return refreshInFlight
+}
+
+// The account identity a token belongs to (SimpleJWT's user_id claim). A
+// rotated token for the same account reads the same; a different account's
+// token reads differently. Undecodable tokens read as no account.
+function tokenAccountId(token: string | null): string | null {
+  if (!token) return null
+  const segment = token.split(".")[1]
+  if (!segment) return null
+  try {
+    const payload = JSON.parse(atob(segment.replace(/-/g, "+").replace(/_/g, "/")))
+    const id = payload?.user_id ?? payload?.sub
+    return id == null ? null : String(id)
+  } catch {
+    return null
+  }
+}
+
+function currentAccountId(): string | null {
+  if (typeof window === "undefined") return null
+  return tokenAccountId(localStorage.getItem("access_token"))
+}
+
+async function post(path: string, body: object): Promise<Response> {
+  const sentToken = typeof window === "undefined" ? null : localStorage.getItem("access_token")
+  const sentAccount = tokenAccountId(sentToken)
+  const response = await send(path, body)
+  if (response.status !== 401) return response
+  // A delayed 401 can arrive after the account changed: refreshing now would
+  // renew whichever account is current, and the retry would carry this
+  // request — made for the original account — under the new one's bearer
+  // token. An unchanged token is trivially the same session; a replaced one
+  // must still name the same account. An unauthenticated request stays
+  // unauthenticated either way.
+  if (!sentToken) return response
+  const currentToken = localStorage.getItem("access_token")
+  if (currentToken !== sentToken && currentAccountId() !== sentAccount) return response
+  try {
+    await refreshAccessToken()
+  } catch {
+    return response
+  }
+  // The refresh could also have resolved across an account switch; the retry
+  // re-reads whatever token is current, so check it belongs to the sender.
+  if (currentAccountId() !== sentAccount) return response
+  return send(path, body)
 }
 
 async function readJson(response: Response): Promise<any> {
