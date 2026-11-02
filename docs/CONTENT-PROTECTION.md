@@ -24,7 +24,7 @@ with a human-reviewed enforcement ladder on the server.
 | **Screenshot blocking** | ❌ No web API exists | ❌ No web API exists | ❌ No web API exists, even in a PWA | ✅ `FLAG_SECURE` (Android); secure overlay on `UIScreen.isCaptured` (iOS) |
 | **Recording detection** | ❌ No reliable signal | ⚠️ `screen.isCaptured` where the engine exposes it; absent on most builds | ❌ No signal exposed to the page | ✅ `UIScreen.isCaptured` / `MediaProjection` callbacks, reported as a first-class event |
 | **Download blocking** | ⚠️ `controlsList="nodownload"`, no context menu, URL never in markup — devtools and the network tab still see it | ⚠️ Same, plus long-press callout suppressed | ⚠️ Same; some Android browsers still expose a download affordance | ⚠️ Better, not absolute — a rooted/jailbroken device can always reach the buffer |
-| **Watermark** | ✅ Drifting overlay: pseudonym · session · UTC clock, refreshed every 15s | ✅ Same | ✅ Same | ✅ Same, and it survives into the native capture path |
+| **Watermark** | ⚠️ Drifting overlay: pseudonym · session · UTC clock, refreshed every 15s. The pseudonym is client-derivable and can be forged — see below | ⚠️ Same | ⚠️ Same | ⚠️ Same, and it survives into the native capture path |
 | **DRM** | ❌ Not implemented. EME/Widevine is a video path; there is no usable DRM story for bare `<audio>` | ❌ Not implemented (FairPlay would need HLS + a licence server) | ❌ Not implemented | ⚠️ Possible: Widevine/FairPlay once content is packaged as encrypted HLS/DASH |
 
 ### Reading the ❌s honestly
@@ -72,6 +72,14 @@ recompute the mapping — but so could anyone with the client bundle and a guess
 at the user id. When the backend adds a pseudonym keyed on
 `ANALYTICS_HASH_SALT`, pass it as `serverPseudonym` and the local derivation is
 skipped. That is the preferred source.
+
+**A pseudonym alone does not identify a leaker.** The derivation is
+deterministic and public, so anyone holding the bundle can compute any user's
+pseudonym and paint it onto a recording. What an outsider cannot mint is the
+session label, which is the leaker's own playback session id: a forged mark
+contradicts itself when the backend checks the pseudonym's owner against the
+session's owner. Attribution therefore rests on that pair. A client-built
+overlay is a deterrent against casual copying, not evidence on its own.
 
 **The stream URL is not hidden from the DOM, and cannot be.** The brief asked
 for the URL to be kept out of the markup by assigning `src` in JS. That is what
