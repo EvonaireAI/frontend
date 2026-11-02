@@ -667,7 +667,7 @@ export default function RitualPlayer() {
                       onError={handleMediaError}
                       preload="none"
                       controlsList="nodownload"
-                      disablePictureInPicture
+                      {...({ disablePictureInPicture: true })}
                     />
 
                     {locked && <PlaybackLockedCard detail={locked.detail} flagId={locked.flagId} />}
@@ -781,7 +781,7 @@ export default function RitualPlayer() {
                       rows={4}
                     />
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="anonymous" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+                      <Checkbox id="anonymous" checked={isAnonymous} onCheckedChange={(checked) => setIsAnonymous(checked === true)} />
                       <label htmlFor="anonymous" className="text-sm inline-flex items-center gap-1.5">
                         Submit anonymously
                         <GaiaInfoTip infoKey="ritual.feedback_anonymous" ariaLabel="About anonymous feedback" />

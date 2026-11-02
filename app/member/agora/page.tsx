@@ -97,7 +97,7 @@ export default function AgoraPage() {
                       </Badge>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Users className="w-3 h-3" />
-                        {s.member_count ?? 0}
+                        {s.active_members_count ?? s.member_count ?? 0}
                       </span>
                     </div>
                     <CardTitle className="text-base text-foreground group-hover:text-primary transition-colors">
