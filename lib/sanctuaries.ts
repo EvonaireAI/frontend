@@ -1,6 +1,7 @@
 import { authService } from "./auth"
 import { authedFetch } from "./authed-fetch"
 import { throwIfGated } from "./gateway-quiz"
+import { unwrapList } from "./moderation"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -109,18 +110,26 @@ class SanctuariesService {
     return authService.getAuthHeaders()
   }
 
-  // List all accessible sanctuaries
+  // List all accessible sanctuaries. The endpoint is paginated
+  // server-side; follow `next` so callers still get the full list.
   async listSanctuaries(): Promise<Sanctuary[]> {
-    const response = await authedFetch(`${API_BASE_URL}/sanctuaries/`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    })
+    const sanctuaries: Sanctuary[] = []
+    let url: string | null = `${API_BASE_URL}/sanctuaries/`
+    for (let pages = 0; url && pages < 100; pages++) {
+      const response = await authedFetch(url, {
+        method: "GET",
+        headers: this.getHeaders(),
+      })
 
-    if (!response.ok) {
-      throw new Error(`Failed to list sanctuaries: ${response.statusText}`)
+      if (!response.ok) {
+        throw new Error(`Failed to list sanctuaries: ${response.statusText}`)
+      }
+
+      const page = unwrapList<Sanctuary>(await response.json())
+      sanctuaries.push(...page.results)
+      url = page.next
     }
-
-    return response.json()
+    return sanctuaries
   }
 
   // Get creator's owned sanctuaries
