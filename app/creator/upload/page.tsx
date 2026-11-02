@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
 import { audioFileError, extensionForAudioType, preferredRecordingType } from "@/lib/audio-upload"
+import { RitualRecorder } from "@/lib/ritual-recorder"
 import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, Loader2 } from "lucide-react"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 
@@ -36,8 +37,9 @@ export default function RitualUpload() {
     cultural_declaration: "",
   })
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recorderRef = useRef<RitualRecorder | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioUrlRef = useRef<string | null>(null)
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const router = useRouter()
@@ -67,6 +69,33 @@ export default function RitualUpload() {
 
     loadUser()
   }, [router])
+
+  // Release every capture/playback handle when the page unmounts so an active
+  // recording, a pending permission prompt, the timer, and a playing preview
+  // cannot outlive the UI that owns them.
+  useEffect(() => {
+    return () => {
+      recorderRef.current?.teardown()
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current)
+      }
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current)
+      }
+    }
+  }, [])
+
+  const stopRecording = useCallback(() => {
+    recorderRef.current?.stop()
+    setIsRecording(false)
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current)
+      recordingIntervalRef.current = null
+    }
+  }, [])
 
   const startRecording = async () => {
     setMediaError("")
@@ -98,6 +127,7 @@ export default function RitualUpload() {
       }
 
       mediaRecorder.start()
+
       setIsRecording(true)
       setRecordingTime(0)
 
@@ -117,19 +147,13 @@ export default function RitualUpload() {
     }
   }
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current)
-      }
-    }
-  }
-
   const playRecording = () => {
     if (recordedBlob && !isPlaying) {
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current)
+      }
       const url = URL.createObjectURL(recordedBlob)
+      audioUrlRef.current = url
       audioRef.current = new Audio(url)
       audioRef.current.onended = () => {
         URL.revokeObjectURL(url)
@@ -151,6 +175,11 @@ export default function RitualUpload() {
       const src = audioRef.current.src
       audioRef.current.pause()
       if (src.startsWith("blob:")) URL.revokeObjectURL(src)
+      audioRef.current = null
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current)
+      audioUrlRef.current = null
     }
   }
 
