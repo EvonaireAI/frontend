@@ -219,8 +219,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Login failed")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Login failed")
     }
 
     const data = await response.json()
@@ -234,8 +234,8 @@ class AuthService {
     const response = await fetch(`${API_BASE_URL}/auth/activate/${code}/`)
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Activation failed")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Activation failed")
     }
 
     return response.json()
@@ -249,8 +249,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to resend activation")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to resend activation")
     }
 
     return response.json()
@@ -358,8 +358,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to upload ritual")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to upload ritual")
     }
 
     return response.json()
@@ -587,10 +587,10 @@ class AuthService {
       body: JSON.stringify({ token, new_password: newPassword, confirm_password: confirmPassword }),
     })
     if (!response.ok) {
-      const error = await response.json()
+      const error = await readJson(response)
       throw new Error(
-        error.detail ||
-          (Array.isArray(error.confirm_password) ? error.confirm_password[0] : undefined) ||
+        error?.detail ||
+          (Array.isArray(error?.confirm_password) ? error.confirm_password[0] : undefined) ||
           "Failed to reset password",
       )
     }
@@ -630,8 +630,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to accept consent")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to accept consent")
     }
 
     return response.json()
@@ -654,8 +654,8 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to submit report")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to submit report")
     }
 
     return response.json()
@@ -753,11 +753,22 @@ class AuthService {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Failed to review ritual")
+      const error = await readJson(response)
+      throw new Error(error?.detail || "Failed to review ritual")
     }
 
     return response.json()
+  }
+}
+
+// Read an error body without assuming it is JSON — a proxy/WAF error page or
+// an empty 502 must still produce the caller's fallback message, not a
+// SyntaxError from response.json(). Same helper as lib/sanctuaries.ts.
+async function readJson(response: Response): Promise<any> {
+  try {
+    return await response.json()
+  } catch {
+    return null
   }
 }
 
