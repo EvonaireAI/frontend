@@ -41,8 +41,20 @@ export function GatewayProvider({ children }: { children: ReactNode }) {
     }
   }, [user, consentsAccepted, refresh])
 
-  // Stay in sync as answers are submitted anywhere (nudge or completion modal).
-  useEffect(() => onGatewayProgress(setProgress), [])
+  // Stay in sync as answers are submitted anywhere (nudge or completion
+  // modal). Events carry the access token captured before their request ran;
+  // one emitted under a session that has since changed — a response that
+  // crossed an account switch — is dropped rather than lighting the indicator
+  // with the previous account's progress.
+  useEffect(
+    () =>
+      onGatewayProgress((next, sessionTag) => {
+        if (sessionTag !== null && sessionTag === localStorage.getItem("access_token")) {
+          setProgress(next)
+        }
+      }),
+    [],
+  )
 
   return (
     <GatewayContext.Provider value={{ progress, completed: progress?.completed ?? false, refresh }}>

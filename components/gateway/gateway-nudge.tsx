@@ -8,6 +8,7 @@ import { useGateway } from "@/lib/gateway-context"
 import { GatewayQuestionCard } from "@/components/gateway/gateway-question-card"
 import {
   gatewayQuizService,
+  captureGatewaySessionTag,
   emitGatewayProgress,
   isGatewayModalOpen,
   type GatewayQuizQuestion,
@@ -75,8 +76,9 @@ export function GatewayNudge() {
     if (busyRef.current) return
     busyRef.current = true
     try {
+      const sessionTag = captureGatewaySessionTag()
       const next = await gatewayQuizService.getNext(1)
-      emitGatewayProgress(next)
+      emitGatewayProgress(next, sessionTag)
       if (next.completed || next.questions.length === 0) return
       setQuestion(next.questions[0])
       setVisible(true)

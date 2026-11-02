@@ -69,6 +69,10 @@ export function GatewayCompletionModalHost() {
   useEffect(
     () =>
       onGatewayCompletionRequest((request) => {
+        // A second gated action while this modal is open supersedes the first.
+        // Settle it so its deferred action cancels instead of hanging on a
+        // promise nothing will ever resolve.
+        pendingRef.current?.reject(new GatewayCancelledError())
         pendingRef.current = request
         setProgress({
           answered_count: request.denial.answered,
@@ -84,6 +88,17 @@ export function GatewayCompletionModalHost() {
       }),
     [loadBatch],
   )
+
+  // Unmounting the host (navigation, logout, an account-switch remount) must
+  // settle the pending request the same way a dismissal does, or the deferred
+  // action hangs.
+  useEffect(() => {
+    return () => {
+      pendingRef.current?.reject(new GatewayCancelledError())
+      pendingRef.current = null
+      setGatewayModalOpen(false)
+    }
+  }, [])
 
   const handleAnswered = (result: GatewayProgress) => {
     setProgress(toProgress(result))

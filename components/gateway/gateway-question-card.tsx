@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Check } from "lucide-react"
 import {
   gatewayQuizService,
+  captureGatewaySessionTag,
   emitGatewayProgress,
   GatewayAnswerError,
   cleanNarration,
@@ -45,8 +46,9 @@ export function GatewayQuestionCard({
     setSubmitting(true)
     setError("")
     try {
+      const sessionTag = captureGatewaySessionTag()
       const answer = await gatewayQuizService.submitAnswer(question.question_number, selected)
-      emitGatewayProgress(answer)
+      emitGatewayProgress(answer, sessionTag)
       setResult(answer)
     } catch (err) {
       if (err instanceof GatewayAnswerError && err.status === 409) {

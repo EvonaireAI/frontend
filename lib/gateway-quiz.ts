@@ -232,6 +232,16 @@ export class GatewayCancelledError extends Error {
   }
 }
 
+// Thrown when the account changed while the completion modal was open. The
+// deferred action is abandoned rather than replayed under another account's
+// credentials.
+export class GatewaySessionChangedError extends Error {
+  constructor() {
+    super("Your session changed before the action could resume — nothing was submitted.")
+    this.name = "GatewaySessionChangedError"
+  }
+}
+
 export function isGatewayIncomplete(body: unknown): body is GatewayIncomplete {
   return (
     typeof body === "object" &&
@@ -298,6 +308,18 @@ export function requestGatewayCompletion(denial: GatewayIncomplete): Promise<voi
   })
 }
 
+// ── Session currency ──────────────────────────────────────────────────────────
+// A gated action can outlive the session that started it: the completion modal
+// stays open while the user signs out and a different account signs in on the
+// same browser. The refresh token marks the session; a retry that would run
+// under a different marker is abandoned so the deferred action never lands on
+// the next account's credentials.
+
+function sessionMarker(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem("refresh_token")
+}
+
 // Wrap a gated action (checkout / join / withdraw). On a gateway_incomplete
 // denial it opens the completion modal, lets the user answer the remaining
 // questions, then auto-retries the action. A GatewayCancelledError propagates so
@@ -307,7 +329,11 @@ export async function runGatedAction<T>(action: () => Promise<T>): Promise<T> {
     return await action()
   } catch (err) {
     if (err instanceof GatewayIncompleteError) {
+      const marker = sessionMarker()
       await requestGatewayCompletion(err.denial)
+      if (sessionMarker() !== marker) {
+        throw new GatewaySessionChangedError()
+      }
       return await action()
     }
     throw err
@@ -317,8 +343,13 @@ export async function runGatedAction<T>(action: () => Promise<T>): Promise<T> {
 // ── Progress bus ────────────────────────────────────────────────────────────────
 // Any answer submitted anywhere (nudge or completion modal) broadcasts fresh
 // progress so the quiet chrome indicator stays in sync without refetching.
+//
+// Events carry a session tag captured before the request that produced them:
+// a response that resolves across an account switch is emitted under the new
+// session while still holding the old account's progress, so listeners compare
+// the tag against the current token and drop events that no longer match.
 
-type ProgressListener = (progress: GatewayProgress) => void
+type ProgressListener = (progress: GatewayProgress, sessionTag: string | null) => void
 
 const progressListeners = new Set<ProgressListener>()
 
@@ -329,8 +360,15 @@ export function onGatewayProgress(listener: ProgressListener): () => void {
   }
 }
 
-export function emitGatewayProgress(progress: GatewayProgress): void {
-  progressListeners.forEach((listener) => listener(toProgress(progress)))
+// Call before awaiting the request whose response will be emitted — the tag
+// is only meaningful while it reflects the session the request ran under.
+export function captureGatewaySessionTag(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem("access_token")
+}
+
+export function emitGatewayProgress(progress: GatewayProgress, sessionTag: string | null): void {
+  progressListeners.forEach((listener) => listener(toProgress(progress), sessionTag))
 }
 
 // ── Nudge suppression signal ────────────────────────────────────────────────────
