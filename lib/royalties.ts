@@ -181,7 +181,7 @@ class RoyaltiesService {
 
   // period is "YYYY-MM"; 404 = no computed period for that month
   async getStatement(period: string): Promise<CreatorStatement> {
-    return this.request<CreatorStatement>(`/royalties/statement/?period=${period}`)
+    return this.request<CreatorStatement>(`/royalties/statement/?period=${encodeURIComponent(period)}`)
   }
 
   async getPeriods(): Promise<RoyaltyPeriodList> {
@@ -208,12 +208,12 @@ class RoyaltiesService {
   }
 
   async getPeriodReport(id: number): Promise<RoyaltyPeriodReport> {
-    return this.request<RoyaltyPeriodReport>(`/royalties/periods/${id}/report/`)
+    return this.request<RoyaltyPeriodReport>(`/royalties/periods/${encodeURIComponent(id)}/report/`)
   }
 
   // 409 when the period isn't in `computed` anymore — refetch and show detail
   async approvePeriod(id: number): Promise<RoyaltyPeriod> {
-    return this.request<RoyaltyPeriod>(`/royalties/periods/${id}/approve/`, { method: "POST" })
+    return this.request<RoyaltyPeriod>(`/royalties/periods/${encodeURIComponent(id)}/approve/`, { method: "POST" })
   }
 }
 

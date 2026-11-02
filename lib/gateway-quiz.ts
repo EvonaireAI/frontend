@@ -107,7 +107,7 @@ export const gatewayQuizService = {
   async getNext(count = 1): Promise<GatewayQuizNext> {
     const clamped = Math.min(5, Math.max(1, Math.floor(count)))
     const response = await authedFetch(
-      `${API_BASE_URL}/gateway-quiz/next/?count=${clamped}`,
+      `${API_BASE_URL}/gateway-quiz/next/?count=${encodeURIComponent(clamped)}`,
       { headers: authHeaders() },
     )
     if (!response.ok) {

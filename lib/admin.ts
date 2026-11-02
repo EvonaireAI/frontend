@@ -512,7 +512,7 @@ export const adminService = {
 
   /** `days` sets the trailing window for every `*_in_window` figure (max 365). */
   async getTrustCare(days = 7): Promise<TrustCare> {
-    const response = await authedFetch(`${API_BASE_URL}/admin/trust-care/?days=${days}`, { headers: authHeaders() })
+    const response = await authedFetch(`${API_BASE_URL}/admin/trust-care/?days=${encodeURIComponent(days)}`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildTrustCareFallback(days)
     throw await toError(response, "Failed to load Trust & Care")

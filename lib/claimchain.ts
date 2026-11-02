@@ -432,7 +432,7 @@ export async function fetchMyContent(params?: {
  * treat 404 as "not yours or not there" and say nothing more.
  */
 export async function fetchContentProvenance(ritualId: number): Promise<ContentProvenance> {
-  const response = await authedFetch(`${API_BASE_URL}/claimchain/content/${ritualId}/`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/content/${encodeURIComponent(ritualId)}/`, {
     headers: getAuthHeaders(),
   })
   if (!response.ok) throw await readError(response)
@@ -475,7 +475,7 @@ export const REVOKE_REASON_MIN_LENGTH = 20
  * of refetching the page — the creator should see exactly what changed.
  */
 export async function revokeLicense(licenseId: number, reason: string): Promise<LicenseRecord> {
-  const response = await authedFetch(`${API_BASE_URL}/claimchain/licenses/${licenseId}/revoke/`, {
+  const response = await authedFetch(`${API_BASE_URL}/claimchain/licenses/${encodeURIComponent(licenseId)}/revoke/`, {
     method: "POST",
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ reason }),

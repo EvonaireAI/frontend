@@ -50,7 +50,7 @@ class ListeningService {
 
   // period is "YYYY-MM"; omitted = current UTC month
   async getCreatorListening(period?: string): Promise<CreatorListening> {
-    const query = period ? `?period=${period}` : ""
+    const query = period ? `?period=${encodeURIComponent(period)}` : ""
     const response = await authedFetch(`${API_BASE_URL}/analytics/creator/listening/${query}`, {
       headers: this.getAuthHeaders(),
     })

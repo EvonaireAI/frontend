@@ -90,11 +90,11 @@ class MetricsService {
   }
 
   async getTimeseries(months = 12): Promise<MetricsTimeseries> {
-    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${months}`, { months: [] })
+    return this.get<MetricsTimeseries>(`/payments/metrics/timeseries/?months=${encodeURIComponent(months)}`, { months: [] })
   }
 
   async getFunnel(months = 3): Promise<MetricsFunnel> {
-    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${months}`, {
+    return this.get<MetricsFunnel>(`/payments/metrics/funnel/?months=${encodeURIComponent(months)}`, {
       window_start: new Date().toISOString(),
       months,
       registered_users: 0,

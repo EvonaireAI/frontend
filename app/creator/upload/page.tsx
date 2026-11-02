@@ -37,6 +37,7 @@ export default function RitualUpload() {
     cultural_declaration: "",
   })
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recorderRef = useRef<RitualRecorder | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioUrlRef = useRef<string | null>(null)
@@ -76,6 +77,9 @@ export default function RitualUpload() {
   useEffect(() => {
     return () => {
       recorderRef.current?.teardown()
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop()
+      }
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current)
       }
@@ -89,6 +93,9 @@ export default function RitualUpload() {
   }, [])
 
   const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop()
+    }
     recorderRef.current?.stop()
     setIsRecording(false)
     if (recordingIntervalRef.current) {

@@ -15,7 +15,7 @@ function headersFor(apiBase) {
 
 function policyFor(apiBase) {
   const routes = headersFor(apiBase)
-  const route = routes.find(({ source }) => source === '/:path*')
+  const route = routes.find(({ source }) => source === '/:path*' || source.startsWith('/((?!'))
   assert.ok(route, 'security headers cover all routes')
   const policies = route.headers.filter(({ key }) => key.toLowerCase() === 'content-security-policy')
   assert.equal(policies.length, 1, 'exactly one CSP header')
