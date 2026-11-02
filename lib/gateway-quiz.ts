@@ -132,6 +132,9 @@ export const gatewayQuizService = {
       headers: authHeaders(),
     })
     if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error("Daily retake limit reached. The Gateway opens again tomorrow.")
+      }
       await parseError(response, "Failed to start the Gateway Quiz")
     }
     return response.json()

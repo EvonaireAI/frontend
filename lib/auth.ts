@@ -252,6 +252,9 @@ class AuthService {
     })
 
     if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error("Too many attempts. Please wait before requesting another link.")
+      }
       const error = await readJson(response)
       throw new Error(error?.detail || "Failed to resend activation")
     }
