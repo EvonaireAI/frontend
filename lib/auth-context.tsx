@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { authService, type User, type LoginResponse } from "@/lib/auth"
+import { isAuthStorageKey } from "@/lib/auth-storage"
 
 interface AuthContextType {
   user: User | null
@@ -42,6 +43,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     }
     init()
+  }, [refreshUser])
+
+  // Storage events only reach other tabs: a login, logout, or account
+  // switch elsewhere must drop the identity this tab was showing before it
+  // can act on the new session (e.g. submit a form under the new token).
+  useEffect(() => {
+    let queued = false
+    const onStorage = (event: StorageEvent) => {
+      if (!isAuthStorageKey(event.key) || queued) return
+      // Login and logout write both token keys; collapse them into one reset.
+      queued = true
+      queueMicrotask(() => {
+        queued = false
+        setUser(null)
+        setConsentsAccepted(false)
+        void refreshUser()
+      })
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
   }, [refreshUser])
 
   const login = useCallback(async (email: string, password: string): Promise<LoginResponse> => {
