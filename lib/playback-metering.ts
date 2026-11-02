@@ -185,6 +185,10 @@ export class PlaybackMeter {
   private beatInFlight = false
   private resumeBeatPending = false
   private isListening = false
+  // Identifies the current playback operation. reset() advances it on every
+  // start() and end(), so a response that was in flight for a superseded or
+  // ended listen can be told apart and refused before it commits state.
+  private op = 0
 
   // Session 12 state. The stream URL lives here and nowhere else — not in
   // React state, not in the DOM, not in storage.
@@ -220,6 +224,7 @@ export class PlaybackMeter {
     this.reset()
     this.isListening = true
     this.ritualId = ritualId
+    const op = this.op
 
     let response: Response
     try {
@@ -233,6 +238,10 @@ export class PlaybackMeter {
       return
     }
 
+    // The listen ended or a newer start took over while this request was in
+    // flight: its response must not adopt a session or raise denials.
+    if (op !== this.op) return
+
     if (!response.ok) {
       // Returns the parsed body when it is not an entitlement denial — take it,
       // because reading the response a second time would fail.
@@ -244,6 +253,7 @@ export class PlaybackMeter {
         this.reset()
         throw err
       }
+      if (op !== this.op) return
       // Session 12: a restricted account is refused here as well as at the
       // token endpoint. That is not a metering failure — surface it.
       if (response.status === 403 && body?.error === "stream_denied") {
@@ -259,7 +269,7 @@ export class PlaybackMeter {
       return
     }
 
-    await this.adoptSession(response)
+    await this.adoptSession(response, op)
   }
 
   onPlaying(): void {
@@ -352,6 +362,7 @@ export class PlaybackMeter {
     meta?: Record<string, string | number | boolean>,
   ): Promise<void> {
     if (this.sessionId === null) return
+    const op = this.op
     // A transport event rotates the token and reports it in the same breath.
     // Wait for the rotation to land first: echoing the token it just replaced
     // would be logged as TOKEN_REJECTED and add 25 to the abuse score for
@@ -363,7 +374,7 @@ export class PlaybackMeter {
         // The rotation failed; report against whatever token we still hold
       }
     }
-    if (this.sessionId === null) return
+    if (this.sessionId === null || op !== this.op) return
     try {
       const response = await post("/analytics/playback/event/", {
         session_id: this.sessionId,
@@ -372,8 +383,9 @@ export class PlaybackMeter {
         stream_token: this.streamToken,
         ...(meta ? { meta } : {}),
       })
-      if (!response.ok) return
+      if (op !== this.op || !response.ok) return
       const body = await readJson(response)
+      if (op !== this.op) return
       this.applyEnforcement(body?.enforcement)
       // The server tells us when our token is stale or the event demands a
       // fresh one; obey rather than guessing.
@@ -400,10 +412,12 @@ export class PlaybackMeter {
   }
 
   private async mintToken(eventType: StreamRotateEvent | undefined, fatal: boolean): Promise<string> {
+    const op = this.op
     if (this.sessionId === null) {
-      await this.restartSession()
+      await this.restartSession(op)
       if (this.sessionId === null) throw new StreamDeniedError("unavailable", null)
     }
+    if (op !== this.op) throw new StreamDeniedError("unavailable", null)
 
     let response: Response
     try {
@@ -415,8 +429,13 @@ export class PlaybackMeter {
       throw new StreamDeniedError("unavailable", null)
     }
 
+    // A grant minted for an ended or superseded listen must not touch
+    // session, token, or audio state.
+    if (op !== this.op) throw new StreamDeniedError("unavailable", null)
+
     if (response.status === 423) {
       const body = await readJson(response)
+      if (op !== this.op) throw new StreamDeniedError("unavailable", null)
       const error = new PlaybackLockedError(
         body?.detail ??
           "We've paused this playback session while we take a look at some unusual activity.",
@@ -435,6 +454,7 @@ export class PlaybackMeter {
 
     if (response.status === 403) {
       const body = await readJson(response)
+      if (op !== this.op) throw new StreamDeniedError("unavailable", null)
       const reason: StreamDeniedReason = body?.reason ?? "unavailable"
       const detail: string | null = body?.detail ?? null
 
@@ -442,8 +462,9 @@ export class PlaybackMeter {
       // new one and carry on, exactly as the heartbeat path already does.
       if ((reason === "session_not_found" || reason === "session_closed") && fatal) {
         this.setSession(null)
-        await this.restartSession()
-        if (this.sessionId !== null) return this.mintTokenOnce(eventType)
+        await this.restartSession(op)
+        if (op !== this.op) throw new StreamDeniedError("unavailable", null)
+        if (this.sessionId !== null) return this.mintTokenOnce(eventType, op)
       }
 
       this.raiseDenial(reason, detail)
@@ -455,17 +476,19 @@ export class PlaybackMeter {
       throw new StreamDeniedError("unavailable", null)
     }
 
-    return this.adoptGrant(await readJson(response))
+    return this.adoptGrant(await readJson(response), op)
   }
 
   // One retry after a transparent session restart; never recurses further.
-  private async mintTokenOnce(eventType: StreamRotateEvent | undefined): Promise<string> {
+  private async mintTokenOnce(eventType: StreamRotateEvent | undefined, op: number): Promise<string> {
     const response = await post("/analytics/playback/stream-token/", {
       session_id: this.sessionId,
       ...(eventType ? { event_type: eventType } : {}),
     })
+    if (op !== this.op) throw new StreamDeniedError("unavailable", null)
     if (!response.ok) {
       const body = await readJson(response)
+      if (op !== this.op) throw new StreamDeniedError("unavailable", null)
       if (response.status === 423) {
         const error = new PlaybackLockedError(
           body?.detail ?? "Playback is paused pending review.",
@@ -482,11 +505,11 @@ export class PlaybackMeter {
       this.raiseDenial(reason, body?.detail ?? null)
       throw new StreamDeniedError(reason, body?.detail ?? null)
     }
-    return this.adoptGrant(await readJson(response))
+    return this.adoptGrant(await readJson(response), op)
   }
 
-  private adoptGrant(grant: StreamGrant | null): string {
-    if (!grant?.stream_url) throw new StreamDeniedError("unavailable", null)
+  private adoptGrant(grant: StreamGrant | null, op: number): string {
+    if (op !== this.op || !grant?.stream_url) throw new StreamDeniedError("unavailable", null)
     this.streamToken = grant.stream_token ?? null
     this.streamUrl = grant.stream_url
     if (Array.isArray(grant.rotate_on_events) && grant.rotate_on_events.length > 0) {
@@ -578,9 +601,10 @@ export class PlaybackMeter {
     this.callbacks.onSessionChange?.(sessionId)
   }
 
-  private async adoptSession(response: Response): Promise<void> {
+  private async adoptSession(response: Response, op: number): Promise<void> {
     try {
       const data: PlaybackStartResponse = await response.json()
+      if (op !== this.op) return
       this.setSession(data.session_id)
       // A new session invalidates any grant held for the old one
       this.clearGrant()
@@ -599,12 +623,13 @@ export class PlaybackMeter {
     this.startRetryTimer = setTimeout(async () => {
       this.startRetryTimer = null
       if (!this.isListening || this.sessionId !== null || this.ritualId !== ritualId) return
+      const op = this.op
       try {
         const response = await post("/analytics/playback/start/", {
           ritual_id: ritualId,
           device_id: getDeviceId(),
         })
-        if (response.ok) await this.adoptSession(response)
+        if (response.ok) await this.adoptSession(response, op)
       } catch {
         // Still down — this listen stays unmetered
       }
@@ -616,15 +641,20 @@ export class PlaybackMeter {
   private async sendBeat(): Promise<void> {
     if (this.sessionId === null || this.beatInFlight) return
     this.beatInFlight = true
+    const op = this.op
     try {
       const response = await post("/analytics/playback/heartbeat/", {
         session_id: this.sessionId,
         position_seconds: Math.floor(this.getPosition()),
       })
+      if (op !== this.op) return
       if (response.ok) {
-        this.applyEnforcement((await readJson(response))?.enforcement)
+        const body = await readJson(response)
+        if (op !== this.op) return
+        this.applyEnforcement(body?.enforcement)
       } else if (response.status === 409 || response.status === 404) {
         const body = response.status === 409 ? await readJson(response) : null
+        if (op !== this.op) return
         // Session 12: the device that got displaced learns about it here. That
         // is not a lost session to quietly re-open — the user is listening
         // somewhere else, and starting a new session would yank playback back.
@@ -638,7 +668,7 @@ export class PlaybackMeter {
         // Server closed the session (e.g. >5 min gap after a laptop sleep).
         // The user is still listening: transparently start a new session.
         this.setSession(null)
-        await this.restartSession()
+        await this.restartSession(op)
       }
     } catch {
       // Network/5xx: skip this beat, try again next interval
@@ -647,14 +677,14 @@ export class PlaybackMeter {
     }
   }
 
-  private async restartSession(): Promise<void> {
+  private async restartSession(op: number): Promise<void> {
     if (!this.isListening || this.ritualId === null || this.locked) return
     try {
       const response = await post("/analytics/playback/start/", {
         ritual_id: this.ritualId,
         device_id: getDeviceId(),
       })
-      if (response.ok) await this.adoptSession(response)
+      if (response.ok) await this.adoptSession(response, op)
       // Any failure (including a denial) stays silent mid-listen; the next
       // heartbeat tick lands on a null session and we try again then
     } catch {
@@ -667,7 +697,7 @@ export class PlaybackMeter {
     this.timer = setInterval(() => {
       if (this.sessionId === null) {
         // Session lost and restart failed earlier — keep trying while playing
-        void this.restartSession()
+        void this.restartSession(this.op)
         return
       }
       void this.sendBeat()
@@ -682,6 +712,7 @@ export class PlaybackMeter {
   }
 
   private reset(): void {
+    this.op += 1
     this.stopTimer()
     this.clearGrant()
     if (this.startRetryTimer) {
