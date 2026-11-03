@@ -21,6 +21,7 @@ import { StewardRequestsTab } from "@/components/admin/console/steward-requests-
 import { TrustCareTab } from "@/components/admin/console/trust-care-tab"
 import { MembershipsTab } from "@/components/admin/console/memberships-tab"
 import { EarningsTab } from "@/components/admin/console/earnings-tab"
+import { MarketingTab } from "@/components/admin/console/marketing-tab"
 import { CommonsTab } from "@/components/admin/console/commons-tab"
 import { IntelligenceTab } from "@/components/admin/console/intelligence-tab"
 import { ArchiveTab } from "@/components/admin/console/archive-tab"
@@ -155,6 +156,9 @@ function StewardWorkspace() {
           </StewardTabPanel>
           <StewardTabPanel tab="earnings" activeTab={activeTab}>
             <EarningsTab />
+          </StewardTabPanel>
+          <StewardTabPanel tab="marketing" activeTab={activeTab}>
+            <MarketingTab />
           </StewardTabPanel>
           <StewardTabPanel tab="symposium" activeTab={activeTab}>
             <CommonsTab />

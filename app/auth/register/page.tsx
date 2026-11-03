@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { trackFunnelEvent } from "@/lib/funnel"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { authService } from "@/lib/auth"
@@ -27,6 +28,10 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  useEffect(() => {
+    trackFunnelEvent("signup_view")
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -45,6 +50,7 @@ export default function RegisterPage() {
         }),
       }
       await authService.register(submitData)
+      trackFunnelEvent("signup_complete")
       setSuccess("Registration successful! Please check your email for an activation link.")
       setTimeout(() => router.push("/auth/login"), 3000)
     } catch (err) {
