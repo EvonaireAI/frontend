@@ -17,6 +17,7 @@ import {
 } from "@/components/steward/console/tabs"
 import { usePlatformOverview } from "@/components/admin/console/use-platform-overview"
 import { PlatformOverviewTab } from "@/components/admin/console/platform-overview-tab"
+import { GatewayTab } from "@/components/admin/console/gateway-tab"
 import { StewardRequestsTab } from "@/components/admin/console/steward-requests-tab"
 import { TrustCareTab } from "@/components/admin/console/trust-care-tab"
 import { MembershipsTab } from "@/components/admin/console/memberships-tab"
@@ -140,6 +141,9 @@ function StewardWorkspace() {
 
           <StewardTabPanel tab="overview" activeTab={activeTab}>
             <PlatformOverviewTab {...overviewState} onNavigate={setTab} />
+          </StewardTabPanel>
+          <StewardTabPanel tab="gateway" activeTab={activeTab}>
+            <GatewayTab />
           </StewardTabPanel>
           <StewardTabPanel tab="requests" activeTab={activeTab}>
             <StewardRequestsTab />

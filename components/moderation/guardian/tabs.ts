@@ -8,6 +8,7 @@ export const GUARDIAN_TABS = [
   { id: "overview", label: "Overview" },
   { id: "pending", label: "Pending Reviews" },
   { id: "active", label: "Active Cases" },
+  { id: "assignments", label: "Assignments" },
   { id: "care-feed", label: "Care Feed" },
   { id: "rts", label: "RTS Monitoring" },
   { id: "sanctuaries", label: "Sanctuaries" },
