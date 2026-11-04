@@ -183,7 +183,7 @@ export default function ProfilePage() {
                   />
                   <Label
                     htmlFor="profile_picture"
-                    className="inline-flex cursor-pointer items-center space-x-2 rounded-md border border-input px-3 py-2 text-sm text-blue-600 hover:bg-accent hover:text-blue-700 focus-within:ring-2 focus-within:ring-ring"
+                    className="inline-flex cursor-pointer items-center space-x-2 rounded-md border border-gold/30 px-3 py-2 text-sm text-gold-light hover:bg-gold/10 focus-within:ring-2 focus-within:ring-ring"
                   >
                     <Upload className="w-4 h-4" />
                     <span>{profilePicture ? "Change photo" : "Change profile picture"}</span>
@@ -221,27 +221,21 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={user.email} disabled className="bg-gray-50 dark:bg-gray-800" />
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Email cannot be changed. Contact support if needed.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <Input value={roleDashboardLabel(user.role)} disabled className="bg-gray-50 dark:bg-gray-800" />
-                <p className="text-xs text-gray-600 dark:text-gray-400">Role changes require admin approval.</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Member Since</Label>
-                <Input
-                  value={new Date(user.date_joined).toLocaleDateString()}
-                  disabled
-                  className="bg-gray-50 dark:bg-gray-800"
-                />
+              <div className="divide-y divide-gold/10 rounded-md border border-gold/20 bg-[#0f1820]">
+                <div className="px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-cream/50">Email</p>
+                  <p className="mt-1 text-sm text-cream">{user.email}</p>
+                  <p className="mt-1 text-xs text-cream/40">Email cannot be changed. Contact support if needed.</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-cream/50">Role</p>
+                  <p className="mt-1 text-sm text-cream">{roleDashboardLabel(user.role)}</p>
+                  <p className="mt-1 text-xs text-cream/40">Role changes require admin approval.</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-cream/50">Member Since</p>
+                  <p className="mt-1 text-sm text-cream">{new Date(user.date_joined).toLocaleDateString()}</p>
+                </div>
               </div>
 
               <Button type="submit" disabled={saving} className="w-full cursor-pointer">
