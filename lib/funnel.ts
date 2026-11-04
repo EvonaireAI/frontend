@@ -15,11 +15,15 @@ export type FunnelEventType =
 const SESSION_STORAGE_KEY = "ebn_funnel_session"
 const ATTR_STORAGE_KEY = "ebn_funnel_attr"
 
-interface FunnelAttribution {
+export interface FunnelAttribution {
   utm_source: string
   utm_medium: string
   utm_campaign: string
   referrer: string
+}
+
+function cleanTag(value: string | null | undefined): string {
+  return (value || "").trim().toLowerCase().slice(0, 100)
 }
 
 function sessionKey(): string {
@@ -38,14 +42,36 @@ function sessionKey(): string {
 
 function attribution(): FunnelAttribution {
   try {
-    const stored = sessionStorage.getItem(ATTR_STORAGE_KEY)
-    if (stored) return JSON.parse(stored) as FunnelAttribution
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(window.location.search || "")
+    const urlSource = cleanTag(params.get("utm_source"))
+    const urlMedium = cleanTag(params.get("utm_medium"))
+    const urlCampaign = cleanTag(params.get("utm_campaign"))
+    const hasUrlUtm = Boolean(urlSource || urlMedium || urlCampaign)
+
+    const rawStored = sessionStorage.getItem(ATTR_STORAGE_KEY)
+    if (rawStored) {
+      const parsed = JSON.parse(rawStored) as FunnelAttribution
+      // Preserve first-touch UTM tags, but if the initial landing had no UTM
+      // tags and the visitor subsequently enters via a tagged link in the
+      // same tab, capture the incoming UTM attribution.
+      if (!hasUrlUtm || parsed.utm_source || parsed.utm_campaign) {
+        return parsed
+      }
+      const upgraded: FunnelAttribution = {
+        utm_source: urlSource,
+        utm_medium: urlMedium,
+        utm_campaign: urlCampaign,
+        referrer: parsed.referrer || (document.referrer || "").slice(0, 300),
+      }
+      sessionStorage.setItem(ATTR_STORAGE_KEY, JSON.stringify(upgraded))
+      return upgraded
+    }
+
     const attr: FunnelAttribution = {
-      utm_source: (params.get("utm_source") || "").slice(0, 100),
-      utm_medium: (params.get("utm_medium") || "").slice(0, 100),
-      utm_campaign: (params.get("utm_campaign") || "").slice(0, 100),
-      referrer: document.referrer.slice(0, 300),
+      utm_source: urlSource,
+      utm_medium: urlMedium,
+      utm_campaign: urlCampaign,
+      referrer: (document.referrer || "").slice(0, 300),
     }
     sessionStorage.setItem(ATTR_STORAGE_KEY, JSON.stringify(attr))
     return attr
@@ -54,13 +80,27 @@ function attribution(): FunnelAttribution {
   }
 }
 
+export function buildUtmUrl(
+  baseUrl: string,
+  params: { utm_source: string; utm_medium?: string; utm_campaign?: string },
+): string {
+  const url = new URL(baseUrl, "https://evonaire.ai")
+  const source = cleanTag(params.utm_source)
+  const medium = cleanTag(params.utm_medium)
+  const campaign = cleanTag(params.utm_campaign)
+  if (source) url.searchParams.set("utm_source", source)
+  if (medium) url.searchParams.set("utm_medium", medium)
+  if (campaign) url.searchParams.set("utm_campaign", campaign)
+  return url.toString()
+}
+
 export function trackFunnelEvent(eventType: FunnelEventType): void {
   if (typeof window === "undefined") return
   try {
     const body = JSON.stringify({
       event_type: eventType,
       session_key: sessionKey(),
-      path: window.location.pathname.slice(0, 200),
+      path: (window.location.pathname || "/").slice(0, 200),
       ...attribution(),
     })
     const url = `${API_BASE_URL}/analytics/funnel/events/`
