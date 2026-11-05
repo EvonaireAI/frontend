@@ -3,12 +3,12 @@ import { redirect } from "next/navigation"
 import { normalizeStewardConsoleTab } from "@/components/steward/console/tabs"
 
 // Legacy `/admin` URLs redirect into the steward workspace at `/steward`.
-export default function AdminRedirectPage({
+export default async function AdminRedirectPage({
   searchParams,
 }: {
-  searchParams: { tab?: string }
+  searchParams: Promise<{ tab?: string }>
 }) {
-  const tab = searchParams.tab
+  const { tab } = await searchParams
 
   if (tab === "requests") {
     redirect("/steward?tab=requests")
