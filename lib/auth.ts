@@ -3,6 +3,7 @@ import { throwIfEntitlementDenied } from "./entitlements"
 import { authedFetch } from "./authed-fetch"
 import { clearDeviceId } from "./device-identity"
 import { toApiError } from "./api-errors"
+import { unwrapList } from "./moderation"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -451,16 +452,25 @@ class AuthService {
     if (search) params.append("search", search)
     if (tags && tags.length > 0) params.append("tags", tags.join(","))
 
-    // Send auth when available so locked/required_plan reflect the caller's plan
-    const response = await authedFetch(`${API_BASE_URL}/rituals/public/?${params.toString()}`, {
-      headers: this.getAuthHeaders(),
-    })
+    // Send auth when available so locked/required_plan reflect the caller's plan.
+    // The list endpoint is paginated server-side; follow `next` to preserve
+    // the full-list behavior callers rely on.
+    const rituals: Ritual[] = []
+    let url: string | null = `${API_BASE_URL}/rituals/public/?${params.toString()}`
+    for (let pages = 0; url && pages < 100; pages++) {
+      const response = await authedFetch(url, {
+        headers: this.getAuthHeaders(),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch rituals")
+      if (!response.ok) {
+        throw new Error("Failed to fetch rituals")
+      }
+
+      const page = unwrapList<Ritual>(await response.json())
+      rituals.push(...page.results)
+      url = page.next
     }
-
-    return response.json()
+    return rituals
   }
 
   async getPublicRituals(search?: string, tags?: string[]): Promise<Ritual[]> {
