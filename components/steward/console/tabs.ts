@@ -3,6 +3,7 @@
 
 export const STEWARD_CONSOLE_TABS = [
   { id: "overview", label: "Platform Overview" },
+  { id: "gateway", label: "Gateway" },
   { id: "requests", label: "Steward Requests" },
   { id: "trust-care", label: "Trust & Care" },
   { id: "resonance", label: "Resonance Configuration" },

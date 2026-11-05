@@ -32,6 +32,7 @@ import {
 import Link from "next/link"
 import { GLOSSARY } from "@/lib/glossary"
 import { StudioStatusStrip } from "@/components/creator/studio-status-strip"
+import { V1StudioPanel } from "@/components/creator/v1-studio-panel"
 
 export default function CreatorDashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -234,6 +235,10 @@ export default function CreatorDashboard() {
 
         {/* Create → Upload → Review → Publish → Grow → Earn, at a glance (§C) */}
         <StudioStatusStrip rituals={rituals} ritualsLoading={ritualsLoading} />
+
+        <div className="mx-auto max-w-md">
+          <V1StudioPanel />
+        </div>
 
         <Tabs defaultValue="rituals" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 max-w-3xl mx-auto bg-secondary border border-border">

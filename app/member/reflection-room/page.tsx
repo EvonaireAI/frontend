@@ -1,12 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
-import { Loader2, LifeBuoy, Wind, Heart, ArrowLeft } from "lucide-react"
+import { v1Reflections, type Reflection } from "@/lib/v1"
+import { Loader2, LifeBuoy, Wind, Heart, ArrowLeft, NotebookPen } from "lucide-react"
 
 // The Reflection Room (formerly "Safety Room" — see API_CONTRACTS.md Session 09
 // GAIA terminology) is a calm surface a member can step into for grounding and
@@ -96,7 +99,111 @@ export default function ReflectionRoomPage() {
             <p>You are safe here, and you are not alone.</p>
           </CardContent>
         </Card>
+
+        <PrivateReflections />
       </div>
     </div>
+  )
+}
+
+// Private reflections — the /api/v1/reflections/ contract. Entries are
+// ephemeral unless the member explicitly saves them, and sharing always
+// takes an explicit consent tap. Nothing is shared by default.
+function PrivateReflections() {
+  const { user } = useAuth()
+  const [text, setText] = useState("")
+  const [entries, setEntries] = useState<Reflection[]>([])
+  const [busy, setBusy] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await v1Reflections.list()
+      setEntries(res.results)
+    } catch {
+      // Older backend without the v1 surface — the card just stays empty.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (user) void load()
+  }, [user, load])
+
+  if (!user) return null
+
+  const save = async (persist: boolean) => {
+    if (!text.trim() || busy) return
+    setBusy(true)
+    try {
+      await v1Reflections.create({ text: text.trim(), save: persist })
+      setText("")
+      if (persist) await load()
+    } catch {
+      toast.error("Reflection could not be saved")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <NotebookPen className="w-4 h-4 text-primary" />
+          Private reflections
+        </CardTitle>
+        <CardDescription>
+          Yours alone unless you choose to save or share. Ephemeral entries are
+          never stored.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write whatever is on your mind."
+          rows={3}
+        />
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => void save(false)} disabled={busy}>
+            Reflect once
+          </Button>
+          <Button size="sm" onClick={() => void save(true)} disabled={busy}>
+            Save to my reflections
+          </Button>
+        </div>
+        {entries.map((entry) => (
+          <div
+            key={entry.id}
+            className="flex items-start justify-between gap-3 rounded-lg border border-border px-3 py-2"
+          >
+            <p className="text-sm text-foreground whitespace-pre-wrap">{entry.text}</p>
+            <div className="flex gap-1">
+              {!entry.shared_with_creator && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={async () => {
+                    await v1Reflections.share(entry.id, true).catch(() => null)
+                    await load()
+                  }}
+                >
+                  Share
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  await v1Reflections.remove(entry.id).catch(() => null)
+                  await load()
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   )
 }

@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { MessageCircle, Send, Sparkles, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { gaiaService } from "@/lib/gaia"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
+import type { GaiaRoute } from "@/lib/v1"
 
 interface ChatMessage {
   id: number
@@ -15,6 +17,18 @@ interface ChatMessage {
 }
 
 const HIDDEN_ROUTES = new Set<string>(["/", "/auth/login", "/auth/register", "/consent"])
+
+// Direct product routes shown whenever GAIA is off or unreachable —
+// Zero Dependence means the platform must stay navigable without it.
+const FALLBACK_ROUTES: GaiaRoute[] = [
+  { id: "gateway", label: "Gateway education and application", route: "/gateway-quiz" },
+  { id: "browse", label: "Browse the Commons", route: "/commons" },
+  { id: "sanctuary", label: "My Sanctuary and licenses", route: "/member/my-sanctuary" },
+  { id: "reflections", label: "Reflection Room", route: "/member/reflection-room" },
+  { id: "creator", label: "Creator Studio", route: "/creator" },
+  { id: "guardian", label: "Human Guardian support", route: "/moderate" },
+  { id: "privacy", label: "Consent, export and deletion", route: "/privacy" },
+]
 
 const GREETING: ChatMessage = {
   id: 0,
@@ -30,6 +44,9 @@ export function GaiaChatWidget() {
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
   const [quickReplies, setQuickReplies] = useState<string[]>([])
+  const [consent, setConsent] = useState<"loading" | "on" | "off">("loading")
+  const [routes, setRoutes] = useState<GaiaRoute[]>(FALLBACK_ROUTES)
+  const [toggling, setToggling] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const idRef = useRef(1)
@@ -45,10 +62,28 @@ export function GaiaChatWidget() {
 
   useEffect(() => {
     if (!open) return
+    let cancelled = false
+    gaiaService
+      .status()
+      .then((res) => {
+        if (cancelled) return
+        setConsent(res.gaia_lite_permission_active ? "on" : "off")
+        if (res.routes?.length) setRoutes(res.routes)
+      })
+      .catch(() => {
+        // Status unreachable — fail closed into the off panel, which
+        // still offers direct navigation without GAIA.
+        if (!cancelled) setConsent("off")
+      })
     gaiaService
       .quickReplies()
-      .then((res) => setQuickReplies(res.quick_replies))
+      .then((res) => {
+        if (!cancelled) setQuickReplies(res.quick_replies)
+      })
       .catch(() => setQuickReplies([]))
+    return () => {
+      cancelled = true
+    }
   }, [open])
 
   useEffect(() => {
@@ -102,6 +137,47 @@ export function GaiaChatWidget() {
     void send(input)
   }
 
+  const enableGaia = async () => {
+    setToggling(true)
+    try {
+      await gaiaService.enable()
+      setConsent("on")
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: idRef.current++,
+          from: "gaia",
+          text: "The consent service is unreachable. Your pages below still work without GAIA.",
+        },
+      ])
+    } finally {
+      setToggling(false)
+    }
+  }
+
+  const disableGaia = async () => {
+    setToggling(true)
+    try {
+      const res = await gaiaService.disableAll()
+      if (res.routes?.length) setRoutes(res.routes)
+      setConsent("off")
+    } catch {
+      // The opt-out did not reach the server — keep the panel honest
+      // instead of showing GAIA as off while it is still enabled.
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: idRef.current++,
+          from: "gaia",
+          text: "GAIA could not be turned off right now. Try again, or manage AI permissions on the privacy page.",
+        },
+      ])
+    } finally {
+      setToggling(false)
+    }
+  }
+
   return (
     <>
       {!open && (
@@ -149,6 +225,40 @@ export function GaiaChatWidget() {
             </Button>
           </div>
 
+          {consent === "off" ? (
+            <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                GAIA Lite is off. It only answers approved platform
+                questions and never reads your text, reflections, or
+                history. Every page below works without it.
+              </p>
+              <Button
+                type="button"
+                onClick={() => void enableGaia()}
+                disabled={toggling}
+                className="w-full bg-primary text-primary-foreground hover:bg-gold-muted"
+              >
+                {toggling ? "Enabling…" : "Enable GAIA Lite"}
+              </Button>
+              <div>
+                <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Go directly
+                </div>
+                <div className="flex flex-col gap-1">
+                  {routes.map((r) => (
+                    <Link
+                      key={r.id}
+                      href={r.route}
+                      onClick={() => setOpen(false)}
+                      className="rounded-md border border-border bg-dark-navy-lighter/40 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                    >
+                      {r.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.map((m) => (
               <div
@@ -178,8 +288,9 @@ export function GaiaChatWidget() {
               </div>
             )}
           </div>
+          )}
 
-          {quickReplies.length > 0 && messages.length <= 1 && (
+          {consent === "on" && quickReplies.length > 0 && messages.length <= 1 && (
             <div className="border-t border-border px-3 pb-2 pt-2">
               <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
                 Try asking
@@ -204,6 +315,7 @@ export function GaiaChatWidget() {
             </div>
           )}
 
+          {consent === "on" && (
           <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-border bg-dark-navy-lighter/40 p-2">
             <input
               ref={inputRef}
@@ -229,6 +341,20 @@ export function GaiaChatWidget() {
               <Send className="h-4 w-4" />
             </Button>
           </form>
+          )}
+
+          {consent === "on" && (
+            <div className="border-t border-border px-3 py-1.5 text-right">
+              <button
+                type="button"
+                onClick={() => void disableGaia()}
+                disabled={toggling}
+                className="text-[11px] text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
+              >
+                Turn off GAIA
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>

@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 import { GLOSSARY } from "@/lib/glossary"
 import { BeginHere } from "@/components/member/begin-here"
+import { AccountAccessCard } from "@/components/member/account-access-card"
 import { isPaidActive } from "@/lib/subscription"
 
 // ── Subscription badge ─────────────────────────────────────────────────────────
@@ -302,6 +303,10 @@ export default function MemberDashboard() {
         <BeginHere rituals={rituals} />
 
         <PremiumCTABanner />
+
+        <div className="mx-auto max-w-md">
+          <AccountAccessCard />
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-secondary border border-border">

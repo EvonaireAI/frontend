@@ -15,6 +15,7 @@ import { DEFAULT_GUARDIAN_TAB, GUARDIAN_TABS, isGuardianTab, type GuardianTab } 
 import { OverviewTab } from "@/components/moderation/guardian/overview-tab"
 import { PendingTab } from "@/components/moderation/guardian/pending-tab"
 import { ActiveTab } from "@/components/moderation/guardian/active-tab"
+import { AssignmentsTab } from "@/components/moderation/guardian/assignments-tab"
 import { CareFeedTab } from "@/components/moderation/guardian/care-feed-tab"
 import { RtsTab } from "@/components/moderation/guardian/rts-tab"
 import { SanctuariesTab } from "@/components/moderation/guardian/sanctuaries-tab"
@@ -144,6 +145,9 @@ function GuardianWorkspace() {
           </TabsContent>
           <TabsContent value="active">
             <ActiveTab guardians={guardians} />
+          </TabsContent>
+          <TabsContent value="assignments">
+            <AssignmentsTab />
           </TabsContent>
           <TabsContent value="care-feed">
             <CareFeedTab />
