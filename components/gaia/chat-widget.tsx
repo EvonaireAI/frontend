@@ -161,11 +161,20 @@ export function GaiaChatWidget() {
     try {
       const res = await gaiaService.disableAll()
       if (res.routes?.length) setRoutes(res.routes)
+      setConsent("off")
     } catch {
-      // Even on failure the panel switches to navigation-only mode.
+      // The opt-out did not reach the server — keep the panel honest
+      // instead of showing GAIA as off while it is still enabled.
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: idRef.current++,
+          from: "gaia",
+          text: "GAIA could not be turned off right now. Try again, or manage AI permissions on the privacy page.",
+        },
+      ])
     } finally {
       setToggling(false)
-      setConsent("off")
     }
   }
 
