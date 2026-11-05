@@ -15,12 +15,14 @@ import {
   v1Finance,
   V1Error,
   type MePermissions,
+  type MembershipSummary,
   type V1License,
   type Purchase,
 } from "@/lib/v1"
 
 export function AccountAccessCard() {
   const [permissions, setPermissions] = useState<MePermissions | null>(null)
+  const [membership, setMembership] = useState<MembershipSummary | null>(null)
   const [licenses, setLicenses] = useState<V1License[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,11 +34,15 @@ export function AccountAccessCard() {
       try {
         const [perms, ents, buys] = await Promise.all([
           v1Gateway.permissions(),
-          v1Finance.entitlements().catch(() => ({ licenses: [] })),
+          v1Finance.entitlements().catch(() => ({
+            membership: { plan: "free", entitlements: [] },
+            licenses: [],
+          })),
           v1Finance.purchases().catch(() => ({ results: [] })),
         ])
         if (cancelled) return
         setPermissions(perms)
+        setMembership(ents.membership)
         setLicenses(ents.licenses)
         setPurchases(buys.results)
       } catch (error) {
@@ -70,6 +76,24 @@ export function AccountAccessCard() {
           <Skeleton className="h-16 w-full" />
         ) : (
           <>
+            {membership && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Membership</span>
+                <span className="font-medium text-foreground">
+                  {membership.display_name ?? membership.plan}
+                </span>
+              </div>
+            )}
+            {membership?.limits && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Sanctuaries</span>
+                <span className="font-medium text-foreground">
+                  {membership.limits.max_sanctuaries === null
+                    ? "Unlimited"
+                    : `Up to ${membership.limits.max_sanctuaries}`}
+                </span>
+              </div>
+            )}
             {permissions && (
               <div className="flex flex-wrap gap-1.5">
                 {permissions.scopes.map((scope) => (

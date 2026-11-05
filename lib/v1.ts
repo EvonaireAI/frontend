@@ -100,11 +100,31 @@ export const v1Gateway = {
 
 // ── B. Memberships ───────────────────────────────────────────────────────────
 
+export interface MembershipLimits {
+  max_sanctuaries: number | null
+  max_care_level: number
+  monthly_level1_play_quota: number | null
+  agora: "browse" | "join" | "host"
+  journal_history_days: number | null
+  journal_export: boolean
+  ai_insights: "none" | "monthly" | "full"
+  timeline_history_days: number | null
+  priority_support: boolean
+}
+
 export interface MembershipPlan {
   code: string
   display_name: string
   monthly_price_usd: string
   entitlements: string[]
+  limits?: MembershipLimits
+}
+
+export interface MembershipSummary {
+  plan: string
+  display_name?: string
+  entitlements: string[]
+  limits?: MembershipLimits
 }
 
 export const v1Memberships = {
@@ -245,7 +265,7 @@ export const v1Finance = {
   refund: (orderId: string, reason = "") =>
     v1<{ status: string }>(`/payments/refund-requests/`, json({ order_id: orderId, reason })),
   purchases: () => v1<{ results: Purchase[] }>(`/me/purchases/`),
-  entitlements: () => v1<{ licenses: V1License[] }>(`/me/entitlements/`),
+  entitlements: () => v1<{ membership: MembershipSummary; licenses: V1License[] }>(`/me/entitlements/`),
   ledger: () => v1<{ results: LedgerEvent[] }>(`/me/ledger/`),
   receipts: () => v1<{ results: ClaimChainReceipt[] }>(`/me/receipts/`),
 }
@@ -368,13 +388,75 @@ export const v1Admin = {
   reconciliation: () => v1<Record<string, unknown>>(`/finance/reconciliation/`, undefined, true),
 }
 
-// ── H. GAIA ──────────────────────────────────────────────────────────────────
+// ── H. GAIA (Zero Dependence: consent-first, deterministic) ──────────────────
+
+export interface GaiaQuestion {
+  id: string
+  topic: string
+  title: string
+  source_id: string
+  route: string
+}
+
+export interface GaiaCapabilities {
+  name: string
+  approved: string[]
+  prohibited: string[]
+  questions?: GaiaQuestion[]
+  catalog_version?: string
+}
+
+export interface GaiaGuidanceAnswer {
+  mode: string
+  question_id: string
+  topic: string
+  answer: string
+  source_route: string
+  no_personal_inference: boolean
+}
+
+export interface GaiaRoute {
+  id: string
+  label: string
+  route: string
+}
+
+export interface ZeroDependenceStatus {
+  mode: "no-ai" | "ai-optional"
+  gaia_lite_permission_active: boolean
+  vendor_ai_permission_active: boolean
+  essential_features_require_ai: boolean
+  routes: GaiaRoute[]
+  revoked_active_permissions?: number
+}
 
 export const v1Gaia = {
-  capabilities: () => v1<Record<string, unknown>>(`/gaia/capabilities/`),
+  capabilities: () => v1<GaiaCapabilities>(`/gaia/capabilities/`),
   educate: (topic: string) => v1<Record<string, unknown>>(`/gaia/education/`, json({ topic })),
   navigate: (query: string) => v1<Record<string, unknown>>(`/gaia/navigation/`, json({ query })),
   consentStatus: () => v1<{ ai_guidance_consent: boolean }>(`/gaia/consent-status/`),
+  guidance: (questionId: string) =>
+    v1<GaiaGuidanceAnswer>(`/gaia/guidance/`, json({ question_id: questionId })),
+  zeroDependence: () => v1<ZeroDependenceStatus>(`/gaia/zero-dependence/`),
+  disableAllAi: () => v1<ZeroDependenceStatus>(`/gaia/zero-dependence/`, json({})),
+}
+
+export interface PurposeConsent {
+  purpose: string
+  document_code: string
+  active: boolean
+  consent_id: string | null
+}
+
+export const v1Consents = {
+  list: () => v1<{ consents: PurposeConsent[] }>(`/consents/`),
+  set: (purpose: string, action: "grant" | "revoke") =>
+    v1<PurposeConsent>(`/consents/`, json({ purpose, action })),
+}
+
+export const v1Privacy = {
+  export: () => v1<Record<string, unknown>>(`/privacy/export/`),
+  erase: (password: string) => v1<{ detail: string }>(`/privacy/delete/`, json({ password })),
 }
 
 // ── I. Reflection Room ───────────────────────────────────────────────────────
