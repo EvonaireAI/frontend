@@ -1,7 +1,8 @@
 "use client"
 
-import type { MouseEvent } from "react"
+import { useEffect, type MouseEvent } from "react"
 import Link from "next/link"
+import { trackFunnelEvent } from "@/lib/funnel"
 import { Shield, Heart, Check, Sprout } from "lucide-react"
 import {
   PRICING_PLANS,
@@ -32,6 +33,10 @@ function PricingCell({ value }: { value: string | boolean }) {
 }
 
 export default function LandingPage() {
+  useEffect(() => {
+    trackFunnelEvent("page_view")
+  }, [])
+
   // Smooth-scroll to an on-page section. Works on touch and keyboard (the
   // element is a real anchor, so Enter/Space and no-JS still navigate to it).
   const scrollToSection = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -106,6 +111,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           <Link
             href="/auth/register"
+            onClick={() => trackFunnelEvent("signup_click")}
             className="w-44 h-12 flex items-center justify-center rounded-full bg-dark-navy border-2 border-gold text-cream font-medium text-sm hover:bg-gold/10 transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.15)]"
           >
             Sign Up
@@ -185,6 +191,7 @@ export default function LandingPage() {
                   <div className="px-6 pb-6 mt-auto">
                     <Link
                       href="/auth/register"
+                      onClick={() => trackFunnelEvent("signup_click")}
                       className={`w-full h-11 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center ${
                         recommended
                           ? "bg-gold text-dark-navy hover:bg-gold-muted shadow-[0_0_16px_rgba(217,181,116,0.25)]"

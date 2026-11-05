@@ -8,6 +8,7 @@ export const STEWARD_CONSOLE_TABS = [
   { id: "resonance", label: "Resonance Configuration" },
   { id: "memberships", label: "Memberships" },
   { id: "earnings", label: "Creator Earnings" },
+  { id: "marketing", label: "Marketing" },
   { id: "symposium", label: "Symposium" },
   { id: "intelligence", label: "Platform Intelligence" },
   { id: "archive", label: "The Archive" },

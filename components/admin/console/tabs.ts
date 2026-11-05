@@ -8,6 +8,7 @@ export const STEWARD_TABS = [
   { id: "resonance", label: "Resonance Configuration" },
   { id: "memberships", label: "Memberships" },
   { id: "earnings", label: "Creator Earnings" },
+  { id: "marketing", label: "Marketing" },
   { id: "commons", label: "The Commons" },
   { id: "intelligence", label: "Platform Intelligence" },
   { id: "archive", label: "The Archive" },
