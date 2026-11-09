@@ -162,13 +162,10 @@ export function Navigation() {
           { href: "/member/ledger", label: GLOSSARY.ledger, icon: <ScrollText className="w-4 h-4" /> },
         )
         break
-      // Stewards get BOTH consoles — the backend's IsModerator admits
-      // admin/superadmin, so a steward can work care cases too.
       case "superadmin":
       case "admin":
         items.push(
           { href: "/steward", label: GLOSSARY.stewardDashboard, icon: <Shield className="w-4 h-4" /> },
-          { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <ClipboardCheck className="w-4 h-4" /> },
           // { href: "/steward?tab=memberships", label: "Memberships", icon: <BarChart3 className="w-4 h-4" /> },
           // { href: "/steward?tab=earnings", label: "Creator Earnings", icon: <Coins className="w-4 h-4" />, overflow: true },
           // { href: "/steward?tab=archive", label: GLOSSARY.archive, icon: <ScrollText className="w-4 h-4" />, overflow: true },
@@ -181,18 +178,6 @@ export function Navigation() {
         break
     }
 
-    return items
-  }
-
-  /** Stewards use separate dashboards — don't cross-link while inside one console. */
-  function filterConsoleCrossLinks(items: NavItem[], currentPath: string | null): NavItem[] {
-    if (!currentPath) return items
-    if (currentPath.startsWith("/moderate")) {
-      return items.filter((item) => !item.href.startsWith("/steward"))
-    }
-    if (currentPath.startsWith("/steward")) {
-      return items.filter((item) => !item.href.startsWith("/moderate"))
-    }
     return items
   }
 
@@ -211,10 +196,16 @@ export function Navigation() {
     return null
   }
 
-  const navigationItems =
-    pathname?.startsWith("/moderate") && isGuardian(user.role)
-      ? GUARDIAN_CONSOLE_NAV
-      : filterConsoleCrossLinks(getNavigationItems(user.role), pathname)
+  const onGuardianConsole = pathname?.startsWith("/moderate") ?? false
+  // The guardian-console bar (including Guardian Dashboard) is only for
+  // someone actually inside /moderate. A moderator's role nav is that same
+  // bar, so leaving for the Sacred Library would otherwise keep the
+  // Guardian Dashboard link. Stewards never have that link in their role nav.
+  let navigationItems =
+    onGuardianConsole && isGuardian(user.role) ? GUARDIAN_CONSOLE_NAV : getNavigationItems(user.role)
+  if (!onGuardianConsole && user.role === "moderator") {
+    navigationItems = navigationItems.filter((item) => item.href !== "/moderate")
+  }
   const inlineItems = navigationItems.filter((item) => !item.overflow)
   const overflowItems = navigationItems.filter((item) => item.overflow)
 
