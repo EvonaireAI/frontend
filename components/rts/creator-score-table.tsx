@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { rtsService, type RTSCreatorSummary } from "@/lib/rts"
 import { Search, Eye } from "lucide-react"
 import Link from "next/link"
+import { tr } from "@/lib/i18n"
+
 
 interface CreatorScoreTableProps {
   creators: RTSCreatorSummary[]
@@ -29,15 +31,15 @@ export function CreatorScoreTable({ creators, rtsDetailBasePath = "/moderate/rts
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Creator Resonance Trust Synthesis</CardTitle>
-        <CardDescription>Monitor all creator Resonance Trust Synthesis results</CardDescription>
+        <CardTitle>{tr("Creator Resonance Trust Synthesis")}</CardTitle>
+        <CardDescription>{tr("Monitor all creator Resonance Trust Synthesis results")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder={tr("Search by name or email...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -48,7 +50,7 @@ export function CreatorScoreTable({ creators, rtsDetailBasePath = "/moderate/rts
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {sortedCreators.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p className="text-sm">No creators found</p>
+              <p className="text-sm">{tr("No creators found")}</p>
             </div>
           ) : (
             sortedCreators.map((creator) => {

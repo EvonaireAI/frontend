@@ -22,6 +22,7 @@
 import { authService } from "./auth"
 import { throwIfEntitlementDenied } from "./entitlements"
 import { getDeviceId } from "./device-identity"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -486,7 +487,7 @@ export class PlaybackMeter {
       if (op !== this.op) throw new StreamDeniedError("unavailable", null)
       const error = new PlaybackLockedError(
         body?.detail ??
-          "We've paused this playback session while we take a look at some unusual activity.",
+          tr("We've paused this playback session while we take a look at some unusual activity."),
         body?.flag_id ?? null,
         body?.session_id ?? this.sessionId,
       )
@@ -539,7 +540,7 @@ export class PlaybackMeter {
       if (op !== this.op) throw new StreamDeniedError("unavailable", null)
       if (response.status === 423) {
         const error = new PlaybackLockedError(
-          body?.detail ?? "Playback is paused pending review.",
+          body?.detail ?? tr("Playback is paused pending review."),
           body?.flag_id ?? null,
           body?.session_id ?? this.sessionId,
         )

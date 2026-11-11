@@ -5,6 +5,8 @@ import { Info, Loader2 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { gaiaService, type InfoResponse } from "@/lib/gaia"
 import { cn } from "@/lib/utils"
+import { tr } from "@/lib/i18n"
+
 
 interface GaiaInfoTipProps {
   /**
@@ -95,12 +97,12 @@ export function GaiaInfoTip({
       >
         {!info && !error && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-3 w-3 animate-spin" /> loading
+            <Loader2 className="h-3 w-3 animate-spin" />{tr(" loading")}
           </div>
         )}
         {error && (
           <div className="text-sm text-muted-foreground">
-            Could not load guidance.
+            {tr("Could not load guidance.")}
           </div>
         )}
         {info && (

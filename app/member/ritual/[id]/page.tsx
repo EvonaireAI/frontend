@@ -40,6 +40,8 @@ import { QuotaMeter } from "@/components/payments/quota-meter"
 import { Loader2, Play, Pause, Heart, ArrowLeft, Volume2, MessageSquare, Send, CheckCircle, Flag, Lock, Sparkles } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // Audio is acquired through the Session 12 session-bound stream token, not by
 // downloading a blob: the URL is short-lived, tied to one live playback session,
@@ -91,9 +93,9 @@ export default function RitualPlayer() {
       onSessionChange: (id) => setSessionId(id),
       onWarning: (enforcement: Enforcement) => {
         // Once per session, quiet, and explicitly not a change to their access.
-        toast("Unusual playback activity was detected on your account.", {
+        toast(tr("Unusual playback activity was detected on your account."), {
           description:
-            "Nothing about your membership or access has changed. If this looks unfamiliar to you, the Reflection Room is open.",
+            tr("Nothing about your membership or access has changed. If this looks unfamiliar to you, the Reflection Room is open."),
           duration: 9000,
         })
         void enforcement
@@ -143,7 +145,7 @@ export default function RitualPlayer() {
         // Rendered as a card by the callbacks; no duplicate inline error
         return ""
       default:
-        return err.detail || "Audio is unavailable right now. Please try again."
+        return err.detail || tr("Audio is unavailable right now. Please try again.")
     }
   }
 
@@ -170,10 +172,10 @@ export default function RitualPlayer() {
           return false
         }
         if (err instanceof EntitlementDeniedError) {
-          setAudioError(`This ritual is part of the ${planDisplayName(err.denial.required_plan)} tier.`)
+          setAudioError(tr("This ritual is part of the {p0} tier.", { p0: planDisplayName(err.denial.required_plan) }))
           return false
         }
-        setAudioError("Failed to load audio")
+        setAudioError(tr("Failed to load audio"))
         return false
       } finally {
         setAudioLoading(false)
@@ -327,7 +329,7 @@ export default function RitualPlayer() {
       }
     } catch (err) {
       console.error("Failed to play audio:", err)
-      setAudioError("Failed to play audio. Please try again.")
+      setAudioError(tr("Failed to play audio. Please try again."))
     }
   }
 
@@ -416,7 +418,7 @@ export default function RitualPlayer() {
     if (!audio || locked || restricted || moved) return
     if (!meter.listening) return
     if (reconnectsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-      setAudioError("Audio is unavailable right now. Please try again.")
+      setAudioError(tr("Audio is unavailable right now. Please try again."))
       return
     }
     reconnectsRef.current += 1
@@ -456,7 +458,7 @@ export default function RitualPlayer() {
         const message = describeDenial(err)
         if (message) setAudioError(message)
       } else if (!(err instanceof PlaybackLockedError)) {
-        setAudioError("Couldn't move playback back here. Please try again.")
+        setAudioError(tr("Couldn't move playback back here. Please try again."))
       }
     } finally {
       setReclaiming(false)
@@ -480,10 +482,10 @@ export default function RitualPlayer() {
     } catch (err) {
       console.error("Failed to bless ritual:", err)
       if (err instanceof Error && err.message.includes("already blessed")) {
-        setBlessError("You have already blessed this ritual")
+        setBlessError(tr("You have already blessed this ritual"))
         setIsBlessed(true)
       } else {
-        setBlessError("Failed to bless ritual. Please try again.")
+        setBlessError(tr("Failed to bless ritual. Please try again."))
       }
     }
   }
@@ -559,7 +561,7 @@ export default function RitualPlayer() {
         <div className="container mx-auto px-4 py-8 lg:py-12 max-w-2xl">
           <Button variant="outline" onClick={() => router.back()} className="mb-8 bg-transparent border-border text-foreground hover:bg-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Library
+            {tr("Back to Library")}
           </Button>
           <Card className="bg-card border-border text-center">
             <CardHeader className="pb-4">
@@ -568,7 +570,7 @@ export default function RitualPlayer() {
               </div>
               <CardTitle className="text-2xl text-foreground">{ritual.title}</CardTitle>
               <CardDescription>
-                This ritual is part of the {planDisplayName(requiredPlan)} tier.
+                {trNode("This ritual is part of the {p0} tier.", { p0: planDisplayName(requiredPlan) })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -583,7 +585,7 @@ export default function RitualPlayer() {
                 className="bg-primary text-primary-foreground hover:bg-gold-muted"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Unlock with {planDisplayName(requiredPlan)}
+                {trNode("Unlock with {p0}", { p0: planDisplayName(requiredPlan) })}
               </Button>
             </CardContent>
           </Card>
@@ -600,7 +602,7 @@ export default function RitualPlayer() {
         <div className="flex items-center justify-between mb-8">
           <Button variant="outline" onClick={() => router.back()} className="bg-transparent border-border text-foreground hover:bg-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Library
+            {tr("Back to Library")}
           </Button>
           <ReportModal
             contentType="ritual"
@@ -609,7 +611,7 @@ export default function RitualPlayer() {
             trigger={
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
                 <Flag className="w-4 h-4 mr-2" />
-                Report
+                {tr("Report")}
               </Button>
             }
           />
@@ -622,13 +624,13 @@ export default function RitualPlayer() {
               <CardHeader className="text-center pb-6">
                 <div className="flex justify-center items-center gap-2 mb-4">
                   <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
-                    {getCareLevel(ritual.care_level)} Practice
+                    {trNode("{p0} Practice", { p0: getCareLevel(ritual.care_level) })}
                   </Badge>
-                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel="About care level" />
+                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel={tr("About care level")} />
                 </div>
                 <CardTitle className="text-3xl mb-2 text-foreground">{ritual.title}</CardTitle>
                 <CardDescription className="text-base">
-                  by {ritual.creator.first_name} {ritual.creator.last_name}
+                  {trNode("by {p0} {p1}", { p0: ritual.creator.first_name, p1: ritual.creator.last_name })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -685,15 +687,15 @@ export default function RitualPlayer() {
                     {!transportDisabled && audioLoading && (
                       <div className="py-8">
                         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-                        <p className="text-muted-foreground">Loading sacred audio...</p>
+                        <p className="text-muted-foreground">{tr("Loading sacred audio...")}</p>
                       </div>
                     )}
 
                     {!transportDisabled && audioError && !audioLoading && (
                       <div className="py-8">
-                        <p className="text-destructive mb-4">Error: {audioError}</p>
+                        <p className="text-destructive mb-4">{trNode("Error: {p0}", { p0: audioError })}</p>
                         <Button onClick={handlePlay} variant="outline">
-                          Try Again
+                          {tr("Try Again")}
                         </Button>
                       </div>
                     )}
@@ -748,7 +750,7 @@ export default function RitualPlayer() {
                       <Heart className={`w-4 h-4 ${isBlessed ? "fill-current" : ""}`} />
                       {isBlessed ? "Blessed" : "Bless This Ritual"}
                     </Button>
-                    <GaiaInfoTip infoKey="ritual.bless" ariaLabel="About blessing a creator" />
+                    <GaiaInfoTip infoKey="ritual.bless" ariaLabel={tr("About blessing a creator")} />
                   </div>
                   {blessError && <p className="text-sm text-muted-foreground text-center">{blessError}</p>}
                 </div>
@@ -760,22 +762,22 @@ export default function RitualPlayer() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <MessageSquare className="w-5 h-5 text-primary" />
-                  Share Your Reflection
-                  <GaiaInfoTip infoKey="ritual.feedback" ariaLabel="About leaving feedback" />
+                  {tr("Share Your Reflection")}
+                  <GaiaInfoTip infoKey="ritual.feedback" ariaLabel={tr("About leaving feedback")} />
                 </CardTitle>
-                <CardDescription>Your thoughts help creators understand the impact of their work</CardDescription>
+                <CardDescription>{tr("Your thoughts help creators understand the impact of their work")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {feedbackSubmitted ? (
                   <div className="text-center py-6">
                     <CheckCircle className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Thank you for your reflection</h3>
-                    <p className="text-muted-foreground">Your feedback has been shared with the creator</p>
+                    <h3 className="text-lg font-semibold mb-2">{tr("Thank you for your reflection")}</h3>
+                    <p className="text-muted-foreground">{tr("Your feedback has been shared with the creator")}</p>
                   </div>
                 ) : (
                   <>
                     <Textarea
-                      placeholder="Share how this ritual affected you, what insights you gained, or how it made you feel..."
+                      placeholder={tr("Share how this ritual affected you, what insights you gained, or how it made you feel...")}
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
                       rows={4}
@@ -783,8 +785,8 @@ export default function RitualPlayer() {
                     <div className="flex items-center space-x-2">
                       <Checkbox id="anonymous" checked={isAnonymous} onCheckedChange={(checked) => setIsAnonymous(checked === true)} />
                       <label htmlFor="anonymous" className="text-sm inline-flex items-center gap-1.5">
-                        Submit anonymously
-                        <GaiaInfoTip infoKey="ritual.feedback_anonymous" ariaLabel="About anonymous feedback" />
+                        {tr("Submit anonymously")}
+                        <GaiaInfoTip infoKey="ritual.feedback_anonymous" ariaLabel={tr("About anonymous feedback")} />
                       </label>
                     </div>
                     <Button
@@ -795,12 +797,12 @@ export default function RitualPlayer() {
                       {submittingFeedback ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Submitting...
+                          {tr("Submitting...")}
                         </>
                       ) : (
                         <>
                           <Send className="w-4 h-4 mr-2" />
-                          Share Reflection
+                          {tr("Share Reflection")}
                         </>
                       )}
                     </Button>
@@ -815,14 +817,14 @@ export default function RitualPlayer() {
             <QuotaMeter />
             <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-foreground">About This Ritual</CardTitle>
+                <CardTitle className="text-foreground">{tr("About This Ritual")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm leading-relaxed">{ritual.description}</p>
 
                 {ritual.tags.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Practice Types</h4>
+                    <h4 className="text-sm font-medium mb-2">{tr("Practice Types")}</h4>
                     <div className="flex flex-wrap gap-2">
                       {ritual.tags.map((tag) => (
                         <Badge key={typeof tag === "string" ? tag : tag.id} variant="secondary" className="text-xs">
@@ -835,13 +837,13 @@ export default function RitualPlayer() {
 
                 {ritual.cultural_declaration && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Cultural Context</h4>
+                    <h4 className="text-sm font-medium mb-2">{tr("Cultural Context")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">{ritual.cultural_declaration}</p>
                   </div>
                 )}
 
                 <div className="text-xs text-muted-foreground pt-2 border-t">
-                  Shared on {new Date(ritual.created_at).toLocaleDateString()}
+                  {trNode("Shared on {p0}", { p0: new Date(ritual.created_at).toLocaleDateString(fmtLocale()) })}
                 </div>
               </CardContent>
             </Card>

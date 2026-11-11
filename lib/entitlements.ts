@@ -1,4 +1,5 @@
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -126,7 +127,7 @@ export async function fetchEntitlements(): Promise<EntitlementsResponse> {
     headers: getAuthHeaders(),
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch entitlements")
+    throw new Error(tr("Failed to fetch entitlements"))
   }
   return response.json()
 }

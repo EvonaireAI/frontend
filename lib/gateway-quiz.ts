@@ -5,6 +5,7 @@ import {
 } from "./entitlements"
 
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -97,7 +98,7 @@ export const gatewayQuizService = {
       headers: authHeaders(),
     })
     if (!response.ok) {
-      await parseError(response, "Failed to load Gateway Quiz status")
+      await parseError(response, tr("Failed to load Gateway Quiz status"))
     }
     return response.json()
   },
@@ -111,7 +112,7 @@ export const gatewayQuizService = {
       { headers: authHeaders() },
     )
     if (!response.ok) {
-      await parseError(response, "Failed to load your next Gateway question")
+      await parseError(response, tr("Failed to load your next Gateway question"))
     }
     return response.json()
   },
@@ -121,7 +122,7 @@ export const gatewayQuizService = {
       headers: authHeaders(),
     })
     if (!response.ok) {
-      await parseError(response, "Failed to load Gateway Quiz content")
+      await parseError(response, tr("Failed to load Gateway Quiz content"))
     }
     return response.json()
   },
@@ -133,9 +134,9 @@ export const gatewayQuizService = {
     })
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error("Daily retake limit reached. The Gateway opens again tomorrow.")
+        throw new Error(tr("Daily retake limit reached. The Gateway opens again tomorrow."))
       }
-      await parseError(response, "Failed to start the Gateway Quiz")
+      await parseError(response, tr("Failed to start the Gateway Quiz"))
     }
     return response.json()
   },
@@ -158,7 +159,7 @@ export const gatewayQuizService = {
     if (!response.ok) {
       // 409 (already answered) is benign — callers can refetch /next/ and move
       // on; the status rides along so loops can branch on it.
-      let detail = "Failed to submit your answer"
+      let detail = tr("Failed to submit your answer")
       try {
         const body = await response.json()
         if (body && typeof body.detail === "string") detail = body.detail
@@ -240,7 +241,7 @@ export class GatewayCancelledError extends Error {
 // credentials.
 export class GatewaySessionChangedError extends Error {
   constructor() {
-    super("Your session changed before the action could resume — nothing was submitted.")
+    super(tr("Your session changed before the action could resume — nothing was submitted."))
     this.name = "GatewaySessionChangedError"
   }
 }

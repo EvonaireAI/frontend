@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { format } from "date-fns"
+
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -35,6 +35,8 @@ import {
   type RoyaltyPeriodReport,
 } from "@/lib/royalties"
 import { AlertTriangle, ArrowLeft, CheckCircle, Loader2, RefreshCw, ShieldCheck } from "lucide-react"
+import { formatDate,fmtLocale, tr, trNode  } from "@/lib/i18n"
+
 
 function PeriodStatusChip({ status }: { status: string }) {
   const chip = PERIOD_STATUS_CHIPS[status as keyof typeof PERIOD_STATUS_CHIPS] ?? {
@@ -123,7 +125,7 @@ export default function AdminRoyaltyPeriodPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          All periods
+          {tr("All periods")}
         </Link>
         <PeriodReport periodId={periodId} />
       </div>
@@ -177,7 +179,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
         return
       }
       // 409 = the period moved on under us — show the server's detail and resync
-      toast.error(err instanceof Error ? err.message : "Failed to approve the period")
+      toast.error(err instanceof Error ? err.message : tr("Failed to approve the period"))
       load()
     } finally {
       setApproving(false)
@@ -202,7 +204,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground py-8">Royalty period not found.</p>
+          <p className="text-center text-muted-foreground py-8">{tr("Royalty period not found.")}</p>
         </CardContent>
       </Card>
     )
@@ -212,10 +214,10 @@ function PeriodReport({ periodId }: { periodId: number }) {
     return (
       <Alert variant="destructive">
         <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-          <span>Failed to load the period report.</span>
+          <span>{tr("Failed to load the period report.")}</span>
           <Button variant="outline" size="sm" onClick={load}>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Retry
+            {tr("Retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -236,10 +238,10 @@ function PeriodReport({ periodId }: { periodId: number }) {
           </div>
           <p className="text-muted-foreground mt-1">
             {report.computed_at &&
-              `Computed ${format(new Date(report.computed_at), "MMM d, yyyy h:mm a")}`}
+              `Computed ${formatDate(new Date(report.computed_at), "MMM d, yyyy h:mm a")}`}
             {report.approved_at &&
-              ` · Approved ${format(new Date(report.approved_at), "MMM d, yyyy h:mm a")}`}
-            {report.paid_at && ` · Paid ${format(new Date(report.paid_at), "MMM d, yyyy h:mm a")}`}
+              ` · Approved ${formatDate(new Date(report.approved_at), "MMM d, yyyy h:mm a")}`}
+            {report.paid_at && ` · Paid ${formatDate(new Date(report.paid_at), "MMM d, yyyy h:mm a")}`}
           </p>
         </div>
 
@@ -254,27 +256,24 @@ function PeriodReport({ periodId }: { periodId: number }) {
               ) : (
                 <ShieldCheck className="w-4 h-4" />
               )}
-              Approve period
+              {tr("Approve period")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Approve {periodLabel(report.period)}?</AlertDialogTitle>
+              <AlertDialogTitle>{trNode("Approve {p0}?", { p0: periodLabel(report.period) })}</AlertDialogTitle>
               <AlertDialogDescription>
-                This freezes the numbers and makes {centsToDollarString(report.distributed_cents)}{" "}
-                payable to {report.creators_earning.toLocaleString()}{" "}
-                {report.creators_earning === 1 ? "creator" : "creators"}. It cannot be recomputed
-                afterwards.
+                {trNode("This freezes the numbers and makes {p0} payable to {p1} {p2}. It cannot be recomputed afterwards.", { p0: centsToDollarString(report.distributed_cents), p1: report.creators_earning.toLocaleString(fmtLocale()), p2: report.creators_earning === 1 ? "creator" : "creators" })}
                 {report.shadow_mode && (
                   <span className="block mt-2 text-yellow-400">
-                    Shadow mode: no transfers will execute.
+                    {tr("Shadow mode: no transfers will execute.")}
                   </span>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={approve}>Approve</AlertDialogAction>
+              <AlertDialogCancel>{tr("Cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={approve}>{tr("Approve")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -284,38 +283,38 @@ function PeriodReport({ periodId }: { periodId: number }) {
 
       {/* Totals */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-4">
-        <StatCard label="Gross member revenue" value={centsToDollarString(report.gross_cents)} />
+        <StatCard label={tr("Gross member revenue")} value={centsToDollarString(report.gross_cents)} />
         <StatCard
-          label="Platform fee (11%)"
+          label={tr("Platform fee (11%)")}
           value={centsToDollarString(report.platform_fee_cents)}
         />
-        <StatCard label="Creator pool (89%)" value={centsToDollarString(report.pool_cents)} />
+        <StatCard label={tr("Creator pool (89%)")} value={centsToDollarString(report.pool_cents)} />
         <StatCard
-          label="Distributed to creators"
+          label={tr("Distributed to creators")}
           value={centsToDollarString(report.distributed_cents)}
           caption={
             report.undistributed_idle_cents > 0
-              ? `${centsToDollarString(report.undistributed_idle_cents)} held for Care Fund`
+              ? tr("{p0} held for Care Fund", { p0: centsToDollarString(report.undistributed_idle_cents) })
               : undefined
           }
           warning={report.undistributed_idle_cents > 0}
         />
       </div>
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard label="Paying members" value={report.paying_members.toLocaleString()} />
+        <StatCard label={tr("Paying members")} value={report.paying_members.toLocaleString(fmtLocale())} />
         <StatCard
-          label="Idle members"
-          value={report.idle_members.toLocaleString()}
-          caption="No qualified listening this month"
+          label={tr("Idle members")}
+          value={report.idle_members.toLocaleString(fmtLocale())}
+          caption={tr("No qualified listening this month")}
         />
-        <StatCard label="Creators earning" value={report.creators_earning.toLocaleString()} />
+        <StatCard label={tr("Creators earning")} value={report.creators_earning.toLocaleString(fmtLocale())} />
         <StatCard
-          label="Fraud holds"
-          value={report.fraud_holds.count.toLocaleString()}
+          label={tr("Fraud holds")}
+          value={report.fraud_holds.count.toLocaleString(fmtLocale())}
           caption={
             report.fraud_holds.count > 0
-              ? `${centsToDollarString(report.fraud_holds.held_cents)} held pending review`
-              : "No earnings held this period"
+              ? tr("{p0} held pending review", { p0: centsToDollarString(report.fraud_holds.held_cents) })
+              : tr("No earnings held this period")
           }
           warning={report.fraud_holds.count > 0}
         />
@@ -324,9 +323,9 @@ function PeriodReport({ periodId }: { periodId: number }) {
       {/* Idle pool */}
       <Card className="bg-card border-border mb-6">
         <CardHeader>
-          <CardTitle className="text-foreground">Idle pool</CardTitle>
+          <CardTitle className="text-foreground">{tr("Idle pool")}</CardTitle>
           <CardDescription>
-            Share of the pool from members with no qualified listening this month.
+            {tr("Share of the pool from members with no qualified listening this month.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -335,11 +334,9 @@ function PeriodReport({ periodId }: { periodId: number }) {
               {centsToDollarString(report.idle_pool_cents)}
             </span>
             <span className="text-sm text-muted-foreground">
-              from {report.idle_members.toLocaleString()} idle{" "}
-              {report.idle_members === 1 ? "member" : "members"} —{" "}
-              {careFundMode
+              {trNode("from {p0} idle {p1} — {p2}", { p0: report.idle_members.toLocaleString(fmtLocale()), p1: report.idle_members === 1 ? "member" : "members", p2: careFundMode
                 ? "reserved for the Care Fund, not distributed"
-                : "redistributed to creators by listening share"}
+                : "redistributed to creators by listening share" })}
             </span>
           </div>
         </CardContent>
@@ -348,25 +345,24 @@ function PeriodReport({ periodId }: { periodId: number }) {
       {/* Top concentrations */}
       <Card className="bg-card border-border mb-6">
         <CardHeader>
-          <CardTitle className="text-foreground">Top concentrations</CardTitle>
+          <CardTitle className="text-foreground">{tr("Top concentrations")}</CardTitle>
           <CardDescription>
-            Largest creator shares of the pool — an outsized share from few members is the thing to
-            check before approving.
+            {tr("Largest creator shares of the pool — an outsized share from few members is the thing to check before approving.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {report.top_creators.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
-              No creator earnings this period.
+              {tr("No creator earnings this period.")}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Creator</TableHead>
-                  <TableHead className="text-right">Earned</TableHead>
-                  <TableHead className="w-[40%]">Share of pool</TableHead>
-                  <TableHead className="text-right">Members</TableHead>
+                  <TableHead>{tr("Creator")}</TableHead>
+                  <TableHead className="text-right">{tr("Earned")}</TableHead>
+                  <TableHead className="w-[40%]">{tr("Share of pool")}</TableHead>
+                  <TableHead className="text-right">{tr("Members")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -390,7 +386,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {c.member_count.toLocaleString()}
+                      {c.member_count.toLocaleString(fmtLocale())}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -403,8 +399,8 @@ function PeriodReport({ periodId }: { periodId: number }) {
       {/* Payout batches */}
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Payout batches</CardTitle>
-          <CardDescription>Transfer runs executed after approval.</CardDescription>
+          <CardTitle className="text-foreground">{tr("Payout batches")}</CardTitle>
+          <CardDescription>{tr("Transfer runs executed after approval.")}</CardDescription>
         </CardHeader>
         <CardContent>
           {report.payout_batches.length === 0 ? (
@@ -415,13 +411,13 @@ function PeriodReport({ periodId }: { periodId: number }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Sent</TableHead>
-                  <TableHead className="text-right">Total sent</TableHead>
-                  <TableHead className="text-right">Skipped</TableHead>
-                  <TableHead className="text-right">Blocked</TableHead>
-                  <TableHead className="text-right">Failed</TableHead>
-                  <TableHead className="text-right">Date</TableHead>
+                  <TableHead>{tr("Status")}</TableHead>
+                  <TableHead className="text-right">{tr("Sent")}</TableHead>
+                  <TableHead className="text-right">{tr("Total sent")}</TableHead>
+                  <TableHead className="text-right">{tr("Skipped")}</TableHead>
+                  <TableHead className="text-right">{tr("Blocked")}</TableHead>
+                  <TableHead className="text-right">{tr("Failed")}</TableHead>
+                  <TableHead className="text-right">{tr("Date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -443,7 +439,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
                     <TableCell className="text-right tabular-nums">{b.blocked_count}</TableCell>
                     <TableCell className="text-right tabular-nums">{b.failed_count}</TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {format(new Date(b.created_at), "MMM d, yyyy")}
+                      {formatDate(new Date(b.created_at), "MMM d, yyyy")}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -456,7 +452,7 @@ function PeriodReport({ periodId }: { periodId: number }) {
       {report.status === "approved" && !report.shadow_mode && (
         <p className="mt-4 text-sm text-muted-foreground flex items-center gap-1.5">
           <CheckCircle className="w-4 h-4 text-green-400" />
-          Numbers are frozen — payouts run from this snapshot.
+          {tr("Numbers are frozen — payouts run from this snapshot.")}
         </p>
       )}
     </div>

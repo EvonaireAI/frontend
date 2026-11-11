@@ -1,7 +1,9 @@
+
+import { trDeep } from "@/lib/i18n"
 // Steward workspace tabs backed by live API routes. Role requests live at
 // `/steward/requests`; guardian care work lives at `/moderate`.
 
-export const STEWARD_CONSOLE_TABS = [
+export const STEWARD_CONSOLE_TABS = trDeep([
   { id: "overview", label: "Platform Overview" },
   { id: "gateway", label: "Gateway" },
   { id: "requests", label: "Steward Requests" },
@@ -14,7 +16,7 @@ export const STEWARD_CONSOLE_TABS = [
   { id: "intelligence", label: "Platform Intelligence" },
   { id: "archive", label: "The Archive" },
   { id: "configuration", label: "Platform Configuration" },
-] as const
+] as const)
 
 export type StewardConsoleTab = (typeof STEWARD_CONSOLE_TABS)[number]["id"]
 

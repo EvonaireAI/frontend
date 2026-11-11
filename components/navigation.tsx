@@ -27,8 +27,11 @@ import { useEntitlements } from "@/lib/entitlements-context"
 import { roleDashboardLabel, isGuardian, isSteward } from "@/lib/roles"
 import { GLOSSARY, COMING_SOON_SECTIONS } from "@/lib/glossary"
 import { GatewayProgressBadge } from "@/components/gateway/gateway-progress-badge"
-import { format } from "date-fns"
+import { LanguageSwitcher } from "@/components/language-switcher"
+
 import { Menu, Heart, Leaf, Shield, Settings, LogOut, Music, Upload, Eye, Landmark, Home, ScrollText, BarChart3, Headphones, Banknote, Coins, Store, Tags, ClipboardCheck, LifeBuoy, Clock, MoreHorizontal } from "lucide-react"
+import { formatDate,tr, trDeep  } from "@/lib/i18n"
+
 
 interface NavItem {
   href: string
@@ -39,12 +42,12 @@ interface NavItem {
 }
 
 /** Primary destinations while working in the Guardian Dashboard workspace. */
-const GUARDIAN_CONSOLE_NAV: NavItem[] = [
+const GUARDIAN_CONSOLE_NAV: NavItem[] = trDeep([
   { href: "/moderate", label: GLOSSARY.guardianDashboard, icon: <Shield className="w-4 h-4" /> },
   { href: "/moderate?tab=pending", label: "Pending Reviews", icon: <ClipboardCheck className="w-4 h-4" /> },
   { href: "/commons", label: GLOSSARY.symposium, icon: <Store className="w-4 h-4" /> },
   { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
-]
+])
 
 // Current-plan badge for the account menu; notes the end date when the
 // subscription is set to cancel.
@@ -54,7 +57,7 @@ function PlanBadge() {
   const sub = entitlements?.subscription
   const cancelNote =
     sub?.cancel_at_period_end && sub.current_period_end
-      ? ` until ${format(new Date(sub.current_period_end), "MMM d, yyyy")}`
+      ? ` until ${formatDate(new Date(sub.current_period_end), "MMM d, yyyy")}`
       : ""
 
   return (
@@ -132,16 +135,16 @@ export function Navigation() {
           { href: "/creator", label: GLOSSARY.creatorStudio, icon: <Music className="w-4 h-4" /> },
           { href: "/creator/upload", label: GLOSSARY.uploadRitual, icon: <Upload className="w-4 h-4" /> },
           { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
-          { href: "/member/agora", label: GLOSSARY.agora, icon: <Landmark className="w-4 h-4" /> },
+          { href: "/member/agora", label: GLOSSARY.agora, icon: <Landmark className="w-4 h-4" />, overflow: true },
           // One financial hub: The Ledger carries Billing and links out to the
           // creator-only Earnings / Payouts pages (kept below as overflow).
           { href: "/member/ledger", label: GLOSSARY.ledger, icon: <ScrollText className="w-4 h-4" /> },
           { href: "/member/my-sanctuary", label: GLOSSARY.mySanctuary, icon: <Home className="w-4 h-4" />, overflow: true },
           { href: "/creator/earnings", label: GLOSSARY.earnings, icon: <Coins className="w-4 h-4" />, overflow: true },
           { href: "/creator/payouts", label: GLOSSARY.payouts, icon: <Banknote className="w-4 h-4" />, overflow: true },
-          { href: "/creator/listening", label: "Listening", icon: <Headphones className="w-4 h-4" />, overflow: true },
-          { href: "/creator/listings", label: "My Listings", icon: <Tags className="w-4 h-4" />, overflow: true },
-          { href: "/creator/provenance", label: "Provenance", icon: <ScrollText className="w-4 h-4" />, overflow: true },
+          { href: "/creator/listening", label: tr("Listening"), icon: <Headphones className="w-4 h-4" />, overflow: true },
+          { href: "/creator/listings", label: tr("My Listings"), icon: <Tags className="w-4 h-4" />, overflow: true },
+          { href: "/creator/provenance", label: tr("Provenance"), icon: <ScrollText className="w-4 h-4" />, overflow: true },
           { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" />, overflow: true },
         )
         break
@@ -150,8 +153,8 @@ export function Navigation() {
           { href: "/member", label: GLOSSARY.sacredLibrary, icon: <Heart className="w-4 h-4" /> },
           { href: "/commons", label: GLOSSARY.commons, icon: <Store className="w-4 h-4" /> },
           { href: "/member/agora", label: GLOSSARY.agora, icon: <Landmark className="w-4 h-4" /> },
-          { href: "/member/my-sanctuary", label: GLOSSARY.mySanctuary, icon: <Home className="w-4 h-4" /> },
-          { href: "/member/reflection-room", label: GLOSSARY.reflectionRoom, icon: <LifeBuoy className="w-4 h-4" /> },
+          { href: "/member/my-sanctuary", label: GLOSSARY.mySanctuary, icon: <Home className="w-4 h-4" />, overflow: true },
+          { href: "/member/reflection-room", label: GLOSSARY.reflectionRoom, icon: <LifeBuoy className="w-4 h-4" />, overflow: true },
           // DECISION(fitsum): "The Ledger" is the single financial destination in
           // the nav. Billing & Invoices lives as a section inside it, so the
           // standalone "Billing" nav entry was removed to avoid redundancy.
@@ -219,7 +222,7 @@ export function Navigation() {
     <nav className="border-b border-border bg-dark-navy/95 backdrop-blur supports-[backdrop-filter]:bg-dark-navy/80 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center space-x-4 md:space-x-8">
+          <div className="flex items-center space-x-4 lg:space-x-8">
             {/* Mobile section menu — primary destinations on phones. */}
             {navigationItems.length > 0 && (
               <Sheet>
@@ -228,7 +231,7 @@ export function Navigation() {
                     variant="ghost"
                     size="icon"
                     className="md:hidden h-9 w-9"
-                    aria-label="Open menu"
+                    aria-label={tr("Open menu")}
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
@@ -239,7 +242,7 @@ export function Navigation() {
                       <span className="flex items-center justify-center h-6 w-6 rounded-md bg-white p-0.5">
                         <Image src="/logo.svg" alt="" width={512} height={512} className="h-full w-full object-contain" />
                       </span>
-                      Evonaire
+                      {tr("Evonaire")}
                     </SheetTitle>
                   </SheetHeader>
                   <nav className="flex flex-col p-2">
@@ -266,7 +269,7 @@ export function Navigation() {
                           <Clock className="w-4 h-4" />
                           {label}
                         </span>
-                        <span className="text-[10px] uppercase tracking-wide">Soon</span>
+                        <span className="text-[10px] uppercase tracking-wide">{tr("Soon")}</span>
                       </div>
                     ))}
                   </nav>
@@ -278,11 +281,11 @@ export function Navigation() {
               <span className="flex items-center justify-center h-10 w-10 rounded-lg p-0.5 shadow-sm">
                 <Image src="/logo.svg" alt="Evonaire" width={512} height={512} className="h-full w-full object-contain" priority />
               </span>
-              <span className="text-lg font-bold text-foreground tracking-wide">Evonaire</span>
+              <span className="text-lg font-bold text-foreground tracking-wide">{tr("Evonaire")}</span>
             </Link>
 
             {navigationItems.length > 0 && (
-              <div className="hidden md:flex items-center space-x-6">
+              <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
                 {inlineItems.map((item) => (
                   <Link
                     key={item.href}
@@ -301,7 +304,7 @@ export function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
                     <MoreHorizontal className="w-4 h-4" />
-                    <span>More</span>
+                    <span>{tr("More")}</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56 bg-card border-border">
                     {overflowItems.map((item) => (
@@ -318,7 +321,7 @@ export function Navigation() {
                           <Clock className="w-4 h-4" />
                           {label}
                         </span>
-                        <span className="text-[10px] uppercase tracking-wide">Soon</span>
+                        <span className="text-[10px] uppercase tracking-wide">{tr("Soon")}</span>
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -328,6 +331,7 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <LanguageSwitcher className="hidden sm:inline-flex" />
             <GatewayProgressBadge />
 
             <Badge variant="outline" className={`hidden sm:inline-flex ${getRoleColor(user.role)}`}>
@@ -366,13 +370,13 @@ export function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="flex items-center">
                     <Eye className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
+                    <span>{tr("Dashboard")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Profile Settings</span>
+                    <span>{tr("Profile Settings")}</span>
                   </Link>
                 </DropdownMenuItem>
                 {isSteward(user.role) && !pathname?.startsWith("/steward") && (
@@ -386,7 +390,7 @@ export function Navigation() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{tr("Log out")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

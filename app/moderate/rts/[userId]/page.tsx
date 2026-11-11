@@ -15,6 +15,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CreatorRtsDetailView } from "@/components/rts/creator-rts-detail-view"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export default function CreatorRTSDetail() {
   const [user, setUser] = useState<User | null>(null)
@@ -65,13 +67,13 @@ export default function CreatorRTSDetail() {
       setAudit(auditData)
     } catch (error) {
       console.error("Failed to load RTS data:", error)
-      toast.error("Failed to load creator RTS data")
+      toast.error(tr("Failed to load creator RTS data"))
     }
   }
 
   const handleFlagSuccess = () => {
     loadRTSData()
-    toast.success("Care flag created and RTS updated")
+    toast.success(tr("Care flag created and RTS updated"))
   }
 
   if (loading) {
@@ -95,11 +97,11 @@ export default function CreatorRTSDetail() {
           <Button asChild variant="outline">
             <Link href="/moderate?tab=rts">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              {tr("Back to Dashboard")}
             </Link>
           </Button>
           <div>
-            <h1 className="text-4xl font-bold text-foreground">Creator RTS Details</h1>
+            <h1 className="text-4xl font-bold text-foreground">{tr("Creator RTS Details")}</h1>
             {score && (
               <p className="text-muted-foreground">
                 {score.user.first_name} {score.user.last_name} ({score.user.email})
@@ -112,21 +114,21 @@ export default function CreatorRTSDetail() {
           {/* Current Score */}
           <Card>
             <CardHeader>
-              <CardTitle>Current Resonance Trust Synthesis</CardTitle>
-              <CardDescription>Real-time Resonance Trust Synthesis</CardDescription>
+              <CardTitle>{tr("Current Resonance Trust Synthesis")}</CardTitle>
+              <CardDescription>{tr("Real-time Resonance Trust Synthesis")}</CardDescription>
             </CardHeader>
             <CardContent>
               {score ? (
                 <div className="flex flex-col items-center py-6">
                   <ScoreBadge score={score.current_score} band={currentBand} size="lg" />
                   <p className="text-sm text-muted-foreground mt-4">
-                    Last updated: {new Date(score.last_calculated_at).toLocaleString()}
+                    {trNode("Last updated: {p0}", { p0: new Date(score.last_calculated_at).toLocaleString(fmtLocale()) })}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Version: {score.score_version}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{trNode("Version: {p0}", { p0: score.score_version })}</p>
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm">No score available</p>
+                  <p className="text-sm">{tr("No score available")}</p>
                 </div>
               )}
             </CardContent>
@@ -146,35 +148,35 @@ export default function CreatorRTSDetail() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Complete Audit Trail
+              {tr("Complete Audit Trail")}
             </CardTitle>
-            <CardDescription>All inputs, history, and interventions for this creator</CardDescription>
+            <CardDescription>{tr("All inputs, history, and interventions for this creator")}</CardDescription>
           </CardHeader>
           <CardContent>
             {!audit ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">No audit data available</p>
+                <p className="text-sm">{tr("No audit data available")}</p>
               </div>
             ) : (
               <Tabs defaultValue="history" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="history">
                     <TrendingUp className="w-4 h-4 mr-2" />
-                    History ({audit.history.length})
+                    {trNode("History ({p0})", { p0: audit.history.length })}
                   </TabsTrigger>
                   <TabsTrigger value="inputs">
                     <Activity className="w-4 h-4 mr-2" />
-                    Inputs ({audit.inputs.length})
+                    {trNode("Inputs ({p0})", { p0: audit.inputs.length })}
                   </TabsTrigger>
                   <TabsTrigger value="interventions">
                     <Flag className="w-4 h-4 mr-2" />
-                    Interventions ({audit.interventions.length})
+                    {trNode("Interventions ({p0})", { p0: audit.interventions.length })}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="history" className="space-y-2 max-h-96 overflow-y-auto mt-4">
                   {audit.history.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground py-4">No history entries</p>
+                    <p className="text-center text-sm text-muted-foreground py-4">{tr("No history entries")}</p>
                   ) : (
                     audit.history.map((entry) => (
                       <div key={entry.id} className="p-3 border rounded-lg">
@@ -183,7 +185,7 @@ export default function CreatorRTSDetail() {
                             {entry.trigger_type.replace(/_/g, " ")}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(entry.created_at).toLocaleString()}
+                            {new Date(entry.created_at).toLocaleString(fmtLocale())}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm mb-2">
@@ -198,7 +200,7 @@ export default function CreatorRTSDetail() {
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          <p>Present signals: {entry.explanation.present_signals.join(", ")}</p>
+                          <p>{trNode("Present signals: {p0}", { p0: entry.explanation.present_signals.join(", ") })}</p>
                         </div>
                       </div>
                     ))
@@ -207,20 +209,20 @@ export default function CreatorRTSDetail() {
 
                 <TabsContent value="inputs" className="space-y-2 max-h-96 overflow-y-auto mt-4">
                   {audit.inputs.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground py-4">No input signals</p>
+                    <p className="text-center text-sm text-muted-foreground py-4">{tr("No input signals")}</p>
                   ) : (
                     audit.inputs.map((input) => (
                       <div key={input.id} className="p-3 border rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <span className="font-medium text-sm capitalize">{input.input_type.replace(/_/g, " ")}</span>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(input.created_at).toLocaleString()}
+                            {new Date(input.created_at).toLocaleString(fmtLocale())}
                           </span>
                         </div>
                         <div className="text-sm mb-2">
-                          <span className="text-muted-foreground">Value: </span>
+                          <span className="text-muted-foreground">{tr("Value: ")}</span>
                           <span className="font-medium">{input.value.toFixed(2)}</span>
-                          <span className="text-muted-foreground ml-2">Source: </span>
+                          <span className="text-muted-foreground ml-2">{tr("Source: ")}</span>
                           <span>{input.source}</span>
                         </div>
                         {Object.keys(input.value_json).length > 0 && (
@@ -235,7 +237,7 @@ export default function CreatorRTSDetail() {
 
                 <TabsContent value="interventions" className="space-y-2 max-h-96 overflow-y-auto mt-4">
                   {audit.interventions.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground py-4">No interventions</p>
+                    <p className="text-center text-sm text-muted-foreground py-4">{tr("No interventions")}</p>
                   ) : (
                     audit.interventions.map((intervention) => (
                       <div key={intervention.id} className="p-3 border rounded-lg">
@@ -253,13 +255,13 @@ export default function CreatorRTSDetail() {
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(intervention.created_at).toLocaleString()}
+                            {new Date(intervention.created_at).toLocaleString(fmtLocale())}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">{intervention.notes}</p>
                         {intervention.resolved_at && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Resolved: {new Date(intervention.resolved_at).toLocaleString()}
+                            {trNode("Resolved: {p0}", { p0: new Date(intervention.resolved_at).toLocaleString(fmtLocale()) })}
                           </p>
                         )}
                       </div>

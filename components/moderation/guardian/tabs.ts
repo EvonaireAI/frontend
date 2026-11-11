@@ -1,10 +1,12 @@
+
+import { trDeep } from "@/lib/i18n"
 // The Guardian Dashboard's canonical sections. The `id` is what appears in
 // `/moderate?tab=…`, so these strings are deep links — treat them as stable.
 //
 // Display names are Guardian / Care Case / Care History throughout; the API
 // keeps saying moderation / moderator / case.
 
-export const GUARDIAN_TABS = [
+export const GUARDIAN_TABS = trDeep([
   { id: "overview", label: "Overview" },
   { id: "pending", label: "Pending Reviews" },
   { id: "active", label: "Active Cases" },
@@ -14,7 +16,7 @@ export const GUARDIAN_TABS = [
   { id: "sanctuaries", label: "Sanctuaries" },
   { id: "library", label: "Sacred Library" },
   { id: "history", label: "Case History" },
-] as const
+] as const)
 
 export type GuardianTab = (typeof GUARDIAN_TABS)[number]["id"]
 

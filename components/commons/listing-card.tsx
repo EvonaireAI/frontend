@@ -1,9 +1,13 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Music, Check } from "lucide-react"
 import { formatPrice, type Listing } from "@/lib/commons"
 import { LicenseChip, EarlyAccessBadge } from "./listing-chips"
+import { tr } from "@/lib/i18n"
+
 
 // Browse-grid card. Links to the detail page; no sales-pressure mechanics.
 export function ListingCard({ listing }: { listing: Listing }) {
@@ -17,7 +21,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             {listing.has_access && (
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs gap-1">
                 <Check className="w-3 h-3" />
-                In your library
+                {tr("In your library")}
               </Badge>
             )}
           </div>

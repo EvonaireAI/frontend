@@ -12,6 +12,7 @@ import { caseStage, unwrapList, type ModerationCase } from "./moderation"
 // `isSteward()` from lib/roles, never with `role === "admin"`.
 
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -463,7 +464,7 @@ function aggregateTrustCareFromCases(cases: ModerationCase[], days: number): Tru
     appeals: {
       supported: false,
       count: 0,
-      detail: "Appeals will appear here once the appeals workflow ships.",
+      detail: tr("Appeals will appear here once the appeals workflow ships."),
     },
     as_of: new Date().toISOString(),
   }
@@ -507,7 +508,7 @@ export const adminService = {
     const response = await authedFetch(`${API_BASE_URL}/admin/overview/`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildPlatformOverviewFallback()
-    throw await toError(response, "Failed to load the platform overview")
+    throw await toError(response, tr("Failed to load the platform overview"))
   },
 
   /** `days` sets the trailing window for every `*_in_window` figure (max 365). */
@@ -515,14 +516,14 @@ export const adminService = {
     const response = await authedFetch(`${API_BASE_URL}/admin/trust-care/?days=${encodeURIComponent(days)}`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildTrustCareFallback(days)
-    throw await toError(response, "Failed to load Trust & Care")
+    throw await toError(response, tr("Failed to load Trust & Care"))
   },
 
   async getArchive(filters: ArchiveFilters = {}): Promise<ArchivePage> {
     const response = await authedFetch(`${API_BASE_URL}/admin/archive/${buildQuery(filters)}`, { headers: authHeaders() })
     if (response.ok) return response.json()
     if (response.status === 404) return buildArchiveEmptyPage(filters)
-    throw await toError(response, "Failed to load The Archive")
+    throw await toError(response, tr("Failed to load The Archive"))
   },
 }
 

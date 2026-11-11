@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Membership } from "@/lib/sanctuaries"
 import { Loader2, Check, X } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface PendingRequestsTableProps {
   requests: Membership[]
@@ -47,8 +49,8 @@ export function PendingRequestsTable({
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">Pending Join Requests</CardTitle>
-        <CardDescription>Review and manage membership requests</CardDescription>
+        <CardTitle className="text-foreground">{tr("Pending Join Requests")}</CardTitle>
+        <CardDescription>{tr("Review and manage membership requests")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -57,7 +59,7 @@ export function PendingRequestsTable({
           </div>
         ) : requests.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No pending requests</p>
+            <p className="text-sm">{tr("No pending requests")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -72,11 +74,11 @@ export function PendingRequestsTable({
                       <p className="text-sm text-muted-foreground">{request.member.email}</p>
                       {request.note && <p className="text-sm mt-2 italic text-muted-foreground">"{request.note}"</p>}
                       <p className="text-xs text-muted-foreground mt-2">
-                        Requested {new Date(request.requested_at).toLocaleDateString()}
+                        {trNode("Requested {p0}", { p0: new Date(request.requested_at).toLocaleDateString(fmtLocale()) })}
                       </p>
                     </div>
                     <Badge variant="outline" className="bg-gold-muted/10 text-gold-muted border-gold-muted/20">
-                      Pending
+                      {tr("Pending")}
                     </Badge>
                   </div>
 
@@ -93,7 +95,7 @@ export function PendingRequestsTable({
                       ) : (
                         <Check className="w-4 h-4 mr-2" />
                       )}
-                      Approve
+                      {tr("Approve")}
                     </Button>
                     <Button
                       size="sm"
@@ -107,7 +109,7 @@ export function PendingRequestsTable({
                       ) : (
                         <X className="w-4 h-4 mr-2" />
                       )}
-                      Reject
+                      {tr("Reject")}
                     </Button>
                   </div>
                 </CardContent>

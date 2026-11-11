@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, ClipboardList, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import { v1Ops, V1Error, type GuardianAssignment, type GuardianCase } from "@/lib/v1"
+import { tr, trNode } from "@/lib/i18n"
+
 
 const SEVERITY_CLASS: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
@@ -64,10 +66,10 @@ export function AssignmentsTab() {
     setBusyId(id)
     try {
       await v1Ops.acceptAssignment(id)
-      toast.success("Assignment accepted")
+      toast.success(tr("Assignment accepted"))
       await load()
     } catch (error) {
-      toast.error(error instanceof V1Error ? error.message : "Could not accept")
+      toast.error(error instanceof V1Error ? error.message : tr("Could not accept"))
     } finally {
       setBusyId(null)
     }
@@ -81,15 +83,15 @@ export function AssignmentsTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <ClipboardList className="w-5 h-5 text-primary" />
-            My cases
+            {tr("My cases")}
           </CardTitle>
-          <CardDescription>Cases assigned to you under /api/v1/guardian/</CardDescription>
+          <CardDescription>{tr("Cases assigned to you under /api/v1/guardian/")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
             <Skeleton className="h-20 w-full" />
           ) : myCases.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active assignments.</p>
+            <p className="text-sm text-muted-foreground">{tr("No active assignments.")}</p>
           ) : (
             myCases.map((c) => (
               <div
@@ -98,7 +100,7 @@ export function AssignmentsTab() {
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">
-                    Case #{c.id} · {c.violation_type.replace(/_/g, " ")}
+                    {trNode("Case #{p0} · {p1}", { p0: c.id, p1: c.violation_type.replace(/_/g, " ") })}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">{c.flagged_reason}</p>
                 </div>
@@ -115,9 +117,9 @@ export function AssignmentsTab() {
             <div>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <CheckCircle2 className="w-5 h-5 text-primary" />
-                Available work
+                {tr("Available work")}
               </CardTitle>
-              <CardDescription>Pending offers and unclaimed cases</CardDescription>
+              <CardDescription>{tr("Pending offers and unclaimed cases")}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading}>
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -128,7 +130,7 @@ export function AssignmentsTab() {
           {loading ? (
             <Skeleton className="h-20 w-full" />
           ) : pending.length === 0 && openCases.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing needs attention right now.</p>
+            <p className="text-sm text-muted-foreground">{tr("Nothing needs attention right now.")}</p>
           ) : (
             <>
               {pending.map((a) => (
@@ -138,14 +140,14 @@ export function AssignmentsTab() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">
-                      Case #{a.case.id} · {a.case.violation_type.replace(/_/g, " ")}
+                      {trNode("Case #{p0} · {p1}", { p0: a.case.id, p1: a.case.violation_type.replace(/_/g, " ") })}
                     </p>
-                    <p className="text-xs text-muted-foreground">Offered to you</p>
+                    <p className="text-xs text-muted-foreground">{tr("Offered to you")}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <SeverityChip severity={a.case.severity} />
                     <Button size="sm" onClick={() => void accept(a.id)} disabled={busyId === a.id}>
-                      Accept
+                      {tr("Accept")}
                     </Button>
                   </div>
                 </div>
@@ -157,7 +159,7 @@ export function AssignmentsTab() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">
-                      Case #{c.id} · {c.violation_type.replace(/_/g, " ")}
+                      {trNode("Case #{p0} · {p1}", { p0: c.id, p1: c.violation_type.replace(/_/g, " ") })}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">{c.flagged_reason}</p>
                   </div>
@@ -169,7 +171,7 @@ export function AssignmentsTab() {
                       onClick={() => void accept(c.id)}
                       disabled={busyId === c.id}
                     >
-                      Claim
+                      {tr("Claim")}
                     </Button>
                   </div>
                 </div>

@@ -19,6 +19,8 @@ import {
   type V1License,
   type Purchase,
 } from "@/lib/v1"
+import { tr } from "@/lib/i18n"
+
 
 export function AccountAccessCard() {
   const [permissions, setPermissions] = useState<MePermissions | null>(null)
@@ -65,10 +67,10 @@ export function AccountAccessCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <ShieldCheck className="w-5 h-5 text-primary" />
-          Your access
+          {tr("Your access")}
         </CardTitle>
         <CardDescription>
-          Permissions and purchases granted on your account
+          {tr("Permissions and purchases granted on your account")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -78,7 +80,7 @@ export function AccountAccessCard() {
           <>
             {membership && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Membership</span>
+                <span className="text-muted-foreground">{tr("Membership")}</span>
                 <span className="font-medium text-foreground">
                   {membership.display_name ?? membership.plan}
                 </span>
@@ -86,7 +88,7 @@ export function AccountAccessCard() {
             )}
             {membership?.limits && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Sanctuaries</span>
+                <span className="text-muted-foreground">{tr("Sanctuaries")}</span>
                 <span className="font-medium text-foreground">
                   {membership.limits.max_sanctuaries === null
                     ? "Unlimited"
@@ -105,13 +107,13 @@ export function AccountAccessCard() {
             )}
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-2">
-                <KeyRound className="w-4 h-4" /> Active licenses
+                <KeyRound className="w-4 h-4" />{tr(" Active licenses")}
               </span>
               <span className="font-medium text-foreground">{licenses.length}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-2">
-                <Receipt className="w-4 h-4" /> Purchases
+                <Receipt className="w-4 h-4" />{tr(" Purchases")}
               </span>
               <span className="font-medium text-foreground">{purchases.length}</span>
             </div>
@@ -120,7 +122,7 @@ export function AccountAccessCard() {
                 href="/member/ledger"
                 className="text-xs text-primary hover:underline"
               >
-                View the full ledger
+                {tr("View the full ledger")}
               </Link>
             )}
           </>

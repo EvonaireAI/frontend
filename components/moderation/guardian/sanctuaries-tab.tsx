@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Eye, RefreshCw, Users } from "lucide-react"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // The guardian view of sanctuaries. Audits, status changes and the Session 10
 // removal flow all live on the per-sanctuary page at
@@ -25,7 +27,7 @@ export function SanctuariesTab() {
     try {
       setSanctuaries(await sanctuariesService.listSanctuaries())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load sanctuaries")
+      setError(err instanceof Error ? err.message : tr("Failed to load sanctuaries"))
     } finally {
       setLoading(false)
     }
@@ -39,11 +41,11 @@ export function SanctuariesTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Every sanctuary on the platform. Open one to review its members, ritual assignments and audit log.
+          {tr("Every sanctuary on the platform. Open one to review its members, ritual assignments and audit log.")}
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -62,7 +64,7 @@ export function SanctuariesTab() {
       ) : sanctuaries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
           <Users className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <p className="font-medium text-foreground">No sanctuaries yet</p>
+          <p className="font-medium text-foreground">{tr("No sanctuaries yet")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -81,17 +83,17 @@ export function SanctuariesTab() {
                         {sanctuary.privacy}
                       </Badge>
                       <Badge variant="secondary">
-                        {sanctuary.active_members_count}/{sanctuary.capacity} members
+                        {trNode("{p0}/{p1} members", { p0: sanctuary.active_members_count, p1: sanctuary.capacity })}
                       </Badge>
                     </div>
                     <p className="break-all text-xs text-muted-foreground">
-                      Owner: {sanctuary.owner.first_name} {sanctuary.owner.last_name}
+                      {trNode("Owner: {p0} {p1}", { p0: sanctuary.owner.first_name, p1: sanctuary.owner.last_name })}
                     </p>
                   </div>
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/moderate/sanctuaries/${sanctuary.id}`}>
                       <Eye className="mr-2 h-4 w-4" />
-                      Audit
+                      {tr("Audit")}
                     </Link>
                   </Button>
                 </div>

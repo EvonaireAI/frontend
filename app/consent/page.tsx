@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, CheckCircle2, ScrollText } from "lucide-react"
 import { toast } from "sonner"
+import { tr, trNode } from "@/lib/i18n"
+
 
 const PRIVACY_POLICY_URL = "https://docs.google.com/document/d/e/2PACX-1vSJTVzLVd_GRZmOIkzFr6QFEICiLejBTcomzkDtDvhHFetBQ3mEDZNGnJoWQfJSgbGbqzTCuN2e-Thl/pub?embedded=true"
 const TERMS_OF_SERVICE_URL = "https://docs.google.com/document/d/e/2PACX-1vQkObcMenNGYsN3sGYBqb0aQYFRbaTj2u12AKmOF7wxX-n_IC9VDZ-sUZWGMYmrw0K6b-QP4qcYoZUo/pub?embedded=true"
@@ -58,19 +60,19 @@ export default function ConsentPage() {
 
   const handleSubmit = async () => {
     if (!privacyAccepted || !termsAccepted) {
-      toast.error("Please accept both documents to continue")
+      toast.error(tr("Please accept both documents to continue"))
       return
     }
 
     setSubmitting(true)
     try {
       await acceptConsent(true, true)
-      toast.success("Welcome to Evonaire!")
+      toast.success(tr("Welcome to Evonaire!"))
       // Discovery is open — land straight on the platform. Gateway questions now
       // surface gently over time and are only required at consequential actions.
       router.push("/dashboard")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save consent")
+      toast.error(error instanceof Error ? error.message : tr("Failed to save consent"))
     } finally {
       setSubmitting(false)
     }
@@ -96,12 +98,12 @@ export default function ConsentPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)]"
           />
-          <span className="text-cream font-serif text-lg tracking-wide">Evonaire</span>
+          <span className="text-cream font-serif text-lg tracking-wide">{tr("Evonaire")}</span>
         </Link>
       </header>
 
@@ -111,9 +113,9 @@ export default function ConsentPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 mb-4">
             <ScrollText className="w-8 h-8 text-gold" />
           </div>
-          <h1 className="text-3xl font-serif text-cream mb-3">Welcome, {user.first_name}</h1>
+          <h1 className="text-3xl font-serif text-cream mb-3">{trNode("Welcome, {p0}", { p0: user.first_name })}</h1>
           <p className="text-cream/60 max-w-md mx-auto">
-            Before you begin your journey with Evonaire, please review and accept our Privacy Policy and Terms of Service.
+            {tr("Before you begin your journey with Evonaire, please review and accept our Privacy Policy and Terms of Service.")}
           </p>
         </div>
 
@@ -128,7 +130,7 @@ export default function ConsentPage() {
                   : "text-cream/60 hover:text-cream hover:bg-gold/5"
               }`}
             >
-              Privacy Policy
+              {tr("Privacy Policy")}
               {privacyScrolled && <CheckCircle2 className="w-4 h-4 text-green-500" />}
             </button>
             <button
@@ -139,7 +141,7 @@ export default function ConsentPage() {
                   : "text-cream/60 hover:text-cream hover:bg-gold/5"
               }`}
             >
-              Terms of Service
+              {tr("Terms of Service")}
               {termsScrolled && <CheckCircle2 className="w-4 h-4 text-green-500" />}
             </button>
           </div>
@@ -154,13 +156,13 @@ export default function ConsentPage() {
               <iframe
                 src={PRIVACY_POLICY_URL}
                 className="w-full h-[800px] border-0"
-                title="Privacy Policy"
+                title={tr("Privacy Policy")}
               />
             </div>
             {!privacyScrolled && (
               <div className="px-6 py-3 bg-gold/5 border-t border-gold/10">
                 <p className="text-cream/50 text-sm text-center">
-                  Please scroll to the bottom of the document to enable the checkbox
+                  {tr("Please scroll to the bottom of the document to enable the checkbox")}
                 </p>
               </div>
             )}
@@ -179,7 +181,7 @@ export default function ConsentPage() {
                     privacyScrolled ? "text-cream" : "text-cream/40"
                   }`}
                 >
-                  I have read and accept the Privacy Policy
+                  {tr("I have read and accept the Privacy Policy")}
                 </label>
               </div>
             </div>
@@ -195,13 +197,13 @@ export default function ConsentPage() {
               <iframe
                 src={TERMS_OF_SERVICE_URL}
                 className="w-full h-[800px] border-0"
-                title="Terms of Service"
+                title={tr("Terms of Service")}
               />
             </div>
             {!termsScrolled && (
               <div className="px-6 py-3 bg-gold/5 border-t border-gold/10">
                 <p className="text-cream/50 text-sm text-center">
-                  Please scroll to the bottom of the document to enable the checkbox
+                  {tr("Please scroll to the bottom of the document to enable the checkbox")}
                 </p>
               </div>
             )}
@@ -220,7 +222,7 @@ export default function ConsentPage() {
                     termsScrolled ? "text-cream" : "text-cream/40"
                   }`}
                 >
-                  I have read and accept the Terms of Service
+                  {tr("I have read and accept the Terms of Service")}
                 </label>
               </div>
             </div>
@@ -237,7 +239,7 @@ export default function ConsentPage() {
                 ) : (
                   <div className="w-5 h-5 rounded-full border-2 border-cream/30" />
                 )}
-                <span className={privacyAccepted ? "text-cream" : "text-cream/50"}>Privacy Policy</span>
+                <span className={privacyAccepted ? "text-cream" : "text-cream/50"}>{tr("Privacy Policy")}</span>
               </div>
               <div className="flex items-center gap-2">
                 {termsAccepted ? (
@@ -245,7 +247,7 @@ export default function ConsentPage() {
                 ) : (
                   <div className="w-5 h-5 rounded-full border-2 border-cream/30" />
                 )}
-                <span className={termsAccepted ? "text-cream" : "text-cream/50"}>Terms of Service</span>
+                <span className={termsAccepted ? "text-cream" : "text-cream/50"}>{tr("Terms of Service")}</span>
               </div>
             </div>
             <Button
@@ -256,7 +258,7 @@ export default function ConsentPage() {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
+                  {tr("Processing...")}
                 </>
               ) : (
                 "Continue to Evonaire"

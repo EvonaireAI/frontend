@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { authService, type Ritual } from "@/lib/auth"
 import { GLOSSARY } from "@/lib/glossary"
 import { Compass, Play, Users, ScrollText, Landmark, ArrowRight } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 interface PlayHistoryItem {
   id: number
@@ -69,21 +71,21 @@ export function BeginHere({ rituals }: { rituals: Ritual[] }) {
 
   const suggestion = inProgress
     ? {
-        eyebrow: "Continue your practice",
+        eyebrow: tr("Continue your practice"),
         title: inProgress.ritual_title,
-        body: "You left this one partway through. It will pick up where you paused.",
+        body: tr("You left this one partway through. It will pick up where you paused."),
         href: `/member/ritual/${inProgress.ritual}`,
-        cta: "Continue",
+        cta: tr("Continue"),
       }
     : next
     ? {
-        eyebrow: firstVisit ? "Begin here" : "What to experience next",
+        eyebrow: firstVisit ? tr("Begin here") : tr("What to experience next"),
         title: next.title,
         body: firstVisit
-          ? "A gentle place to start. Find somewhere quiet, and take it at your own pace."
-          : "Chosen from practices you haven't experienced yet.",
+          ? tr("A gentle place to start. Find somewhere quiet, and take it at your own pace.")
+          : tr("Chosen from practices you haven't experienced yet."),
         href: `/member/ritual/${next.id}`,
-        cta: firstVisit ? "Begin" : "Experience",
+        cta: firstVisit ? tr("Begin") : tr("Experience"),
       }
     : null
 
@@ -116,13 +118,13 @@ export function BeginHere({ rituals }: { rituals: Ritual[] }) {
         {/* The other three questions, answered as quiet doors rather than tasks. */}
         <div className="grid gap-2 sm:grid-cols-3 mt-5 pt-5 border-t border-border">
           <QuietLink href="/member/my-sanctuary" icon={<Users className="w-4 h-4" />}>
-            Find your sanctuary
+            {tr("Find your sanctuary")}
           </QuietLink>
           <QuietLink href="/member/ledger" icon={<ScrollText className="w-4 h-4" />}>
-            See how your practice is growing
+            {tr("See how your practice is growing")}
           </QuietLink>
           <QuietLink href="/member/agora" icon={<Landmark className="w-4 h-4" />}>
-            Take part in {GLOSSARY.agora}
+            {trNode("Take part in {p0}", { p0: GLOSSARY.agora })}
           </QuietLink>
         </div>
       </CardContent>

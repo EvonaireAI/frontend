@@ -16,6 +16,8 @@ import {
 } from "@/lib/plans"
 import { Check, Loader2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
+import { tr } from "@/lib/i18n"
+
 
 function MatrixCell({ value }: { value: string | boolean }) {
   if (value === true) {
@@ -49,7 +51,7 @@ export default function UpgradePage() {
       if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {
-        throw new Error("Checkout returned an unexpected URL")
+        throw new Error(tr("Checkout returned an unexpected URL"))
       }
     } catch (err) {
       if (err instanceof GatewayCancelledError) {
@@ -57,7 +59,7 @@ export default function UpgradePage() {
         setLoadingId(null)
         return
       }
-      toast.error(err instanceof Error ? err.message : "Failed to start checkout")
+      toast.error(err instanceof Error ? err.message : tr("Failed to start checkout"))
       setLoadingId(null)
     }
   }
@@ -73,13 +75,13 @@ export default function UpgradePage() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Billing
+            {tr("Back to Billing")}
           </Link>
           <h1 className="text-3xl font-serif text-foreground tracking-wide mb-2">
-            Choose Your Plan
+            {tr("Choose Your Plan")}
           </h1>
           <p className="text-muted-foreground text-sm max-w-xl">
-            Unlock deeper rituals, more sanctuaries, and richer insights. Cancel anytime.
+            {tr("Unlock deeper rituals, more sanctuaries, and richer insights. Cancel anytime.")}
           </p>
         </div>
 
@@ -105,7 +107,7 @@ export default function UpgradePage() {
                 {recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground shadow-[0_0_12px_rgba(217,181,116,0.4)]">
-                      Recommended
+                      {tr("Recommended")}
                     </span>
                   </div>
                 )}
@@ -118,7 +120,7 @@ export default function UpgradePage() {
 
                   <div className="flex items-baseline gap-1 mb-6">
                     <span className="text-4xl font-bold text-foreground">${price}</span>
-                    <span className="text-sm text-muted-foreground">/mo</span>
+                    <span className="text-sm text-muted-foreground">{tr("/mo")}</span>
                   </div>
 
                   <div className="h-px bg-border mb-5" />
@@ -145,7 +147,7 @@ export default function UpgradePage() {
                 <div className="px-6 pb-6 mt-auto">
                   {isCurrent ? (
                     <div className="w-full h-11 rounded-xl bg-secondary border border-border text-muted-foreground text-sm font-medium flex items-center justify-center cursor-default">
-                      Current plan
+                      {tr("Current plan")}
                     </div>
                   ) : planKey === "free" ? (
                     <div className="w-full h-11" />
@@ -162,7 +164,7 @@ export default function UpgradePage() {
                       {isLoading ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Processing…
+                          {tr("Processing…")}
                         </>
                       ) : currentPlan === "free" ? (
                         "Get started"
@@ -184,7 +186,7 @@ export default function UpgradePage() {
               <thead>
                 <tr className="border-b border-border bg-secondary/40">
                   <th className="text-left px-5 py-3.5 text-xs text-muted-foreground font-medium uppercase tracking-wider w-1/3">
-                    Feature
+                    {tr("Feature")}
                   </th>
                   {PRICING_PLANS.map((planKey) => (
                     <th
@@ -218,9 +220,9 @@ export default function UpgradePage() {
         </div>
 
         <p className="text-xs text-muted-foreground text-center mt-8">
-          All prices in USD · Cancel anytime from your{" "}
+          {tr("All prices in USD · Cancel anytime from your ")}
           <Link href="/member/billing" className="underline underline-offset-4 hover:text-foreground transition-colors">
-            billing settings
+            {tr("billing settings")}
           </Link>
         </p>
       </div>

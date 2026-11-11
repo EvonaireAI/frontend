@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { format } from "date-fns"
+
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import {
@@ -27,6 +27,8 @@ import {
   Sparkles,
   Receipt,
 } from "lucide-react"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // ── Status chip ────────────────────────────────────────────────────────────────
 function StatusChip({ status }: { status: string }) {
@@ -42,7 +44,7 @@ function StatusChip({ status }: { status: string }) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-900/40 text-yellow-300 border border-yellow-500/30">
         <AlertTriangle className="w-3 h-3" />
-        Payment Due
+        {tr("Payment Due")}
       </span>
     )
   }
@@ -50,7 +52,7 @@ function StatusChip({ status }: { status: string }) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-900/30 text-red-300 border border-red-500/30">
         <XCircle className="w-3 h-3" />
-        Canceled
+        {tr("Canceled")}
       </span>
     )
   }
@@ -76,8 +78,8 @@ function CancelModal({
   onClose: () => void
 }) {
   const endDate = periodEnd
-    ? format(new Date(periodEnd), "MMMM d, yyyy")
-    : "the end of your billing period"
+    ? formatDate(new Date(periodEnd), "MMMM d, yyyy")
+    : tr("the end of your billing period")
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -88,11 +90,9 @@ function CancelModal({
       />
       {/* Card */}
       <div className="relative z-10 w-full max-w-md bg-[#141f2a] border border-gold/20 rounded-2xl p-8 shadow-[0_24px_64px_rgba(0,0,0,0.6)]">
-        <h2 className="text-xl font-serif text-cream mb-3">Cancel your subscription?</h2>
+        <h2 className="text-xl font-serif text-cream mb-3">{tr("Cancel your subscription?")}</h2>
         <p className="text-cream/60 text-sm leading-relaxed mb-8">
-          You&apos;ll keep full access to <span className="text-cream font-medium">{planName}</span>{" "}
-          until <span className="text-cream font-medium">{endDate}</span>. After that, your account
-          reverts to the free plan.
+          {tr("You'll keep full access to ")}<span className="text-cream font-medium">{planName}</span>{tr(" until ")}<span className="text-cream font-medium">{endDate}</span>{tr(". After that, your account reverts to the free plan.")}
         </p>
         <div className="flex gap-3">
           <button
@@ -100,7 +100,7 @@ function CancelModal({
             disabled={loading}
             className="flex-1 h-11 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-200 disabled:opacity-50"
           >
-            Keep my plan
+            {tr("Keep my plan")}
           </button>
           <button
             onClick={onConfirm}
@@ -108,7 +108,7 @@ function CancelModal({
             className="flex-1 h-11 rounded-xl bg-transparent border border-red-500/60 text-red-400 font-medium text-sm hover:bg-red-900/20 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            Yes, cancel
+            {tr("Yes, cancel")}
           </button>
         </div>
       </div>
@@ -147,12 +147,12 @@ export default function BillingPage() {
       await cancelSubscription()
       setSubscription((prev) => prev ? { ...prev, cancel_at_period_end: true } : prev)
       const endDate = subscription?.current_period_end
-        ? format(new Date(subscription.current_period_end), "MMMM d, yyyy")
+        ? formatDate(new Date(subscription.current_period_end), "MMMM d, yyyy")
         : "the end of your billing period"
-      toast.success(`Subscription cancelled. Access continues until ${endDate}.`)
+      toast.success(tr("Subscription cancelled. Access continues until {p0}.", { p0: endDate }))
       setCancelModalOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel subscription")
+      toast.error(err instanceof Error ? err.message : tr("Failed to cancel subscription"))
     } finally {
       setCancelling(false)
     }
@@ -180,7 +180,7 @@ export default function BillingPage() {
   const isFree = plan === "free" || (!paid && !pastDue && status !== "trialing")
 
   const periodEndFormatted = periodEnd
-    ? format(new Date(periodEnd), "MMMM d, yyyy")
+    ? formatDate(new Date(periodEnd), "MMMM d, yyyy")
     : null
 
   return (
@@ -193,14 +193,14 @@ export default function BillingPage() {
             <div className="flex items-center gap-3 mb-1">
               <CreditCard className="w-5 h-5 text-primary" />
               <h1 className="text-2xl font-serif text-foreground tracking-wide">
-                Billing &amp; Subscription
+                {tr("Billing & Subscription")}
               </h1>
             </div>
             <p className="text-muted-foreground text-sm">
-              Manage your plan and view payment history.
+              {tr("Manage your plan and view payment history.")}
             </p>
             <p className="text-xs text-muted-foreground/60 mt-1">
-              Charges appear as <span className="font-medium text-muted-foreground">Evonaire, Inc.</span> on your bank or card statement.
+              {tr("Charges appear as ")}<span className="font-medium text-muted-foreground">{tr("Evonaire, Inc.")}</span>{tr(" on your bank or card statement.")}
             </p>
           </div>
 
@@ -226,9 +226,9 @@ export default function BillingPage() {
                   <Sparkles className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-foreground font-semibold text-lg mb-1">You&apos;re on the Free plan</p>
+                  <p className="text-foreground font-semibold text-lg mb-1">{tr("You're on the Free plan")}</p>
                   <p className="text-muted-foreground text-sm">
-                    Upgrade to access Level 2 &amp; Level 3 rituals and all premium features.
+                    {tr("Upgrade to access Level 2 & Level 3 rituals and all premium features.")}
                   </p>
                 </div>
                 <Link
@@ -236,7 +236,7 @@ export default function BillingPage() {
                   className="inline-flex items-center gap-2 h-11 px-8 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-200 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Upgrade Plan
+                  {tr("Upgrade Plan")}
                 </Link>
               </div>
             ) : (
@@ -250,7 +250,7 @@ export default function BillingPage() {
                     </span>
                     <p className="text-3xl font-bold text-foreground">
                       {planInfo.price.split("/")[0]}
-                      <span className="text-base font-normal text-muted-foreground ml-1">/ month</span>
+                      <span className="text-base font-normal text-muted-foreground ml-1">{tr("/ month")}</span>
                     </p>
                   </div>
                   <StatusChip status={status} />
@@ -260,11 +260,11 @@ export default function BillingPage() {
                 {cancelAtPeriodEnd && periodEndFormatted ? (
                   <p className="text-sm text-yellow-300 flex items-center gap-2 mb-5">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    Access ends on {periodEndFormatted}. You will not be charged again.
+                    {trNode("Access ends on {p0}. You will not be charged again.", { p0: periodEndFormatted })}
                   </p>
                 ) : periodEndFormatted ? (
                   <p className="text-sm text-muted-foreground mb-5">
-                    Renews on{" "}
+                    {tr("Renews on ")}
                     <span className="text-foreground font-medium">{periodEndFormatted}</span>
                   </p>
                 ) : null}
@@ -274,7 +274,7 @@ export default function BillingPage() {
                   <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 rounded-xl px-4 py-3 mb-5">
                     <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
                     <p className="text-yellow-300 text-sm">
-                      Your last payment failed. Please update your payment method to restore full access.
+                      {tr("Your last payment failed. Please update your payment method to restore full access.")}
                     </p>
                   </div>
                 )}
@@ -285,14 +285,14 @@ export default function BillingPage() {
                     href="/member/upgrade"
                     className="text-sm text-primary hover:text-gold-muted transition-colors font-medium"
                   >
-                    Upgrade Plan →
+                    {tr("Upgrade Plan →")}
                   </Link>
                   {paid && !cancelAtPeriodEnd && (
                     <button
                       onClick={() => setCancelModalOpen(true)}
                       className="text-xs text-muted-foreground hover:text-red-400 transition-colors"
                     >
-                      Cancel subscription
+                      {tr("Cancel subscription")}
                     </button>
                   )}
                 </div>
@@ -304,18 +304,18 @@ export default function BillingPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Receipt className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-semibold text-foreground">Billing History</h2>
+              <h2 className="text-base font-semibold text-foreground">{tr("Billing History")}</h2>
             </div>
 
             <p className="text-xs text-muted-foreground/50 mb-3">
-              All invoices are issued by <span className="text-muted-foreground">Evonaire, Inc.</span>
+              {tr("All invoices are issued by ")}<span className="text-muted-foreground">{tr("Evonaire, Inc.")}</span>
             </p>
 
             {invoices.length === 0 ? (
               <div className="bg-card border border-border rounded-xl px-6 py-10 text-center">
                 <Receipt className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
                 <p className="text-sm text-muted-foreground">
-                  No invoices yet. Your billing history will appear here after your first payment.
+                  {tr("No invoices yet. Your billing history will appear here after your first payment.")}
                 </p>
               </div>
             ) : (
@@ -323,21 +323,21 @@ export default function BillingPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">Date</th>
-                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider hidden sm:table-cell">Period</th>
-                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">Amount</th>
-                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider hidden md:table-cell">Status</th>
-                      <th className="text-right px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">Actions</th>
+                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">{tr("Date")}</th>
+                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider hidden sm:table-cell">{tr("Period")}</th>
+                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">{tr("Amount")}</th>
+                      <th className="text-left px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider hidden md:table-cell">{tr("Status")}</th>
+                      <th className="text-right px-5 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">{tr("Actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {invoices.map((inv) => (
                       <tr key={inv.id} className="hover:bg-secondary/30 transition-colors">
                         <td className="px-5 py-3.5 text-foreground whitespace-nowrap">
-                          {format(new Date(inv.created * 1000), "MMM d, yyyy")}
+                          {formatDate(new Date(inv.created * 1000), "MMM d, yyyy")}
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
-                          until {format(new Date(inv.period_end * 1000), "MMM d")}
+                          {trNode("until {p0}", { p0: formatDate(new Date(inv.period_end * 1000), "MMM d") })}
                         </td>
                         <td className="px-5 py-3.5 text-foreground font-medium whitespace-nowrap">
                           ${(inv.amount_paid / 100).toFixed(2)}
@@ -345,7 +345,7 @@ export default function BillingPage() {
                         <td className="px-5 py-3.5 hidden md:table-cell">
                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/40 text-green-300 border border-green-500/30">
                             <CheckCircle className="w-3 h-3" />
-                            Paid
+                            {tr("Paid")}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-right">
@@ -357,17 +357,17 @@ export default function BillingPage() {
                               className="inline-flex items-center gap-1 text-xs text-primary hover:text-gold-muted transition-colors"
                             >
                               <ExternalLink className="w-3 h-3" />
-                              View
+                              {tr("View")}
                             </a>
                             <a
                               href={inv.invoice_pdf}
                               target="_blank"
                               rel="noopener noreferrer"
-                              title="Download PDF"
+                              title={tr("Download PDF")}
                               className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <FileDown className="w-3.5 h-3.5" />
-                              PDF
+                              {tr("PDF")}
                             </a>
                           </div>
                         </td>

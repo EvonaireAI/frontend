@@ -1,7 +1,11 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
-import { format } from "date-fns"
+
 import { licenseLabel, type EarlyAccess, type LicenseLevel } from "@/lib/commons"
+import { formatDate,tr  } from "@/lib/i18n"
+
 
 // Neutral informational chip — "L1 · Open" / "L2 · Guided". Not a tier lock.
 export function LicenseChip({ level }: { level: LicenseLevel }) {
@@ -19,10 +23,10 @@ export function EarlyAccessBadge({ earlyAccess }: { earlyAccess: EarlyAccess }) 
     <Badge
       variant="outline"
       className="bg-primary/10 text-primary border-primary/30 text-xs gap-1"
-      title={`Everyone else on ${format(new Date(earlyAccess.until), "MMM d, yyyy")}`}
+      title={tr("Everyone else on {p0}", { p0: formatDate(new Date(earlyAccess.until), "MMM d, yyyy") })}
     >
       <Sparkles className="w-3 h-3" />
-      Early access · Scholars
+      {tr("Early access · Scholars")}
     </Badge>
   )
 }

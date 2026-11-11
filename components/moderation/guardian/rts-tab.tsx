@@ -10,6 +10,8 @@ import { Bell, Eye, RefreshCw } from "lucide-react"
 import { CreatorScoreTable } from "@/components/rts/creator-score-table"
 import { ConfigView } from "@/components/rts/config-view"
 import { rtsService, type RTSAlert, type RTSCreatorSummary } from "@/lib/rts"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // RTS Monitoring is read-only for guardians: alerts first, then the creator
 // score list, drilling into one creator at /moderate/rts/<id>. The weights are
@@ -36,7 +38,7 @@ export function RtsTab({ rtsDetailBasePath = "/moderate/rts", showConfigView = t
       setCreators(creatorsData)
       setAlerts(alertsData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load RTS data")
+      setError(err instanceof Error ? err.message : tr("Failed to load RTS data"))
     } finally {
       setLoading(false)
     }
@@ -50,12 +52,11 @@ export function RtsTab({ rtsDetailBasePath = "/moderate/rts", showConfigView = t
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Resonance Trust Synthesis across every creator. Read-only — care flags are raised from a creator&apos;s
-          detail view.
+          {tr("Resonance Trust Synthesis across every creator. Read-only — care flags are raised from a creator's detail view.")}
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -76,13 +77,13 @@ export function RtsTab({ rtsDetailBasePath = "/moderate/rts", showConfigView = t
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Bell className={`h-5 w-5 ${alerts.length > 0 ? "text-red-600" : "text-muted-foreground"}`} />
-                Critical alerts ({alerts.length})
+                {trNode("Critical alerts ({p0})", { p0: alerts.length })}
               </CardTitle>
-              <CardDescription>Creators under an active critical intervention.</CardDescription>
+              <CardDescription>{tr("Creators under an active critical intervention.")}</CardDescription>
             </CardHeader>
             <CardContent>
               {alerts.length === 0 ? (
-                <p className="py-2 text-sm text-muted-foreground">No creator is under critical intervention.</p>
+                <p className="py-2 text-sm text-muted-foreground">{tr("No creator is under critical intervention.")}</p>
               ) : (
                 <div className="space-y-2">
                   {alerts.map((alert) => {
@@ -99,7 +100,7 @@ export function RtsTab({ rtsDetailBasePath = "/moderate/rts", showConfigView = t
                         <Button asChild variant="outline" size="sm">
                           <Link href={`${rtsDetailBasePath}/${alert.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
-                            Open
+                            {tr("Open")}
                           </Link>
                         </Button>
                       </div>

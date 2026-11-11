@@ -1,6 +1,7 @@
 import { throwIfGated } from "./gateway-quiz"
 import { authedFetch } from "./authed-fetch"
 import { isAllowedExternalUrl } from "./external-navigation"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -33,7 +34,7 @@ class PaymentService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch payment configuration")
+      throw new Error(tr("Failed to fetch payment configuration"))
     }
 
     return response.json()
@@ -59,7 +60,7 @@ class PaymentService {
       // A gateway_incomplete 403 here throws GatewayIncompleteError (handled by
       // runGatedAction, which finishes the Gateway then retries checkout).
       const error = await throwIfGated(response)
-      throw new Error(error?.detail || "Failed to create checkout session")
+      throw new Error(error?.detail || tr("Failed to create checkout session"))
     }
 
     return response.json()
@@ -68,7 +69,7 @@ class PaymentService {
   async redirectToCheckout(sessionUrl: string): Promise<void> {
     if (typeof window !== "undefined") {
       if (!isAllowedExternalUrl(sessionUrl)) {
-        throw new Error("Refusing to navigate to an unexpected checkout URL")
+        throw new Error(tr("Refusing to navigate to an unexpected checkout URL"))
       }
       window.location.href = sessionUrl
     }

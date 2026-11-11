@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Loader2, Landmark, Users, Play, ArrowRight, Sparkles } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export default function AgoraPage() {
   const { user, loading: authLoading } = useAuth()
@@ -50,14 +52,13 @@ export default function AgoraPage() {
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-2">
             <Landmark className="w-5 h-5 text-primary" />
-            <p className="text-sm uppercase tracking-widest text-gold-muted">Community</p>
+            <p className="text-sm uppercase tracking-widest text-gold-muted">{tr("Community")}</p>
           </div>
           <h1 className="text-3xl md:text-4xl font-serif text-foreground tracking-wide mb-2">
-            The Agora
+            {tr("The Agora")}
           </h1>
           <p className="text-muted-foreground max-w-xl">
-            The open gathering space — discover rituals, connect with sanctuaries, and explore what
-            the Evonaire community is sharing.
+            {tr("The open gathering space — discover rituals, connect with sanctuaries, and explore what the Evonaire community is sharing.")}
           </p>
         </div>
 
@@ -66,11 +67,11 @@ export default function AgoraPage() {
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              Active Sanctuaries
+              {tr("Active Sanctuaries")}
             </h2>
             <Button asChild variant="ghost" size="sm" className="text-primary hover:text-gold-muted gap-1">
               <Link href="/member">
-                Browse all
+                {tr("Browse all")}
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </Button>
@@ -80,7 +81,7 @@ export default function AgoraPage() {
             <Card className="bg-card border-border">
               <CardContent className="py-10 text-center">
                 <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                <p className="text-sm text-muted-foreground">No sanctuaries available yet.</p>
+                <p className="text-sm text-muted-foreground">{tr("No sanctuaries available yet.")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -107,7 +108,7 @@ export default function AgoraPage() {
                   </CardHeader>
                   <CardContent>
                     <Button asChild size="sm" className="w-full bg-primary text-primary-foreground hover:bg-gold-muted">
-                      <Link href={`/member/sanctuaries/${s.id}`}>Enter Sanctuary</Link>
+                      <Link href={`/member/sanctuaries/${s.id}`}>{tr("Enter Sanctuary")}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -121,11 +122,11 @@ export default function AgoraPage() {
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              Latest Rituals
+              {tr("Latest Rituals")}
             </h2>
             <Button asChild variant="ghost" size="sm" className="text-primary hover:text-gold-muted gap-1">
               <Link href="/member?tab=rituals">
-                Browse all
+                {tr("Browse all")}
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </Button>
@@ -135,7 +136,7 @@ export default function AgoraPage() {
             <Card className="bg-card border-border">
               <CardContent className="py-10 text-center">
                 <Play className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                <p className="text-sm text-muted-foreground">No rituals available yet.</p>
+                <p className="text-sm text-muted-foreground">{tr("No rituals available yet.")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -151,7 +152,7 @@ export default function AgoraPage() {
                         {r.care_level.replace("level", "Level ")}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(r.created_at).toLocaleDateString()}
+                        {new Date(r.created_at).toLocaleDateString(fmtLocale())}
                       </span>
                     </div>
                     <CardTitle className="text-base text-foreground group-hover:text-primary transition-colors">
@@ -162,12 +163,12 @@ export default function AgoraPage() {
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">
-                        by {r.creator.first_name} {r.creator.last_name}
+                        {trNode("by {p0} {p1}", { p0: r.creator.first_name, p1: r.creator.last_name })}
                       </span>
                       <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-gold-muted">
                         <Link href={`/member/ritual/${r.id}`}>
                           <Play className="w-3.5 h-3.5 mr-1.5" />
-                          Experience
+                          {tr("Experience")}
                         </Link>
                       </Button>
                     </div>

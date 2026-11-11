@@ -14,6 +14,7 @@ import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
 import { AccessibilityProvider } from "@/lib/accessibility-context"
 import { AccessibilityWidget } from "@/components/accessibility/accessibility-widget"
+import { I18nProvider } from "@/lib/i18n/provider"
 import { Toaster } from "@/components/ui/sonner"
 
 /**
@@ -60,8 +61,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (isStandalone(pathname)) {
     return (
       <AccessibilityProvider>
-        {children}
-        <AccessibilityWidget />
+        <I18nProvider>
+          {children}
+          <AccessibilityWidget />
+        </I18nProvider>
       </AccessibilityProvider>
     )
   }
@@ -72,19 +75,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AccountScoped>
           <EntitlementsProvider>
             <GatewayProvider>
-              <ConsentGuard>
-                <div className="min-h-screen flex flex-col">
-                  <Navigation />
-                  <div className="flex-1">{children}</div>
-                  <Footer />
-                </div>
-                <GaiaChatWidget />
-                <AccessibilityWidget />
-                <UpgradeModalHost />
-                <GatewayCompletionModalHost />
-                <GatewayNudge />
-                <Toaster richColors position="top-right" />
-              </ConsentGuard>
+              <I18nProvider>
+                <ConsentGuard>
+                  <div className="min-h-screen flex flex-col">
+                    <Navigation />
+                    <div className="flex-1">{children}</div>
+                    <Footer />
+                  </div>
+                  <GaiaChatWidget />
+                  <AccessibilityWidget />
+                  <UpgradeModalHost />
+                  <GatewayCompletionModalHost />
+                  <GatewayNudge />
+                  <Toaster richColors position="top-right" />
+                </ConsentGuard>
+              </I18nProvider>
             </GatewayProvider>
           </EntitlementsProvider>
         </AccountScoped>

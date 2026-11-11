@@ -1,15 +1,17 @@
+
+import { tr, trDeep } from "./i18n/index.ts"
 // Single source of truth for plan keys → marketing names and per-plan
 // entitlement values. UI always shows marketing names; code always
 // sends/compares internal plan keys.
 
 export type PlanKey = "free" | "evocore" | "evobloom" | "evoluxe"
 
-export const PLAN_MARKETING_NAMES: Record<PlanKey, string> = {
+export const PLAN_MARKETING_NAMES: Record<PlanKey, string> = trDeep({
   free: "Wanderer",
   evocore: "Seeker",
   evobloom: "Scholar",
   evoluxe: "Sustainer", // unlaunched — never shown on the pricing page
-}
+})
 
 export const PLAN_PRICES: Record<PlanKey, number> = {
   free: 0,
@@ -92,23 +94,23 @@ export function getPlanEntitlements(plan?: string | null): PlanEntitlements {
 
 // `null` limits render as "Unlimited" — never "∞" or "null".
 export function formatLimit(limit: number | null | undefined): string {
-  return limit === null || limit === undefined ? "Unlimited" : String(limit)
+  return limit === null || limit === undefined ? tr("Unlimited") : String(limit)
 }
 
 export function formatCareLevelAccess(maxCareLevel: number): string {
-  if (maxCareLevel <= 1) return "Level 1"
-  if (maxCareLevel === 2) return "Levels 1–2"
-  return "All levels (1–3)"
+  if (maxCareLevel <= 1) return tr("Level 1")
+  if (maxCareLevel === 2) return tr("Levels 1–2")
+  return tr("All levels (1–3)")
 }
 
 export function formatAgoraAccess(agora: PlanEntitlements["agora"]): string {
-  if (agora === "host") return "Host circles"
-  if (agora === "join") return "Join discussions"
-  return "Browse only"
+  if (agora === "host") return tr("Host circles")
+  if (agora === "join") return tr("Join discussions")
+  return tr("Browse only")
 }
 
 export function formatHistoryDays(days: number | null): string {
-  return days === null ? "Full history" : `${days} days`
+  return days === null ? tr("Full history") : tr("{count} days", { count: days })
 }
 
 // Rows of the approved pricing matrix, shared by the public landing page and
@@ -119,14 +121,14 @@ export interface PricingMatrixRow {
   value: (e: PlanEntitlements) => string | boolean
 }
 
-export const PRICING_MATRIX_ROWS: PricingMatrixRow[] = [
+export const PRICING_MATRIX_ROWS: PricingMatrixRow[] = trDeep([
   { label: "Ritual library access", value: (e) => formatCareLevelAccess(e.max_care_level) },
   {
     label: "Monthly ritual plays",
     value: (e) =>
       e.monthly_level1_play_quota === null
-        ? "Unlimited"
-        : `${e.monthly_level1_play_quota} Level-1 rituals/month`,
+        ? tr("Unlimited")
+        : tr("{count} Level-1 rituals/month", { count: e.monthly_level1_play_quota }),
   },
   { label: "Sanctuaries", value: (e) => formatLimit(e.max_sanctuaries) },
   {
@@ -138,11 +140,11 @@ export const PRICING_MATRIX_ROWS: PricingMatrixRow[] = [
   {
     label: "AI insights",
     value: (e) =>
-      e.ai_insights === "none" ? false : e.ai_insights === "monthly" ? "Monthly report" : "Full",
+      e.ai_insights === "none" ? false : e.ai_insights === "monthly" ? tr("Monthly report") : tr("Full"),
   },
   {
     label: "Timeline history",
-    value: (e) => (e.timeline_history_days === null ? "Full" : `${e.timeline_history_days} days`),
+    value: (e) => (e.timeline_history_days === null ? tr("Full") : tr("{count} days", { count: e.timeline_history_days })),
   },
   { label: "Priority support", value: (e) => e.priority_support },
-]
+])

@@ -4,6 +4,7 @@ import { useEffect, type MouseEvent } from "react"
 import Link from "next/link"
 import { trackFunnelEvent } from "@/lib/funnel"
 import { Shield, Heart, Check, Sprout } from "lucide-react"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import {
   PRICING_PLANS,
   PLAN_PRICES,
@@ -11,6 +12,8 @@ import {
   PRICING_MATRIX_ROWS,
   planDisplayName,
 } from "@/lib/plans"
+import { tr } from "@/lib/i18n"
+
 
 const PLAN_TAGLINES: Record<string, string> = {
   free: "Begin your journey",
@@ -62,14 +65,14 @@ export default function LandingPage() {
           onClick={(e) => scrollToSection(e, "pricing")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
-          Pricing
+          {tr("Pricing")}
         </a>
         <a
           href="#features"
           onClick={(e) => scrollToSection(e, "features")}
           className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
         >
-          Learn More
+          {tr("Learn More")}
         </a>
       </nav>
 
@@ -91,20 +94,19 @@ export default function LandingPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire dandelion"
+            alt={tr("Evonaire dandelion")}
             className="h-48 w-auto md:h-56 drop-shadow-[0_0_30px_rgba(217,181,116,0.3)]"
           />
         </div>
 
         {/* Headline */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-cream text-center mb-6 tracking-wide px-2">
-          Welcome To Evonaire
+          {tr("Welcome To Evonaire")}
         </h1>
 
         {/* Subtitle */}
         <p className="text-cream/70 text-center max-w-2xl mx-auto text-base md:text-lg leading-relaxed mb-12 px-4">
-          A secure platform where creators and community members share and experience content with care, consent, and
-          privacy at the center. A protected space for your voice, rituals, and creative offerings.
+          {tr("A secure platform where creators and community members share and experience content with care, consent, and privacy at the center. A protected space for your voice, rituals, and creative offerings.")}
         </p>
 
         {/* CTA Buttons */}
@@ -114,13 +116,13 @@ export default function LandingPage() {
             onClick={() => trackFunnelEvent("signup_click")}
             className="w-44 h-12 flex items-center justify-center rounded-full bg-dark-navy border-2 border-gold text-cream font-medium text-sm hover:bg-gold/10 transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.15)]"
           >
-            Sign Up
+            {tr("Sign Up")}
           </Link>
           <Link
             href="/auth/login"
             className="w-44 h-12 flex items-center justify-center rounded-full bg-gold text-dark-navy font-medium text-sm hover:bg-gold-muted transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.3)]"
           >
-            Log In
+            {tr("Log In")}
           </Link>
         </div>
       </main>
@@ -128,10 +130,9 @@ export default function LandingPage() {
       {/* Pricing Section */}
       <section id="pricing" className="relative z-10 py-24 px-4 w-full max-w-full overflow-x-hidden">
         <div className="max-w-5xl mx-auto w-full min-w-0">
-          <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">Choose Your Plan</h2>
+          <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">{tr("Choose Your Plan")}</h2>
           <p className="text-cream/60 text-center max-w-xl mx-auto mb-16">
-            Unlock deeper rituals, more sanctuaries, and richer insights. Start free — upgrade or
-            cancel anytime.
+            {tr("Unlock deeper rituals, more sanctuaries, and richer insights. Start free — upgrade or cancel anytime.")}
           </p>
 
           {/* Plan cards */}
@@ -153,7 +154,7 @@ export default function LandingPage() {
                   {recommended && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gold text-dark-navy shadow-[0_0_12px_rgba(217,181,116,0.4)]">
-                        Recommended
+                        {tr("Recommended")}
                       </span>
                     </div>
                   )}
@@ -166,7 +167,7 @@ export default function LandingPage() {
 
                     <div className="flex items-baseline gap-1 mb-6">
                       <span className="text-4xl font-bold text-cream">${price}</span>
-                      <span className="text-sm text-cream/50">/mo</span>
+                      <span className="text-sm text-cream/50">{tr("/mo")}</span>
                     </div>
 
                     <div className="h-px bg-gold/15 mb-5" />
@@ -213,7 +214,7 @@ export default function LandingPage() {
                 <thead>
                   <tr className="border-b border-gold/15 bg-gold/5">
                     <th className="text-left px-3 sm:px-5 py-3.5 text-xs text-cream/50 font-medium uppercase tracking-wider w-1/3">
-                      Feature
+                      {tr("Feature")}
                     </th>
                     {PRICING_PLANS.map((planKey) => (
                       <th
@@ -247,8 +248,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-xs text-cream/40 text-center mt-8 px-2 break-words">
-            All prices in USD · Safety features — pacing, care escalation, consent, and data
-            deletion — are always free for everyone.
+            {tr("All prices in USD · Safety features — pacing, care escalation, consent, and data deletion — are always free for everyone.")}
           </p>
         </div>
       </section>
@@ -256,9 +256,9 @@ export default function LandingPage() {
       {/* Features Section */}
       <section id="features" className="relative z-10 py-24 px-4 w-full max-w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto w-full min-w-0">
-          <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">Built for Creators & Members</h2>
+          <h2 className="text-2xl md:text-3xl font-serif text-cream text-center mb-4">{tr("Built for Creators & Members")}</h2>
           <p className="text-cream/60 text-center max-w-xl mx-auto mb-16">
-            Everything you need to share and experience sacred rituals in a protected environment.
+            {tr("Everything you need to share and experience sacred rituals in a protected environment.")}
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -267,10 +267,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
                 <Shield className="w-6 h-6 text-gold" />
               </div>
-              <h3 className="text-xl font-semibold text-cream mb-3">NeuroPrivacy First</h3>
+              <h3 className="text-xl font-semibold text-cream mb-3">{tr("NeuroPrivacy First")}</h3>
               <p className="text-cream/60 text-sm leading-relaxed">
-                Your emotional and somatic data is protected with industry-leading privacy protocols. Share with
-                confidence.
+                {tr("Your emotional and somatic data is protected with industry-leading privacy protocols. Share with confidence.")}
               </p>
             </div>
 
@@ -279,9 +278,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-6">
                 <Heart className="w-6 h-6 text-gold" />
               </div>
-              <h3 className="text-xl font-semibold text-cream mb-3">Sacred Sanctuaries</h3>
+              <h3 className="text-xl font-semibold text-cream mb-3">{tr("Sacred Sanctuaries")}</h3>
               <p className="text-cream/60 text-sm leading-relaxed">
-                Create or join private communities. Experience rituals together in curated, invitation-only spaces.
+                {tr("Create or join private communities. Experience rituals together in curated, invitation-only spaces.")}
               </p>
             </div>
 
@@ -293,10 +292,9 @@ export default function LandingPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <Sprout className="w-6 h-6 text-gold" />
               </div>
-              <h3 className="text-xl font-semibold text-cream mb-3">Creator Empowerment</h3>
+              <h3 className="text-xl font-semibold text-cream mb-3">{tr("Creator Empowerment")}</h3>
               <p className="text-cream/60 text-sm leading-relaxed">
-                Upload rituals, track engagement, manage your RTS score, and build a thriving community around your
-                offerings.
+                {tr("Upload rituals, track engagement, manage your RTS score, and build a thriving community around your offerings.")}
               </p>
             </div>
           </div>
@@ -308,24 +306,25 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 w-full min-w-0">
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="Evonaire" width={32} height={32} />
-            <span className="text-cream/60 text-sm">Evonaire</span>
+            <img src="/logo.svg" alt={tr("Evonaire")} width={32} height={32} />
+            <span className="text-cream/60 text-sm">{tr("Evonaire")}</span>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
+            <LanguageSwitcher />
             <Link
               href="/privacy"
               className="text-cream/50 hover:text-gold text-xs transition-colors"
             >
-              Privacy Policy
+              {tr("Privacy Policy")}
             </Link>
             <Link
               href="/terms"
               className="text-cream/50 hover:text-gold text-xs transition-colors"
             >
-              Terms of Service
+              {tr("Terms of Service")}
             </Link>
           </div>
-          <p className="text-cream/40 text-xs text-center break-words">A sanctuary for rituals and reflections.</p>
+          <p className="text-cream/40 text-xs text-center break-words">{tr("A sanctuary for rituals and reflections.")}</p>
         </div>
       </footer>
 

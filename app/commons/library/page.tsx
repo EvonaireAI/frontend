@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +19,8 @@ import {
 import { LicenseChip } from "@/components/commons/listing-chips"
 import { fetchHeldLicenses, type LicenseRecord } from "@/lib/claimchain"
 import { HeldLicensePanel } from "@/components/claimchain/held-license-panel"
+import { formatDate,tr  } from "@/lib/i18n"
+
 
 // Factual status line for a non-active entry — no shaming language.
 function statusLine(p: Purchase): string {
@@ -29,9 +31,9 @@ function statusLine(p: Purchase): string {
 
 function sourceLabel(p: Purchase): string {
   if (p.source === "gift") {
-    return p.expires_at ? `Gift · expires ${format(new Date(p.expires_at), "MMM d, yyyy")}` : "Gift"
+    return p.expires_at ? tr("Gift · expires {p0}", { p0: formatDate(new Date(p.expires_at), "MMM d, yyyy") }) : "Gift"
   }
-  if (p.source === "membership") return "Included with membership"
+  if (p.source === "membership") return tr("Included with membership")
   return ""
 }
 
@@ -57,7 +59,7 @@ export default function PurchasesLibraryPage() {
       setPurchases(purchaseList)
       setLicenses(licensePage?.results ?? [])
     } catch {
-      setError("We couldn't load your purchases right now.")
+      setError(tr("We couldn't load your purchases right now."))
     } finally {
       setLoading(false)
     }
@@ -95,10 +97,10 @@ export default function PurchasesLibraryPage() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <Library className="w-5 h-5 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">My purchases</h1>
+          <h1 className="text-3xl font-bold text-foreground">{tr("My purchases")}</h1>
         </div>
         <p className="text-muted-foreground">
-          Offerings you own from the Symposium — purchases, gifts and membership perks.
+          {tr("Offerings you own from the Symposium — purchases, gifts and membership perks.")}
         </p>
       </div>
 
@@ -108,7 +110,7 @@ export default function PurchasesLibraryPage() {
             <span>{error}</span>
             <Button variant="outline" size="sm" onClick={load} className="cursor-pointer">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
+              {tr("Retry")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -129,14 +131,14 @@ export default function PurchasesLibraryPage() {
       ) : purchases.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Library className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-foreground font-medium">Nothing here yet</p>
+          <p className="text-foreground font-medium">{tr("Nothing here yet")}</p>
           <p className="text-sm text-muted-foreground mt-1 mb-5">
-            Offerings you buy or receive as gifts will appear here.
+            {tr("Offerings you buy or receive as gifts will appear here.")}
           </p>
           <Button asChild variant="outline">
             <Link href="/commons" className="flex items-center gap-2 cursor-pointer">
               <Store className="w-4 h-4" />
-              Browse the Symposium
+              {tr("Browse the Symposium")}
             </Link>
           </Button>
         </div>
@@ -163,7 +165,7 @@ export default function PurchasesLibraryPage() {
                           className="bg-secondary text-secondary-foreground border-border text-xs gap-1"
                         >
                           <Gift className="w-3 h-3" />
-                          Gift
+                          {tr("Gift")}
                         </Badge>
                       )}
                     </div>
@@ -174,7 +176,7 @@ export default function PurchasesLibraryPage() {
                         <span>
                           {formatPrice(p.order.amount_cents, p.order.currency)}
                           {p.order.paid_at
-                            ? ` · ${format(new Date(p.order.paid_at), "MMM d, yyyy")}`
+                            ? ` · ${formatDate(new Date(p.order.paid_at), "MMM d, yyyy")}`
                             : ""}
                         </span>
                       )}
@@ -190,7 +192,7 @@ export default function PurchasesLibraryPage() {
 
                   <div className="flex flex-col items-end gap-2">
                     <Button asChild variant="ghost" size="sm">
-                      <Link href={`/commons/listings/${p.listing.id}`} className="cursor-pointer">Details</Link>
+                      <Link href={`/commons/listings/${p.listing.id}`} className="cursor-pointer">{tr("Details")}</Link>
                     </Button>
                     {/* Only active entries link to playback. */}
                     {isActive && p.listing.ritual && (
@@ -200,7 +202,7 @@ export default function PurchasesLibraryPage() {
                           className="flex items-center gap-2"
                         >
                           <Play className="w-4 h-4 cursor-pointer" />
-                          Play
+                          {tr("Play")}
                         </Link>
                       </Button>
                     )}

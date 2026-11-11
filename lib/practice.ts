@@ -6,6 +6,7 @@
 
 import { authService } from "./auth"
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -41,7 +42,7 @@ export async function fetchPracticeSummary(): Promise<PracticeSummary> {
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to load practice summary: ${response.statusText}`)
+    throw new Error(tr("Failed to load practice summary: {p0}", { p0: response.statusText }))
   }
 
   return response.json()

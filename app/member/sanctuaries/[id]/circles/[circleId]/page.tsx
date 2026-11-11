@@ -29,11 +29,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { CareFlagDialog, type CareFlagTarget } from "@/components/agora/care-flag-dialog"
 import { Loader2, ArrowLeft, HandHeart, MoreHorizontal, Sparkles, Archive, Send } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 const POST_MAX_LENGTH = 5000
 
 function formatTimestamp(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+  return new Date(iso).toLocaleString(fmtLocale(), { dateStyle: "medium", timeStyle: "short" })
 }
 
 // Overflow menu for a post or reply. The care flag is available to every
@@ -55,22 +57,22 @@ function ItemMenu({
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
           <MoreHorizontal className="w-4 h-4" />
-          <span className="sr-only">More</span>
+          <span className="sr-only">{tr("More")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card border-border">
         <DropdownMenuItem onClick={onFlag}>
           <HandHeart className="w-4 h-4 mr-2 text-primary" />
-          Raise a care flag
+          {tr("Raise a care flag")}
         </DropdownMenuItem>
         {own ? (
           <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
-            Remove
+            {tr("Remove")}
           </DropdownMenuItem>
         ) : (
           isModerator && (
             <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
-              Remove (moderation)
+              {tr("Remove (moderation)")}
             </DropdownMenuItem>
           )
         )}
@@ -152,7 +154,7 @@ export default function CircleViewPage() {
       setNextBefore(page.next_before)
       setHasMore(page.has_more)
     } catch (err) {
-      showError(err, "Failed to load older posts")
+      showError(err, tr("Failed to load older posts"))
     } finally {
       setLoadingOlder(false)
     }
@@ -167,7 +169,7 @@ export default function CircleViewPage() {
       setPosts((prev) => [post, ...prev])
       setComposerBody("")
     } catch (err) {
-      showError(err, "Failed to share your post")
+      showError(err, tr("Failed to share your post"))
     } finally {
       setPosting(false)
     }
@@ -182,7 +184,7 @@ export default function CircleViewPage() {
       updatePost(postId, (p) => ({ ...p, replies: [...p.replies, reply] }))
       setReplyDrafts((prev) => ({ ...prev, [postId]: "" }))
     } catch (err) {
-      showError(err, "Failed to reply")
+      showError(err, tr("Failed to reply"))
     } finally {
       setReplyingTo(null)
     }
@@ -214,46 +216,46 @@ export default function CircleViewPage() {
         caller_blessed: previous.blessed,
         blessing_count: previous.count,
       }))
-      showError(err, "Failed to bless this post")
+      showError(err, tr("Failed to bless this post"))
     }
   }
 
   const handleRemovePost = async (post: AgoraPost) => {
     const own = user?.id != null && post.author.id === user.id
     const message = own
-      ? "Remove your post? It will no longer be visible to the circle."
-      : "Remove this post from the circle? (moderation action)"
+      ? tr("Remove your post? It will no longer be visible to the circle.")
+      : tr("Remove this post from the circle? (moderation action)")
     if (!confirm(message)) return
     try {
       await agoraService.removePost(post.id)
       setPosts((prev) => prev.filter((p) => p.id !== post.id))
     } catch (err) {
-      showError(err, "Failed to remove the post")
+      showError(err, tr("Failed to remove the post"))
     }
   }
 
   const handleRemoveReply = async (postId: number, reply: AgoraReply) => {
     const own = user?.id != null && reply.author.id === user.id
     const message = own
-      ? "Remove your reply? It will no longer be visible to the circle."
-      : "Remove this reply from the circle? (moderation action)"
+      ? tr("Remove your reply? It will no longer be visible to the circle.")
+      : tr("Remove this reply from the circle? (moderation action)")
     if (!confirm(message)) return
     try {
       await agoraService.removeReply(reply.id)
       updatePost(postId, (p) => ({ ...p, replies: p.replies.filter((r) => r.id !== reply.id) }))
     } catch (err) {
-      showError(err, "Failed to remove the reply")
+      showError(err, tr("Failed to remove the reply"))
     }
   }
 
   const handleArchive = async () => {
-    if (!confirm("Archive this circle? Conversations stay readable, but new posts close.")) return
+    if (!confirm(tr("Archive this circle? Conversations stay readable, but new posts close."))) return
     try {
       const updated = await agoraService.archiveCircle(circleId)
       setCircle(updated)
-      toast("This circle is now archived.")
+      toast(tr("This circle is now archived."))
     } catch (err) {
-      showError(err, "Failed to archive the circle")
+      showError(err, tr("Failed to archive the circle"))
     }
   }
 
@@ -270,9 +272,9 @@ export default function CircleViewPage() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Join this sanctuary first to take part in its circles.</p>
+            <p className="text-muted-foreground mb-4">{tr("Join this sanctuary first to take part in its circles.")}</p>
             <Button asChild>
-              <Link href={`/member/sanctuaries/${sanctuaryId}`}>Back to Sanctuary</Link>
+              <Link href={`/member/sanctuaries/${sanctuaryId}`}>{tr("Back to Sanctuary")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -285,9 +287,9 @@ export default function CircleViewPage() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Circle not found</p>
+            <p className="text-muted-foreground mb-4">{tr("Circle not found")}</p>
             <Button asChild>
-              <Link href={`/member/sanctuaries/${sanctuaryId}`}>Back to Sanctuary</Link>
+              <Link href={`/member/sanctuaries/${sanctuaryId}`}>{tr("Back to Sanctuary")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -305,7 +307,7 @@ export default function CircleViewPage() {
         <Button asChild variant="outline" className="mb-4 bg-transparent">
           <Link href={`/member/sanctuaries/${sanctuaryId}`}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Sanctuary
+            {tr("Back to Sanctuary")}
           </Link>
         </Button>
 
@@ -317,11 +319,11 @@ export default function CircleViewPage() {
                 <h1 className="text-3xl font-serif text-foreground">{circle.title}</h1>
                 {isArchived && (
                   <Badge variant="outline" className="border-border text-muted-foreground">
-                    archived
+                    {tr("archived")}
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">Hosted by {circle.host.display_name}</p>
+              <p className="text-sm text-muted-foreground">{trNode("Hosted by {p0}", { p0: circle.host.display_name })}</p>
               {circle.description && <p className="text-muted-foreground mt-2">{circle.description}</p>}
             </div>
             {canArchive && (
@@ -332,7 +334,7 @@ export default function CircleViewPage() {
                 className="bg-transparent border-border text-muted-foreground hover:bg-secondary shrink-0"
               >
                 <Archive className="w-4 h-4 mr-2" />
-                Archive circle
+                {tr("Archive circle")}
               </Button>
             )}
           </div>
@@ -344,7 +346,7 @@ export default function CircleViewPage() {
             <Card className="bg-secondary border-border">
               <CardContent className="py-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  This circle is archived — conversations stay readable, but new posts are closed.
+                  {tr("This circle is archived — conversations stay readable, but new posts are closed.")}
                 </p>
               </CardContent>
             </Card>
@@ -356,7 +358,7 @@ export default function CircleViewPage() {
                   onChange={(e) => setComposerBody(e.target.value)}
                   maxLength={POST_MAX_LENGTH}
                   rows={3}
-                  placeholder="Share what's on your heart…"
+                  placeholder={tr("Share what's on your heart…")}
                   className="bg-secondary border-border resize-y"
                 />
                 <div className="flex items-center justify-between">
@@ -377,7 +379,7 @@ export default function CircleViewPage() {
                     {posting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sharing…
+                        {tr("Sharing…")}
                       </>
                     ) : (
                       "Share"
@@ -390,11 +392,11 @@ export default function CircleViewPage() {
             <Card className="bg-card border-border border-primary/20">
               <CardContent className="py-6 text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Reading is open to every member — posting is part of the Seeker tier.
+                  {tr("Reading is open to every member — posting is part of the Seeker tier.")}
                 </p>
                 <Button onClick={seekerUpsell} className="bg-primary text-primary-foreground hover:bg-gold-muted">
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Join discussions with Seeker
+                  {tr("Join discussions with Seeker")}
                 </Button>
               </CardContent>
             </Card>
@@ -405,7 +407,7 @@ export default function CircleViewPage() {
         {posts.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="py-10 text-center">
-              <p className="text-sm text-muted-foreground">No posts yet. This circle is waiting for its first voice.</p>
+              <p className="text-sm text-muted-foreground">{tr("No posts yet. This circle is waiting for its first voice.")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -494,7 +496,7 @@ export default function CircleViewPage() {
                                   }
                                 }}
                                 maxLength={POST_MAX_LENGTH}
-                                placeholder="Reply gently…"
+                                placeholder={tr("Reply gently…")}
                                 className="h-8 text-sm bg-secondary border-border"
                               />
                               <Button
@@ -509,7 +511,7 @@ export default function CircleViewPage() {
                                 ) : (
                                   <Send className="w-4 h-4" />
                                 )}
-                                <span className="sr-only">Send reply</span>
+                                <span className="sr-only">{tr("Send reply")}</span>
                               </Button>
                             </div>
                           ) : (
@@ -518,7 +520,7 @@ export default function CircleViewPage() {
                               onClick={seekerUpsell}
                               className="text-xs text-gold-muted hover:text-primary transition-colors"
                             >
-                              Join discussions with Seeker
+                              {tr("Join discussions with Seeker")}
                             </button>
                           ))}
                       </div>
@@ -539,7 +541,7 @@ export default function CircleViewPage() {
                   {loadingOlder ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading…
+                      {tr("Loading…")}
                     </>
                   ) : (
                     "Load older"

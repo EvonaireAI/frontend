@@ -2,6 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 import { unwrapList } from "./moderation"
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 // RTS Types
 export interface RTSScore {
@@ -163,7 +164,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch RTS score")
+      throw new Error(tr("Failed to fetch RTS score"))
     }
 
     return response.json()
@@ -175,7 +176,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch RTS history")
+      throw new Error(tr("Failed to fetch RTS history"))
     }
 
     return response.json()
@@ -192,7 +193,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to submit self-assessment")
+      throw new Error(tr("Failed to submit self-assessment"))
     }
 
     return response.json()
@@ -206,7 +207,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch creators")
+      throw new Error(tr("Failed to fetch creators"))
     }
 
     // The view declares PageNumberPagination, so it answers with a bare array
@@ -220,7 +221,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch creator score")
+      throw new Error(tr("Failed to fetch creator score"))
     }
 
     return response.json()
@@ -232,7 +233,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch creator history")
+      throw new Error(tr("Failed to fetch creator history"))
     }
 
     return response.json()
@@ -244,7 +245,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch audit trail")
+      throw new Error(tr("Failed to fetch audit trail"))
     }
 
     return response.json()
@@ -274,7 +275,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to create flag")
+      throw new Error(tr("Failed to create flag"))
     }
 
     return response.json()
@@ -286,7 +287,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch alerts")
+      throw new Error(tr("Failed to fetch alerts"))
     }
 
     const data = await response.json()
@@ -302,7 +303,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch RTS config")
+      throw new Error(tr("Failed to fetch RTS config"))
     }
 
     const data = await response.json()
@@ -321,7 +322,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to update RTS config")
+      throw new Error(tr("Failed to update RTS config"))
     }
 
     return response.json()
@@ -335,7 +336,7 @@ class RTSService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to recalculate the score")
+      throw new Error(tr("Failed to recalculate the score"))
     }
 
     return response.json()
@@ -369,15 +370,15 @@ class RTSService {
   getBandLabel(band: string): string {
     switch (band) {
       case "expand":
-        return "Ready to Expand"
+        return tr("Ready to Expand")
       case "clear":
-        return "All Clear"
+        return tr("All Clear")
       case "check_in":
-        return "Gentle Check-in"
+        return tr("Gentle Check-in")
       case "caution":
-        return "Caution/Paused"
+        return tr("Caution/Paused")
       case "critical":
-        return "Critical Care"
+        return tr("Critical Care")
       default:
         return band
     }

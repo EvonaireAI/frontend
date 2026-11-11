@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { format } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -20,6 +20,8 @@ import { toast } from "sonner"
 import { Check, Loader2, Music, RefreshCw, X } from "lucide-react"
 import { fetchReviewQueue, submitReviewDecision, formatPrice, CommonsApiError, type MyListing } from "@/lib/commons"
 import { LicenseChip } from "@/components/commons/listing-chips"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // The Commons listing queue. Guardians reach it from the Sacred Library tab and
 // stewards from The Commons tab — one component, so the two never drift.
@@ -63,14 +65,14 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
     setApprovingId(listing.id)
     try {
       await submitReviewDecision(listing.id, { decision: "approve" })
-      toast.success("Listing approved")
+      toast.success(tr("Listing approved"))
       removeFromQueue(listing.id)
     } catch (err) {
       if (err instanceof CommonsApiError && err.code === "connect_not_ready") {
         // Leave it pending — the creator's payout account isn't ready.
-        toast.error("Creator's payout account isn't ready — leaving it pending.")
+        toast.error(tr("Creator's payout account isn't ready — leaving it pending."))
       } else {
-        toast.error(err instanceof Error ? err.message : "Failed to approve")
+        toast.error(err instanceof Error ? err.message : tr("Failed to approve"))
       }
     } finally {
       setApprovingId(null)
@@ -80,17 +82,17 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
   const handleReject = async () => {
     if (!rejectFor) return
     if (!note.trim()) {
-      toast.error("A note is required to reject.")
+      toast.error(tr("A note is required to reject."))
       return
     }
     setRejecting(true)
     try {
       await submitReviewDecision(rejectFor.id, { decision: "reject", note: note.trim() })
-      toast.success("Listing sent back with your note")
+      toast.success(tr("Listing sent back with your note"))
       removeFromQueue(rejectFor.id)
       setRejectFor(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to reject")
+      toast.error(err instanceof Error ? err.message : tr("Failed to reject"))
     } finally {
       setRejecting(false)
     }
@@ -100,21 +102,21 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Listings awaiting review, oldest first. Approve to publish, or send back with a note.
+          {tr("Listings awaiting review, oldest first. Approve to publish, or send back with a note.")}
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
       {error && (
         <Alert variant="destructive">
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-            <span>We couldn&apos;t load the review queue.</span>
+            <span>{tr("We couldn't load the review queue.")}</span>
             <Button variant="outline" size="sm" onClick={load}>
               <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
+              {tr("Retry")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -129,8 +131,8 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
       ) : !error && queue.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-12 text-center">
           <Check className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <p className="font-medium text-foreground">Queue is clear</p>
-          <p className="mt-1 text-sm text-muted-foreground">No listings are waiting for review right now.</p>
+          <p className="font-medium text-foreground">{tr("Queue is clear")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tr("No listings are waiting for review right now.")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -147,12 +149,12 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
                       </span>
                       {listing.created_at && (
                         <span className="text-xs text-muted-foreground">
-                          Submitted {format(new Date(listing.updated_at || listing.created_at), "MMM d, yyyy")}
+                          {trNode("Submitted {p0}", { p0: formatDate(new Date(listing.updated_at || listing.created_at), "MMM d, yyyy") })}
                         </span>
                       )}
                     </div>
                     <h3 className="break-words text-lg font-semibold text-foreground">{listing.title}</h3>
-                    <p className="break-all text-sm text-muted-foreground">by {listing.creator.display_name}</p>
+                    <p className="break-all text-sm text-muted-foreground">{trNode("by {p0}", { p0: listing.creator.display_name })}</p>
                     <p className="break-words text-sm text-foreground/90">{listing.summary}</p>
                     {listing.ritual && (
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -162,8 +164,7 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
                     )}
                     {listing.early_access_until && (
                       <p className="text-xs text-muted-foreground">
-                        Requested Scholar early access until{" "}
-                        {format(new Date(listing.early_access_until), "MMM d, yyyy")}
+                        {trNode("Requested Scholar early access until {p0}", { p0: formatDate(new Date(listing.early_access_until), "MMM d, yyyy") })}
                       </p>
                     )}
                   </div>
@@ -171,7 +172,7 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
                   <div className="flex flex-wrap items-center gap-2">
                     <Button size="sm" onClick={() => handleApprove(listing)} disabled={busy}>
                       {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-                      Approve
+                      {tr("Approve")}
                     </Button>
                     <Button
                       variant="outline"
@@ -183,7 +184,7 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
                       disabled={busy}
                     >
                       <X className="mr-2 h-4 w-4" />
-                      Reject
+                      {tr("Reject")}
                     </Button>
                   </div>
                 </CardContent>
@@ -197,28 +198,28 @@ export function ReviewQueuePanel({ onCountChange }: { onCountChange?: (count: nu
       <Dialog open={!!rejectFor} onOpenChange={(open) => !open && setRejectFor(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Send back for changes</DialogTitle>
+            <DialogTitle>{tr("Send back for changes")}</DialogTitle>
             <DialogDescription>
-              Your note is shown to the creator verbatim. Be specific and constructive.
+              {tr("Your note is shown to the creator verbatim. Be specific and constructive.")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
-            <Label htmlFor="reject-note">Note to creator</Label>
+            <Label htmlFor="reject-note">{tr("Note to creator")}</Label>
             <Textarea
               id="reject-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={4}
-              placeholder="Summary overpromises clinical outcomes — please reword."
+              placeholder={tr("Summary overpromises clinical outcomes — please reword.")}
             />
           </div>
           <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
             <Button variant="outline" onClick={() => setRejectFor(null)} disabled={rejecting}>
-              Cancel
+              {tr("Cancel")}
             </Button>
             <Button onClick={handleReject} disabled={rejecting || !note.trim()}>
               {rejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Send back
+              {tr("Send back")}
             </Button>
           </DialogFooter>
         </DialogContent>

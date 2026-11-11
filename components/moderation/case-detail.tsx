@@ -23,6 +23,8 @@ import {
   TakeCaseButton,
   type GuardianOption,
 } from "@/components/moderation/case-actions"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // The case detail view. Every action here goes through a transition endpoint —
 // the `stage` the serializer returns decides which ones are offered, so the UI
@@ -53,7 +55,7 @@ function HistoryEntryRow({ entry }: { entry: CaseHistoryEntry }) {
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
           <span className="break-all">{entry.by || "System"}</span>
           <span>·</span>
-          <span>{entry.at ? new Date(entry.at).toLocaleString() : "—"}</span>
+          <span>{entry.at ? new Date(entry.at).toLocaleString(fmtLocale()) : "—"}</span>
         </div>
         {extras.length > 0 && (
           <dl className="mt-2 space-y-1 rounded-md bg-muted p-2 text-xs">
@@ -91,10 +93,10 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={onBack} variant="outline" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          {tr("Back")}
         </Button>
         <div className="min-w-0">
-          <h2 className="text-2xl font-bold text-foreground">Care Case #{moderationCase.id}</h2>
+          <h2 className="text-2xl font-bold text-foreground">{trNode("Care Case #{p0}", { p0: moderationCase.id })}</h2>
           <p className="text-sm text-muted-foreground">{STAGE_LABELS[stage]}</p>
         </div>
       </div>
@@ -105,7 +107,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Case information
+                {tr("Case information")}
               </CardTitle>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Badge variant="outline" className={severity.className}>
@@ -119,13 +121,13 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
                 {moderationCase.flagged_by_ai && (
                   <Badge variant="outline" className="text-muted-foreground">
                     <Bot className="mr-1 h-3 w-3" />
-                    Flagged by GAIA
+                    {tr("Flagged by GAIA")}
                   </Badge>
                 )}
                 {moderationCase.crisis_escalated && (
                   <Badge className="border-0 bg-red-600 text-white">
                     <AlertTriangle className="mr-1 h-3 w-3" />
-                    Care Escalation
+                    {tr("Care Escalation")}
                   </Badge>
                 )}
               </div>
@@ -135,7 +137,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
                 <div className="rounded-lg bg-muted p-3">
                   <h4 className="mb-1 flex items-center gap-2 text-sm font-medium">
                     <UserIcon className="h-4 w-4" />
-                    Reported by
+                    {tr("Reported by")}
                   </h4>
                   <p className="break-all text-sm text-muted-foreground">{moderationCase.reporter_email}</p>
                 </div>
@@ -143,11 +145,11 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
 
               {moderationCase.ritual_title && (
                 <div>
-                  <h4 className="mb-1 text-sm font-medium">Related ritual</h4>
+                  <h4 className="mb-1 text-sm font-medium">{tr("Related ritual")}</h4>
                   <p className="break-words rounded bg-muted p-3 text-sm text-foreground">
                     {moderationCase.ritual_title}
                     {moderationCase.ritual && (
-                      <span className="ml-2 text-muted-foreground">(ID: {moderationCase.ritual})</span>
+                      <span className="ml-2 text-muted-foreground">{trNode("(ID: {p0})", { p0: moderationCase.ritual })}</span>
                     )}
                   </p>
                 </div>
@@ -155,7 +157,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
 
               {moderationCase.flagged_reason && (
                 <div>
-                  <h4 className="mb-1 text-sm font-medium">Reason</h4>
+                  <h4 className="mb-1 text-sm font-medium">{tr("Reason")}</h4>
                   <p className="break-words rounded bg-muted p-3 text-sm text-muted-foreground">
                     {moderationCase.flagged_reason}
                   </p>
@@ -164,7 +166,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
 
               {moderationCase.resolution_note && (
                 <div>
-                  <h4 className="mb-1 text-sm font-medium">Resolution note</h4>
+                  <h4 className="mb-1 text-sm font-medium">{tr("Resolution note")}</h4>
                   <p className="break-words rounded bg-muted p-3 text-sm text-foreground">
                     {moderationCase.resolution_note}
                   </p>
@@ -173,29 +175,29 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
 
               <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="font-medium">Opened</dt>
-                  <dd className="text-muted-foreground">{new Date(moderationCase.created_at).toLocaleString()}</dd>
+                  <dt className="font-medium">{tr("Opened")}</dt>
+                  <dd className="text-muted-foreground">{new Date(moderationCase.created_at).toLocaleString(fmtLocale())}</dd>
                 </div>
                 <div>
-                  <dt className="font-medium">Assigned guardian</dt>
+                  <dt className="font-medium">{tr("Assigned guardian")}</dt>
                   <dd className="break-all text-muted-foreground">
                     {moderationCase.assigned_moderator_email || "Unassigned"}
                   </dd>
                 </div>
                 {moderationCase.resolved_at && (
                   <div>
-                    <dt className="font-medium">Resolved</dt>
+                    <dt className="font-medium">{tr("Resolved")}</dt>
                     <dd className="text-muted-foreground">
-                      {new Date(moderationCase.resolved_at).toLocaleString()}
+                      {new Date(moderationCase.resolved_at).toLocaleString(fmtLocale())}
                       {moderationCase.resolved_by_email && ` · ${moderationCase.resolved_by_email}`}
                     </dd>
                   </div>
                 )}
                 {moderationCase.archived_at && (
                   <div>
-                    <dt className="font-medium">Archived</dt>
+                    <dt className="font-medium">{tr("Archived")}</dt>
                     <dd className="text-muted-foreground">
-                      {new Date(moderationCase.archived_at).toLocaleString()}
+                      {new Date(moderationCase.archived_at).toLocaleString(fmtLocale())}
                       {moderationCase.archived_by_email && ` · ${moderationCase.archived_by_email}`}
                     </dd>
                   </div>
@@ -208,14 +210,14 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Care History
+                {tr("Care History")}
               </CardTitle>
-              <CardDescription>Every action taken on this case, oldest first.</CardDescription>
+              <CardDescription>{tr("Every action taken on this case, oldest first.")}</CardDescription>
             </CardHeader>
             <CardContent>
               {!moderationCase.history || moderationCase.history.length === 0 ? (
                 <p className="py-4 text-center text-sm text-muted-foreground">
-                  Nothing has happened on this case yet.
+                  {tr("Nothing has happened on this case yet.")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -233,7 +235,7 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5" />
-                Actions
+                {tr("Actions")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -241,10 +243,10 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
                 <>
                   <TakeCaseButton caseId={moderationCase.id} onSettled={onUpdate} size="default" />
                   <Button variant="outline" className="w-full" onClick={() => setDelegateOpen(true)}>
-                    Delegate to a guardian
+                    {tr("Delegate to a guardian")}
                   </Button>
                   <Button variant="outline" className="w-full" onClick={() => setResolveOpen(true)}>
-                    Resolve
+                    {tr("Resolve")}
                   </Button>
                 </>
               )}
@@ -252,33 +254,33 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
               {stage === "active" && (
                 <>
                   <Button className="w-full" onClick={() => setResolveOpen(true)}>
-                    Resolve
+                    {tr("Resolve")}
                   </Button>
                   <Button variant="outline" className="w-full" onClick={() => setReleaseOpen(true)}>
-                    Release
+                    {tr("Release")}
                   </Button>
                   <Button variant="outline" className="w-full" onClick={() => setDelegateOpen(true)}>
-                    Delegate
+                    {tr("Delegate")}
                   </Button>
                 </>
               )}
 
               {stage === "resolved" && (
                 <Button variant="outline" className="w-full" onClick={() => setArchiveOpen(true)}>
-                  Archive
+                  {tr("Archive")}
                 </Button>
               )}
 
               {stage === "archived" && (
                 <p className="text-sm text-muted-foreground">
-                  This case is archived. It stays readable here and in The Archive; nothing further happens to it.
+                  {tr("This case is archived. It stays readable here and in The Archive; nothing further happens to it.")}
                 </p>
               )}
 
               {stage !== "archived" && !moderationCase.crisis_escalated && (
                 <Button variant="destructive" className="w-full" onClick={() => setEscalateOpen(true)}>
                   <AlertTriangle className="mr-2 h-4 w-4" />
-                  Care Escalation
+                  {tr("Care Escalation")}
                 </Button>
               )}
             </CardContent>
@@ -288,9 +290,9 @@ export function CaseDetail({ case: moderationCase, onBack, onUpdate, guardians =
             <Card className="border-red-600 bg-red-600/10">
               <CardContent className="py-6 text-center">
                 <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-red-600" />
-                <h3 className="mb-1 font-semibold text-red-600">Escalated</h3>
+                <h3 className="mb-1 font-semibold text-red-600">{tr("Escalated")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  The crisis team has this case. It still moves through resolve and archive as normal.
+                  {tr("The crisis team has this case. It still moves through resolve and archive as normal.")}
                 </p>
               </CardContent>
             </Card>

@@ -1,12 +1,14 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { format } from "date-fns"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { metricsService, rateToPercentString, type MetricsFunnel } from "@/lib/metrics"
 import { useMetricsZone, ZoneError, ZoneRefetchDim } from "./zone"
+import { formatDate,fmtLocale, tr, trNode  } from "@/lib/i18n"
+
 
 const WINDOW_OPTIONS = [1, 3, 6] as const
 
@@ -32,7 +34,7 @@ function FunnelStage({
       <div className="flex items-baseline justify-between text-sm mb-1">
         <span className="text-foreground">{label}</span>
         <span className="text-muted-foreground tabular-nums">
-          {count.toLocaleString()}
+          {count.toLocaleString(fmtLocale())}
           {share && <span className="ml-2 text-xs">({share})</span>}
         </span>
       </div>
@@ -78,7 +80,7 @@ export function ConversionFunnel() {
   const { data, loading, error, retry } = useMetricsZone(fetcher)
 
   if (loading && !data) return <ConversionFunnelSkeleton />
-  if (error && !data) return <ZoneError label="the conversion funnel" onRetry={retry} />
+  if (error && !data) return <ZoneError label={tr("the conversion funnel")} onRetry={retry} />
   if (!data) return null
 
   return (
@@ -86,9 +88,9 @@ export function ConversionFunnel() {
       <CardHeader>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <CardTitle>Conversion funnel</CardTitle>
+            <CardTitle>{tr("Conversion funnel")}</CardTitle>
             <CardDescription>
-              Users registered since {format(new Date(data.window_start), "MMM d, yyyy")}
+              {trNode("Users registered since {p0}", { p0: formatDate(new Date(data.window_start), "MMM d, yyyy") })}
             </CardDescription>
           </div>
           <ToggleGroup
@@ -100,18 +102,18 @@ export function ConversionFunnel() {
           >
             {WINDOW_OPTIONS.map((opt) => (
               <ToggleGroupItem key={opt} value={String(opt)}>
-                {opt}m
+                {trNode("{p0}m", { p0: opt })}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </div>
       </CardHeader>
       <CardContent>
-        {error && <ZoneError label="the conversion funnel" onRetry={retry} />}
+        {error && <ZoneError label={tr("the conversion funnel")} onRetry={retry} />}
         {!error && (
           <ZoneRefetchDim dimmed={loading}>
             {data.registered_users === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No signups in this window yet</p>
+              <p className="text-center text-muted-foreground py-8">{tr("No signups in this window yet")}</p>
             ) : (
               <FunnelBody funnel={data} />
             )}
@@ -130,21 +132,21 @@ function FunnelBody({ funnel }: { funnel: MetricsFunnel }) {
     <div className="space-y-6">
       <div className="space-y-4">
         <FunnelStage
-          label="Registered"
+          label={tr("Registered")}
           count={funnel.registered_users}
           share={null}
           maxCount={max}
           color={STAGE_COLORS[0]}
         />
         <FunnelStage
-          label="Free actives"
+          label={tr("Free actives")}
           count={funnel.free_actives}
           share={shareOf(funnel.free_actives)}
           maxCount={max}
           color={STAGE_COLORS[1]}
         />
         <FunnelStage
-          label="Paid conversions"
+          label={tr("Paid conversions")}
           count={funnel.conversions_to_paid}
           share={shareOf(funnel.conversions_to_paid)}
           maxCount={max}
@@ -152,13 +154,13 @@ function FunnelBody({ funnel }: { funnel: MetricsFunnel }) {
         />
       </div>
       <div className="flex gap-3 flex-wrap">
-        <StatChip label="Conversion rate" value={rateToPercentString(funnel.conversion_rate)} />
+        <StatChip label={tr("Conversion rate")} value={rateToPercentString(funnel.conversion_rate)} />
         <StatChip
-          label="Median days to convert"
+          label={tr("Median days to convert")}
           value={
             funnel.median_days_to_convert === null
               ? "—"
-              : funnel.median_days_to_convert.toLocaleString("en-US", { maximumFractionDigits: 1 })
+              : funnel.median_days_to_convert.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })
           }
         />
       </div>

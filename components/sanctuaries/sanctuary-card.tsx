@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import type { Sanctuary } from "@/lib/sanctuaries"
 import { Users, Lock, Globe } from "lucide-react"
 import Link from "next/link"
+import { tr, trNode } from "@/lib/i18n"
+
 
 interface SanctuaryCardProps {
   sanctuary: Sanctuary
@@ -74,7 +76,7 @@ export function SanctuaryCard({
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             <span>
-              {sanctuary.active_members_count}/{sanctuary.capacity} members
+              {trNode("{p0}/{p1} members", { p0: sanctuary.active_members_count, p1: sanctuary.capacity })}
             </span>
           </div>
         </div>
@@ -82,16 +84,16 @@ export function SanctuaryCard({
         <div className="flex gap-2">
           {isCreatorView ? (
             <Button variant="outline" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" asChild>
-              <Link href={`/creator/sanctuaries/${sanctuary.id}`}>View Details</Link>
+              <Link href={`/creator/sanctuaries/${sanctuary.id}`}>{tr("View Details")}</Link>
             </Button>
           ) : (
             <Button variant="outline" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" onClick={() => onViewDetail?.(sanctuary.id)}>
-              View Details
+              {tr("View Details")}
             </Button>
           )}
           {showJoinButton && sanctuary.membership_status !== "approved" && (
             <Button className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted" onClick={() => onJoin?.(sanctuary.id)}>
-              Request Join
+              {tr("Request Join")}
             </Button>
           )}
         </div>

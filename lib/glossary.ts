@@ -1,3 +1,5 @@
+import { trDeep } from "./i18n/index.ts"
+
 // The canonical Evonaire glossary.
 //
 // Every user-facing destination name lives here so nav labels, page headers
@@ -8,7 +10,7 @@
 //   • Role / dashboard labels ("Seeker (D1)") → lib/roles.ts
 //   • Subscription tiers (Wanderer / Seeker / Scholar) → lib/entitlements.ts
 
-export const GLOSSARY = {
+export const GLOSSARY = trDeep({
   // ── Seeker-facing ──────────────────────────────────────────────────────────
   sacredLibrary: "Sacred Library",
   agora: "The Agora",
@@ -47,14 +49,14 @@ export const GLOSSARY = {
   platformIntelligence: "Platform Intelligence",
   platformSignals: "Platform Signals",
   platformConfiguration: "Platform Configuration",
-} as const
+})
 
 // Primary sections the CEO has named but that have no product definition yet.
 // Rendered as disabled "Coming soon" nav entries so they're discoverable
 // without inventing pages.
 // TODO(fitsum): confirm Symposium / Civic Virtue routes, then promote these
 // to real navigation items.
-export const COMING_SOON_SECTIONS: readonly string[] = [
+export const COMING_SOON_SECTIONS: readonly string[] = trDeep([
   GLOSSARY.symposium,
   GLOSSARY.civicVirtue,
-]
+])

@@ -4,6 +4,7 @@ import { authedFetch } from "./authed-fetch"
 import { clearDeviceId } from "./device-identity"
 import { toApiError } from "./api-errors"
 import { unwrapList } from "./moderation"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -209,7 +210,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json().catch(() => null)
-      throw toApiError(error, "Registration failed", response.status)
+      throw toApiError(error, tr("Registration failed"), response.status)
     }
 
     return response.json()
@@ -224,7 +225,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Login failed")
+      throw new Error(error?.detail || tr("Login failed"))
     }
 
     const data = await response.json()
@@ -239,7 +240,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Activation failed")
+      throw new Error(error?.detail || tr("Activation failed"))
     }
 
     return response.json()
@@ -254,10 +255,10 @@ class AuthService {
 
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error("Too many attempts. Please wait before requesting another link.")
+        throw new Error(tr("Too many attempts. Please wait before requesting another link."))
       }
       const error = await readJson(response)
-      throw new Error(error?.detail || "Failed to resend activation")
+      throw new Error(error?.detail || tr("Failed to resend activation"))
     }
 
     return response.json()
@@ -265,7 +266,7 @@ class AuthService {
 
   async refreshToken() {
     const refreshToken = localStorage.getItem("refresh_token")
-    if (!refreshToken) throw new Error("No refresh token available")
+    if (!refreshToken) throw new Error(tr("No refresh token available"))
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh/`, {
       method: "POST",
@@ -276,7 +277,7 @@ class AuthService {
     if (!response.ok) {
       localStorage.removeItem("access_token")
       localStorage.removeItem("refresh_token")
-      throw new Error("Token refresh failed")
+      throw new Error(tr("Token refresh failed"))
     }
 
     const data = await response.json()
@@ -300,17 +301,17 @@ class AuthService {
         await this.refreshToken()
       } catch {
         this.logout()
-        throw new Error("Authentication required")
+        throw new Error(tr("Authentication required"))
       }
       response = await requestProfile()
       if (response.status === 401) {
         this.logout()
-        throw new Error("Authentication required")
+        throw new Error(tr("Authentication required"))
       }
     }
 
     if (!response.ok) {
-      throw new Error("Failed to fetch profile")
+      throw new Error(tr("Failed to fetch profile"))
     }
 
     return response.json()
@@ -324,7 +325,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to update profile")
+      throw new Error(tr("Failed to update profile"))
     }
 
     return response.json()
@@ -336,7 +337,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch role requests")
+      throw new Error(tr("Failed to fetch role requests"))
     }
 
     return response.json()
@@ -349,7 +350,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to approve role request")
+      throw new Error(tr("Failed to approve role request"))
     }
 
     return response.json()
@@ -362,7 +363,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to reject role request")
+      throw new Error(tr("Failed to reject role request"))
     }
 
     return response.json()
@@ -377,7 +378,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Failed to upload ritual")
+      throw new Error(error?.detail || tr("Failed to upload ritual"))
     }
 
     return response.json()
@@ -389,7 +390,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch rituals")
+      throw new Error(tr("Failed to fetch rituals"))
     }
 
     return response.json()
@@ -406,7 +407,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to update ritual")
+      throw new Error(tr("Failed to update ritual"))
     }
 
     return response.json()
@@ -419,7 +420,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to delete ritual")
+      throw new Error(tr("Failed to delete ritual"))
     }
   }
 
@@ -429,7 +430,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch ritual analytics")
+      throw new Error(tr("Failed to fetch ritual analytics"))
     }
 
     return response.json()
@@ -441,7 +442,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch ritual feedback")
+      throw new Error(tr("Failed to fetch ritual feedback"))
     }
 
     return response.json()
@@ -463,7 +464,7 @@ class AuthService {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to fetch rituals")
+        throw new Error(tr("Failed to fetch rituals"))
       }
 
       const page = unwrapList<Ritual>(await response.json())
@@ -493,9 +494,9 @@ class AuthService {
 
     if (!response.ok) {
       if (response.status === 400) {
-        throw new Error("You have already blessed this ritual")
+        throw new Error(tr("You have already blessed this ritual"))
       }
-      throw new Error("Failed to bless ritual")
+      throw new Error(tr("Failed to bless ritual"))
     }
 
     return response.json()
@@ -512,7 +513,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to submit feedback")
+      throw new Error(tr("Failed to submit feedback"))
     }
   }
 
@@ -535,7 +536,7 @@ class AuthService {
     if (!response.ok) {
       // Structured 403s (quota_exceeded / care_level) open the upgrade modal
       await throwIfEntitlementDenied(response)
-      throw new Error("Failed to start play session")
+      throw new Error(tr("Failed to start play session"))
     }
 
     return response.json()
@@ -552,7 +553,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to update play progress")
+      throw new Error(tr("Failed to update play progress"))
     }
   }
 
@@ -563,7 +564,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to complete play session")
+      throw new Error(tr("Failed to complete play session"))
     }
   }
 
@@ -573,7 +574,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch creator dashboard metrics")
+      throw new Error(tr("Failed to fetch creator dashboard metrics"))
     }
 
     return response.json()
@@ -585,7 +586,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch creator feedback")
+      throw new Error(tr("Failed to fetch creator feedback"))
     }
 
     return response.json()
@@ -598,7 +599,7 @@ class AuthService {
       body: JSON.stringify({ email }),
     })
     if (!response.ok) {
-      throw new Error("Unable to process request. Please try again.")
+      throw new Error(tr("Unable to process request. Please try again."))
     }
     return response.json()
   }
@@ -618,7 +619,7 @@ class AuthService {
       throw new Error(
         error?.detail ||
           (Array.isArray(error?.confirm_password) ? error.confirm_password[0] : undefined) ||
-          "Failed to reset password",
+          tr("Failed to reset password"),
       )
     }
     return response.json()
@@ -661,7 +662,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Failed to accept consent")
+      throw new Error(error?.detail || tr("Failed to accept consent"))
     }
 
     return response.json()
@@ -685,7 +686,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Failed to submit report")
+      throw new Error(error?.detail || tr("Failed to submit report"))
     }
 
     return response.json()
@@ -707,7 +708,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch play history")
+      throw new Error(tr("Failed to fetch play history"))
     }
 
     return response.json()
@@ -725,7 +726,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch blessings")
+      throw new Error(tr("Failed to fetch blessings"))
     }
 
     return response.json()
@@ -748,7 +749,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch joined sanctuaries")
+      throw new Error(tr("Failed to fetch joined sanctuaries"))
     }
 
     return response.json()
@@ -766,7 +767,7 @@ class AuthService {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch pending rituals")
+      throw new Error(tr("Failed to fetch pending rituals"))
     }
 
     return response.json()
@@ -784,7 +785,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || "Failed to review ritual")
+      throw new Error(error?.detail || tr("Failed to review ritual"))
     }
 
     return response.json()

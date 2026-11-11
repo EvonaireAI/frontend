@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation"
 import { CheckCircle, Loader2, Library, Play, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchPurchases, type Purchase } from "@/lib/commons"
+import { tr, trNode } from "@/lib/i18n"
+
 
 function SuccessContent() {
   const searchParams = useSearchParams()
@@ -68,9 +70,9 @@ function SuccessContent() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <Loader2 className="w-7 h-7 text-primary animate-spin" />
             </div>
-            <h1 className="text-xl font-semibold text-foreground mb-2">Completing your purchase…</h1>
+            <h1 className="text-xl font-semibold text-foreground mb-2">{tr("Completing your purchase…")}</h1>
             <p className="text-sm text-muted-foreground">
-              Adding this offering to your library. Just a moment.
+              {tr("Adding this offering to your library. Just a moment.")}
             </p>
           </>
         )}
@@ -80,10 +82,10 @@ function SuccessContent() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <CheckCircle className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-serif text-foreground mb-2">Purchase complete</h1>
+            <h1 className="text-2xl font-serif text-foreground mb-2">{tr("Purchase complete")}</h1>
             <p className="text-sm text-muted-foreground mb-8">
               {purchase
-                ? `“${purchase.listing.title}” is now in your library.`
+                ? trNode("“{p0}” is now in your library.", { p0: purchase.listing.title })
                 : "Your offering is now in your library."}
             </p>
 
@@ -95,14 +97,14 @@ function SuccessContent() {
                     className="flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Play className="w-4 h-4" />
-                    Play ritual
+                    {tr("Play ritual")}
                   </Link>
                 </Button>
               )}
               <Button asChild variant={purchase?.listing.ritual ? "outline" : "default"} className="w-full cursor-pointer">
                 <Link href="/commons/library" className="flex items-center justify-center gap-2">
                   <Library className="w-4 h-4" />
-                  View my purchases
+                  {tr("View my purchases")}
                 </Link>
               </Button>
             </div>
@@ -114,15 +116,14 @@ function SuccessContent() {
             <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-5">
               <Sparkles className="w-7 h-7 text-muted-foreground" />
             </div>
-            <h1 className="text-xl font-semibold text-foreground mb-2">Payment received</h1>
+            <h1 className="text-xl font-semibold text-foreground mb-2">{tr("Payment received")}</h1>
             <p className="text-sm text-muted-foreground mb-8">
-              Your payment went through. It can take a moment to appear — your library will update
-              shortly.
+              {tr("Your payment went through. It can take a moment to appear — your library will update shortly.")}
             </p>
             <Button asChild className="w-full cursor-pointer">
               <Link href="/commons/library" className="flex items-center justify-center gap-2">
                 <Library className="w-4 h-4" />
-                Go to my purchases
+                {tr("Go to my purchases")}
               </Link>
             </Button>
           </>
@@ -130,7 +131,7 @@ function SuccessContent() {
 
         {sessionId && (
           <p className="text-xs text-muted-foreground/50 font-mono mt-6">
-            Ref: {sessionId.slice(0, 24)}…
+            {trNode("Ref: {p0}…", { p0: sessionId.slice(0, 24) })}
           </p>
         )}
       </div>

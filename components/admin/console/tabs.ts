@@ -1,7 +1,9 @@
+
+import { trDeep } from "@/lib/i18n"
 // The Steward Console's canonical sections. The `id` appears in
 // `/admin?tab=…`, so these strings are deep links — treat them as stable.
 
-export const STEWARD_TABS = [
+export const STEWARD_TABS = trDeep([
   { id: "overview", label: "Platform Overview" },
   { id: "requests", label: "Steward Requests" },
   { id: "trust-care", label: "Trust & Care" },
@@ -13,7 +15,7 @@ export const STEWARD_TABS = [
   { id: "intelligence", label: "Platform Intelligence" },
   { id: "archive", label: "The Archive" },
   { id: "configuration", label: "Platform Configuration" },
-] as const
+] as const)
 
 export type StewardTab = (typeof STEWARD_TABS)[number]["id"]
 

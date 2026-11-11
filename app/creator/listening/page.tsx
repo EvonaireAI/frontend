@@ -21,13 +21,15 @@ import {
   type ListeningDay,
 } from "@/lib/listening"
 import { Loader2, ChevronLeft, ChevronRight, Clock, Users, Headphones, RefreshCw, Moon } from "lucide-react"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 interface DayPoint extends ListeningDay {
   day: number
 }
 
 function formatMinutes(minutes: number): string {
-  return minutes.toLocaleString("en-US", { maximumFractionDigits: 1 })
+  return minutes.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })
 }
 
 function DayTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: DayPoint }> }) {
@@ -145,9 +147,9 @@ export default function CreatorListeningPage() {
       <div className="container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
         <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Your Listening</h1>
+            <h1 className="text-3xl font-bold text-foreground">{tr("Your Listening")}</h1>
             <p className="text-muted-foreground mt-1">
-              How members spend time with your rituals. Aggregate minutes only — updated nightly.
+              {tr("How members spend time with your rituals. Aggregate minutes only — updated nightly.")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -155,7 +157,7 @@ export default function CreatorListeningPage() {
               variant="outline"
               size="icon"
               onClick={() => setPeriod((p) => shiftPeriod(p, -1))}
-              aria-label="Previous month"
+              aria-label={tr("Previous month")}
               className="bg-transparent border-border"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -168,7 +170,7 @@ export default function CreatorListeningPage() {
               size="icon"
               onClick={() => setPeriod((p) => shiftPeriod(p, 1))}
               disabled={isCurrentMonth}
-              aria-label="Next month"
+              aria-label={tr("Next month")}
               className="bg-transparent border-border"
             >
               <ChevronRight className="w-4 h-4" />
@@ -179,10 +181,10 @@ export default function CreatorListeningPage() {
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-              <span>Failed to load your listening analytics.</span>
+              <span>{tr("Failed to load your listening analytics.")}</span>
               <Button variant="outline" size="sm" onClick={load}>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
+                {tr("Retry")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -193,10 +195,10 @@ export default function CreatorListeningPage() {
             <CardContent className="p-12 text-center">
               <Headphones className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                No qualified listening yet
+                {tr("No qualified listening yet")}
               </h3>
               <p className="text-muted-foreground">
-                Minutes appear the day after members listen.
+                {tr("Minutes appear the day after members listen.")}
               </p>
             </CardContent>
           </Card>
@@ -207,19 +209,19 @@ export default function CreatorListeningPage() {
             <div className="grid gap-4 md:grid-cols-3 mb-8">
               <Card className="bg-card border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Qualified Minutes</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Qualified Minutes")}</CardTitle>
                   <Clock className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-primary">
                     {formatMinutes(data.totals.qualified_minutes)}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Your royalties are based on these</p>
+                  <p className="text-xs text-muted-foreground mt-1">{tr("Your royalties are based on these")}</p>
                 </CardContent>
               </Card>
               <Card className="bg-card border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Unique Listeners</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Unique Listeners")}</CardTitle>
                   <Users className="h-4 w-4 text-gold-light" />
                 </CardHeader>
                 <CardContent>
@@ -228,7 +230,7 @@ export default function CreatorListeningPage() {
               </Card>
               <Card className="bg-card border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Sessions</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Sessions")}</CardTitle>
                   <Headphones className="h-4 w-4 text-gold-muted" />
                 </CardHeader>
                 <CardContent>
@@ -241,7 +243,7 @@ export default function CreatorListeningPage() {
               <CardHeader>
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <CardTitle className="text-foreground">Qualified minutes by day</CardTitle>
+                    <CardTitle className="text-foreground">{tr("Qualified minutes by day")}</CardTitle>
                     <CardDescription>
                       {isCurrentMonth
                         ? "Updated nightly — today's listening appears tomorrow"
@@ -250,13 +252,13 @@ export default function CreatorListeningPage() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Moon className="w-3.5 h-3.5" />
-                    Updated nightly
+                    {tr("Updated nightly")}
                   </span>
                 </div>
               </CardHeader>
               <CardContent>
                 <ChartContainer
-                  config={{ qualified_minutes: { label: "Qualified minutes", color: "var(--chart-1)" } }}
+                  config={{ qualified_minutes: { label: tr("Qualified minutes"), color: "var(--chart-1)" } }}
                   className="aspect-auto h-[260px] w-full"
                 >
                   <BarChart data={points} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -266,7 +268,7 @@ export default function CreatorListeningPage() {
                       tickLine={false}
                       axisLine={false}
                       width={44}
-                      tickFormatter={(v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 1 })}
+                      tickFormatter={(v: number) => v.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })}
                     />
                     <ChartTooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={<DayTooltip />} />
                     <Bar dataKey="qualified_minutes" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
@@ -277,22 +279,22 @@ export default function CreatorListeningPage() {
 
             <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-foreground">By ritual</CardTitle>
-                <CardDescription>Where your qualified minutes came from this month</CardDescription>
+                <CardTitle className="text-foreground">{tr("By ritual")}</CardTitle>
+                <CardDescription>{tr("Where your qualified minutes came from this month")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {data.by_ritual.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">
-                    No qualified listening for individual rituals this month.
+                    {tr("No qualified listening for individual rituals this month.")}
                   </p>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Ritual</TableHead>
-                        <TableHead className="text-right">Qualified minutes</TableHead>
-                        <TableHead className="text-right">Unique listeners</TableHead>
-                        <TableHead className="text-right">Sessions</TableHead>
+                        <TableHead>{tr("Ritual")}</TableHead>
+                        <TableHead className="text-right">{tr("Qualified minutes")}</TableHead>
+                        <TableHead className="text-right">{tr("Unique listeners")}</TableHead>
+                        <TableHead className="text-right">{tr("Sessions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

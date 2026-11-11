@@ -13,6 +13,8 @@ import {
   type GatewayQuizOptionKey,
   type GatewayQuizAnswerResult,
 } from "@/lib/gateway-quiz"
+import { tr } from "@/lib/i18n"
+
 
 const OPTION_KEYS: GatewayQuizOptionKey[] = ["A", "B", "C", "D"]
 
@@ -56,7 +58,7 @@ export function GatewayQuestionCard({
         onStale()
         return
       }
-      setError(err instanceof Error ? err.message : "Couldn't record your answer")
+      setError(err instanceof Error ? err.message : tr("Couldn't record your answer"))
     } finally {
       setSubmitting(false)
     }
@@ -68,7 +70,7 @@ export function GatewayQuestionCard({
       <div className="space-y-4">
         <div className="flex items-start gap-2 text-sm text-foreground">
           <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <span>Your reflection is received.</span>
+          <span>{tr("Your reflection is received.")}</span>
         </div>
         {result.completion_message && (
           <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-foreground">
@@ -122,7 +124,7 @@ export function GatewayQuestionCard({
         {submitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving…
+            {tr("Saving…")}
           </>
         ) : (
           "Answer"

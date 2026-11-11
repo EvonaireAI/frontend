@@ -4,6 +4,7 @@
 // Money fields are integer cents unless the name says `dollars`.
 
 import { authedFetch } from "./authed-fetch"
+import { tr,fmtLocale  } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -79,7 +80,7 @@ class MetricsService {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to fetch metrics")
+      throw new Error(tr("Failed to fetch metrics"))
     }
 
     return response.json()
@@ -150,7 +151,7 @@ export function normalizeMetricsOverview(
 // --- display helpers ---
 
 export function centsToDollarString(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
+  return (cents / 100).toLocaleString(fmtLocale(), {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
@@ -159,7 +160,7 @@ export function centsToDollarString(cents: number): string {
 }
 
 export function rateToPercentString(rate: number): string {
-  return `${(rate * 100).toLocaleString("en-US", { maximumFractionDigits: 1 })}%`
+  return `${(rate * 100).toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })}%`
 }
 
 const MONTH_NAMES = [

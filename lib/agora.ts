@@ -1,6 +1,7 @@
 import { authService } from "./auth"
 import { authedFetch } from "./authed-fetch"
 import { throwIfEntitlementDenied } from "./entitlements"
+import { tr, trDeep } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -68,12 +69,12 @@ export interface PostsPage {
 
 export type FlagReason = "emotional_harm" | "cultural_harm" | "misuse" | "other"
 
-export const FLAG_REASON_LABELS: Record<FlagReason, string> = {
+export const FLAG_REASON_LABELS: Record<FlagReason, string> = trDeep({
   emotional_harm: "Emotional harm",
   cultural_harm: "Cultural harm",
   misuse: "Misuse of the space",
   other: "Something else",
-}
+})
 
 export interface FlagPayload {
   reason: FlagReason
@@ -105,7 +106,7 @@ export class NotMemberError extends Error {
 // gentle neutral toast, not an error.
 export class ThrottledError extends Error {
   constructor() {
-    super("Take a breath — you're posting quickly. Try again in a moment.")
+    super(tr("Take a breath — you're posting quickly. Try again in a moment."))
     this.name = "ThrottledError"
   }
 }
@@ -165,9 +166,9 @@ class AgoraService {
         throw new CircleTitleError(Array.isArray(titleError) ? titleError[0] : titleError)
       }
       if (response.status === 403) {
-        throw new NotMemberError(body?.detail || "You must be a member of this sanctuary.")
+        throw new NotMemberError(body?.detail || tr("You must be a member of this sanctuary."))
       }
-      throw new Error(body?.detail || `Failed to create circle: ${response.statusText}`)
+      throw new Error(body?.detail || tr("Failed to create circle: {p0}", { p0: response.statusText }))
     }
 
     return response.json()

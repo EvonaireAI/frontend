@@ -18,6 +18,8 @@ import {
   type RoyaltyPeriodList,
 } from "@/lib/royalties"
 import { RefreshCw } from "lucide-react"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 // Creator Earnings — the Session 05 royalty periods list, moved under this tab.
 // The per-period report and the approve flow keep their own route at
@@ -65,10 +67,10 @@ export function EarningsTab() {
     return (
       <Alert variant="destructive">
         <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-          <span>Failed to load royalty periods.</span>
+          <span>{tr("Failed to load royalty periods.")}</span>
           <Button variant="outline" size="sm" onClick={load}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {tr("Retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -81,12 +83,11 @@ export function EarningsTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Monthly royalty periods — 89% of member fees to creators, 11% platform fee. Review a period&apos;s report
-          before approving it.
+          {tr("Monthly royalty periods — 89% of member fees to creators, 11% platform fee. Review a period's report before approving it.")}
         </p>
         <Button variant="outline" size="sm" onClick={load}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -96,7 +97,7 @@ export function EarningsTab() {
         <Card>
           <CardContent className="pt-6">
             <p className="py-8 text-center text-muted-foreground">
-              No royalty periods yet. The first period appears after a month closes and computes.
+              {tr("No royalty periods yet. The first period appears after a month closes and computes.")}
             </p>
           </CardContent>
         </Card>
@@ -105,13 +106,13 @@ export function EarningsTab() {
           <Table className="min-w-[48rem]">
             <TableHeader>
               <TableRow>
-                <TableHead>Period</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Gross</TableHead>
-                <TableHead className="text-right">Platform fee (11%)</TableHead>
-                <TableHead className="text-right">Creator pool (89%)</TableHead>
-                <TableHead className="text-right">Paying members</TableHead>
-                <TableHead className="text-right">Idle members</TableHead>
+                <TableHead>{tr("Period")}</TableHead>
+                <TableHead>{tr("Status")}</TableHead>
+                <TableHead className="text-right">{tr("Gross")}</TableHead>
+                <TableHead className="text-right">{tr("Platform fee (11%)")}</TableHead>
+                <TableHead className="text-right">{tr("Creator pool (89%)")}</TableHead>
+                <TableHead className="text-right">{tr("Paying members")}</TableHead>
+                <TableHead className="text-right">{tr("Idle members")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -142,9 +143,9 @@ export function EarningsTab() {
                       {centsToDollarString(period.pool_cents)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {period.paying_members.toLocaleString()}
+                      {period.paying_members.toLocaleString(fmtLocale())}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">{period.idle_members.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{period.idle_members.toLocaleString(fmtLocale())}</TableCell>
                   </TableRow>
                 )
               })}

@@ -5,6 +5,7 @@
 
 import { authedFetch } from "./authed-fetch"
 import { MetricsForbiddenError } from "./metrics"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -123,7 +124,7 @@ export async function getMarketingDashboard(days = 30): Promise<MarketingDashboa
     { headers: authHeaders() },
   )
   if (response.status === 403) throw new MetricsForbiddenError()
-  if (!response.ok) throw new Error("Failed to fetch marketing dashboard")
+  if (!response.ok) throw new Error(tr("Failed to fetch marketing dashboard"))
   return response.json()
 }
 
@@ -141,7 +142,7 @@ export async function connectMarketingPlatform(
   )
   if (response.status === 403) throw new MetricsForbiddenError()
   if (!response.ok) {
-    throw new Error(await parseErrorMessage(response, `Failed to connect ${platform}`))
+    throw new Error(await parseErrorMessage(response, tr("Failed to connect {p0}", { p0: platform })))
   }
   return response.json()
 }
@@ -175,7 +176,7 @@ export async function disconnectMarketingPlatform(
   )
   if (response.status === 403) throw new MetricsForbiddenError()
   if (!response.ok) {
-    throw new Error(await parseErrorMessage(response, `Failed to disconnect ${platform}`))
+    throw new Error(await parseErrorMessage(response, tr("Failed to disconnect {p0}", { p0: platform })))
   }
   return response.json()
 }

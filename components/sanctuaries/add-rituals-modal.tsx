@@ -9,6 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { authService, type Ritual } from "@/lib/auth"
 import { sanctuariesService } from "@/lib/sanctuaries"
 import { Loader2, Plus, Search } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 interface AddRitualsModalProps {
   open: boolean
@@ -91,15 +93,15 @@ export function AddRitualsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Add Rituals to Sanctuary</DialogTitle>
-          <DialogDescription>Select level 2 or level 3 rituals to add to this sanctuary</DialogDescription>
+          <DialogTitle className="text-foreground">{tr("Add Rituals to Sanctuary")}</DialogTitle>
+          <DialogDescription>{tr("Select level 2 or level 3 rituals to add to this sanctuary")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search rituals..."
+              placeholder={tr("Search rituals...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -133,7 +135,7 @@ export function AddRitualsModal({
                         </Badge>
                         {ritual.duration_seconds && (
                           <Badge variant="outline" className="text-xs">
-                            {Math.round(ritual.duration_seconds / 60)} min
+                            {trNode("{p0} min", { p0: Math.round(ritual.duration_seconds / 60) })}
                           </Badge>
                         )}
                       </div>
@@ -149,7 +151,7 @@ export function AddRitualsModal({
                       ) : (
                         <>
                           <Plus className="w-4 h-4 mr-1" />
-                          Add
+                          {tr("Add")}
                         </>
                       )}
                     </Button>

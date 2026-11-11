@@ -4,6 +4,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Shield } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 const PRIVACY_POLICY_EMBED_URL = "https://docs.google.com/document/d/e/2PACX-1vSJTVzLVd_GRZmOIkzFr6QFEICiLejBTcomzkDtDvhHFetBQ3mEDZNGnJoWQfJSgbGbqzTCuN2e-Thl/pub?embedded=true"
 
@@ -16,13 +18,13 @@ export default function PrivacyPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="Evonaire" width={40} height={40} />
-              <span className="text-xl font-semibold text-cream">Evonaire</span>
+              <img src="/logo.svg" alt={tr("Evonaire")} width={40} height={40} />
+              <span className="text-xl font-semibold text-cream">{tr("Evonaire")}</span>
             </Link>
             <Link href="/">
               <Button variant="ghost" className="text-cream/70 hover:text-cream hover:bg-gold/10">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
+                {tr("Back to Home")}
               </Button>
             </Link>
           </div>
@@ -36,8 +38,8 @@ export default function PrivacyPage() {
             <div className="mx-auto w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-8 w-8 text-gold" />
             </div>
-            <CardTitle className="text-3xl text-cream font-serif">Privacy Policy</CardTitle>
-            <p className="text-cream/60 mt-2">Learn how Evonaire protects and handles your personal information</p>
+            <CardTitle className="text-3xl text-cream font-serif">{tr("Privacy Policy")}</CardTitle>
+            <p className="text-cream/60 mt-2">{tr("Learn how Evonaire protects and handles your personal information")}</p>
           </CardHeader>
           <CardContent>
             <div className="rounded-lg border border-gold/20 overflow-hidden bg-white">
@@ -45,7 +47,7 @@ export default function PrivacyPage() {
                 src={PRIVACY_POLICY_EMBED_URL}
                 className="w-full border-0"
                 style={{ height: "calc(100vh - 350px)", minHeight: "600px" }}
-                title="Evonaire Privacy Policy"
+                title={tr("Evonaire Privacy Policy")}
                 loading="lazy"
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               />
@@ -57,18 +59,18 @@ export default function PrivacyPage() {
         <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <Link href="/terms">
             <Button variant="outline" className="border-gold/30 text-cream hover:bg-gold/10 hover:border-gold">
-              View Terms of Service
+              {tr("View Terms of Service")}
             </Button>
           </Link>
           <div className="flex gap-4">
             <a href="mailto:support@evonaire.ai">
               <Button variant="ghost" className="text-cream/70 hover:text-cream hover:bg-gold/10">
-                Contact Support
+                {tr("Contact Support")}
               </Button>
             </a>
             <Link href="/">
               <Button className="bg-gold text-dark-navy hover:bg-gold-muted">
-                Back to Home
+                {tr("Back to Home")}
               </Button>
             </Link>
           </div>

@@ -1,3 +1,19 @@
+import { readFileSync } from "node:fs"
+
+// Next does not transpile node_modules by default. Radix, react-day-picker,
+// input-otp and their transitive dependencies ship optional chaining, which
+// Chrome 69 (Android 8.0) cannot parse. Every locked package except the React
+// runtime is transpiled to the browserslist targets in package.json.
+const NODE_MODULES = "node_modules/"
+const lock = JSON.parse(readFileSync(new URL("./package-lock.json", import.meta.url), "utf8"))
+const transpilePackages = [
+  ...new Set(
+    Object.keys(lock.packages)
+      .filter((key) => key.includes(NODE_MODULES))
+      .map((key) => key.slice(key.lastIndexOf(NODE_MODULES) + NODE_MODULES.length)),
+  ),
+].filter((name) => !["next", "react", "react-dom"].includes(name))
+
 // Origin the browser calls for API requests. NEXT_PUBLIC_API_BASE_URL may
 // be a relative path ("/api"), in which case requests are same-origin and
 // no extra CSP source is needed.
@@ -69,6 +85,7 @@ const securityHeaders = (permissionsPolicy) => [
 ]
 
 const nextConfig = {
+  transpilePackages,
   images: {
     unoptimized: true,
   },

@@ -11,6 +11,8 @@ import { Check, Loader2, RefreshCw, X } from "lucide-react"
 import { toast } from "sonner"
 import { authService, type RoleRequest } from "@/lib/auth"
 import { roleShortLabel } from "@/lib/roles"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // Requests for elevated roles. Unchanged behaviour from Session 10 — the only
 // Session 11 difference is that a `role="superadmin"` steward can now reach it,
@@ -28,7 +30,7 @@ export function StewardRequestsTab() {
     try {
       setRequests(await authService.getRoleRequests())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load steward requests")
+      setError(err instanceof Error ? err.message : tr("Failed to load steward requests"))
     } finally {
       setLoading(false)
     }
@@ -43,14 +45,14 @@ export function StewardRequestsTab() {
     try {
       if (decision === "approve") {
         await authService.approveRoleRequest(id)
-        toast.success("Request approved")
+        toast.success(tr("Request approved"))
       } else {
         await authService.rejectRoleRequest(id)
-        toast.success("Request rejected")
+        toast.success(tr("Request rejected"))
       }
       setRequests((prev) => prev.filter((request) => request.id !== id))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : `Failed to ${decision} the request`)
+      toast.error(err instanceof Error ? err.message : tr(decision === "approve" ? "Failed to approve the request" : "Failed to reject the request"))
       load()
     } finally {
       setActionId(null)
@@ -62,14 +64,14 @@ export function StewardRequestsTab() {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <CardTitle className="text-base">Pending steward requests</CardTitle>
-            <CardDescription>Review and approve or reject requests for elevated roles.</CardDescription>
+            <CardTitle className="text-base">{tr("Pending steward requests")}</CardTitle>
+            <CardDescription>{tr("Review and approve or reject requests for elevated roles.")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{requests.length} pending</Badge>
+            <Badge variant="outline">{trNode("{p0} pending", { p0: requests.length })}</Badge>
             <Button variant="outline" size="sm" onClick={load} disabled={loading}>
               <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
+              {tr("Refresh")}
             </Button>
           </div>
         </div>
@@ -88,7 +90,7 @@ export function StewardRequestsTab() {
             ))}
           </div>
         ) : requests.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">No pending role requests.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{tr("No pending role requests.")}</p>
         ) : (
           <div className="space-y-4">
             {requests.map((request) => (
@@ -110,8 +112,8 @@ export function StewardRequestsTab() {
                       </h3>
                       <p className="break-all text-sm text-muted-foreground">{request.user.email}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <Badge variant="outline">Current: {roleShortLabel(request.user.role)}</Badge>
-                        <Badge>Requesting: {roleShortLabel(request.requested_role)}</Badge>
+                        <Badge variant="outline">{trNode("Current: {p0}", { p0: roleShortLabel(request.user.role) })}</Badge>
+                        <Badge>{trNode("Requesting: {p0}", { p0: roleShortLabel(request.requested_role) })}</Badge>
                       </div>
                     </div>
                   </div>
@@ -122,7 +124,7 @@ export function StewardRequestsTab() {
                       ) : (
                         <Check className="mr-2 h-4 w-4" />
                       )}
-                      Approve
+                      {tr("Approve")}
                     </Button>
                     <Button
                       size="sm"
@@ -135,16 +137,16 @@ export function StewardRequestsTab() {
                       ) : (
                         <X className="mr-2 h-4 w-4" />
                       )}
-                      Reject
+                      {tr("Reject")}
                     </Button>
                   </div>
                 </div>
                 <div>
-                  <h4 className="mb-1 text-sm font-medium">Reason</h4>
+                  <h4 className="mb-1 text-sm font-medium">{tr("Reason")}</h4>
                   <p className="break-words rounded bg-muted p-3 text-sm text-muted-foreground">{request.reason}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Requested on {new Date(request.created_at).toLocaleDateString()}
+                  {trNode("Requested on {p0}", { p0: new Date(request.created_at).toLocaleDateString(fmtLocale()) })}
                 </p>
               </div>
             ))}

@@ -27,6 +27,8 @@ import { CommonsTab } from "@/components/admin/console/commons-tab"
 import { IntelligenceTab } from "@/components/admin/console/intelligence-tab"
 import { ArchiveTab } from "@/components/admin/console/archive-tab"
 import { PlatformConfigTab } from "@/components/admin/console/platform-config-tab"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 /** Radix keeps inactive panels in the tree — only mount the active tab's data hooks. */
 function StewardTabPanel({
@@ -106,7 +108,7 @@ function StewardWorkspace() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-16 text-center text-muted-foreground">
-        <p>Redirecting…</p>
+        <p>{tr("Redirecting…")}</p>
       </div>
     )
   }
@@ -120,11 +122,11 @@ function StewardWorkspace() {
               <Shield className="h-7 w-7 text-primary" />
               {GLOSSARY.stewardDashboard}
               {pendingTotal !== null && pendingTotal > 0 && (
-                <Badge className="text-sm">{pendingTotal.toLocaleString()} pending</Badge>
+                <Badge className="text-sm">{trNode("{p0} pending", { p0: pendingTotal.toLocaleString(fmtLocale()) })}</Badge>
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Platform health, trust, and the record of what happened.
+              {tr("Platform health, trust, and the record of what happened.")}
             </p>
           </div>
         </div>

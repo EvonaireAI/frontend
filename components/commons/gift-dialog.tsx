@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Gift } from "lucide-react"
 import { toast } from "sonner"
 import { giftListing, type MyListing } from "@/lib/commons"
+import { tr, trNode } from "@/lib/i18n"
+
 
 interface Props {
   open: boolean
@@ -37,11 +39,11 @@ export function GiftDialog({ open, onOpenChange, listing }: Props) {
   const handleSend = async () => {
     if (!listing) return
     if (!email.trim()) {
-      toast.error("Enter the recipient's email.")
+      toast.error(tr("Enter the recipient's email."))
       return
     }
     if (!expiresAt) {
-      toast.error("Choose an expiry date for the gift.")
+      toast.error(tr("Choose an expiry date for the gift."))
       return
     }
     setSending(true)
@@ -50,10 +52,10 @@ export function GiftDialog({ open, onOpenChange, listing }: Props) {
         email: email.trim(),
         expires_at: `${expiresAt}T00:00:00Z`,
       })
-      toast.success("Gift sent")
+      toast.success(tr("Gift sent"))
       onOpenChange(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send the gift")
+      toast.error(err instanceof Error ? err.message : tr("Failed to send the gift"))
     } finally {
       setSending(false)
     }
@@ -65,27 +67,27 @@ export function GiftDialog({ open, onOpenChange, listing }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Gift className="w-4 h-4 text-primary" />
-            Gift this offering
+            {tr("Gift this offering")}
           </DialogTitle>
           <DialogDescription>
-            {listing ? `Give someone access to “${listing.title}”.` : ""} Up to 10 active gifts per
-            listing.
+            {listing ? trNode("Give someone access to “{p0}”. ", { p0: listing.title }) : null}
+            {tr("Up to 10 active gifts per listing.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="gift-email">Recipient email</Label>
+            <Label htmlFor="gift-email">{tr("Recipient email")}</Label>
             <Input
               id="gift-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="friend@example.com"
+              placeholder={tr("friend@example.com")}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="gift-expiry">Access expires</Label>
+            <Label htmlFor="gift-expiry">{tr("Access expires")}</Label>
             <Input
               id="gift-expiry"
               type="date"
@@ -97,11 +99,11 @@ export function GiftDialog({ open, onOpenChange, listing }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button onClick={handleSend} disabled={sending}>
             {sending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Send gift
+            {tr("Send gift")}
           </Button>
         </DialogFooter>
       </DialogContent>

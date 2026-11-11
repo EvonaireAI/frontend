@@ -1,4 +1,5 @@
 // Audio upload gate for the creator ritual form.
+import { tr } from "./i18n/index.ts"
 //
 // The file input's `accept="audio/*"` is a picker hint, not a check: the
 // browser fills `file.type` from the extension, and both can be changed in
@@ -40,7 +41,7 @@ export function audioFileError(file: { name?: string; type?: string }): string |
     if (ALLOWED_EXTENSIONS.some((extension) => name.endsWith(extension))) return null
   }
 
-  return "Choose an MP3, M4A, WAV, OGG, WebM, FLAC, or AAC audio file."
+  return tr("Choose an MP3, M4A, WAV, OGG, WebM, FLAC, or AAC audio file.")
 }
 
 // MediaRecorder container preference, most portable first. audio/mp4 (AAC)

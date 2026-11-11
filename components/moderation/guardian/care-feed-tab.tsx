@@ -9,21 +9,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Clock, Heart, MessageSquare, RefreshCw, ShieldAlert, User as UserIcon } from "lucide-react"
 import { moderationService, SEVERITY_CHIPS, type CareFeedItem } from "@/lib/moderation"
+import { fmtLocale, tr, trDeep, trNode } from "@/lib/i18n"
+
 
 // The Care Feed is a record of care *extended* — the blessings and feedback
 // guardians have given, merged with the live cases they're holding. It is not a
 // second queue, so nothing here asks to be actioned.
 
-const TYPE_META: Record<CareFeedItem["type"], { icon: React.ReactNode; label: string }> = {
+const TYPE_META: Record<CareFeedItem["type"], { icon: React.ReactNode; label: string }> = trDeep({
   blessing: { icon: <Heart className="h-4 w-4 text-pink-500" />, label: "Blessing given" },
   feedback: { icon: <MessageSquare className="h-4 w-4 text-blue-500" />, label: "Feedback given" },
   case: { icon: <ShieldAlert className="h-4 w-4 text-orange-500" />, label: "Care case" },
-}
+})
 
 function BlessingRow({ item }: { item: CareFeedItem }) {
   return (
     <p className="text-sm text-muted-foreground">
-      A blessing was offered{item.ritual_title ? ` on “${item.ritual_title}”` : ""}.
+      {trNode("A blessing was offered{p0}.", { p0: item.ritual_title ? ` on “${item.ritual_title}”` : "" })}
     </p>
   )
 }
@@ -41,7 +43,7 @@ function CaseRow({ item }: { item: CareFeedItem }) {
     <div className="space-y-1">
       <p className="break-words text-sm text-muted-foreground">{item.flagged_reason || "No reason recorded."}</p>
       {item.assigned_moderator_email && (
-        <p className="text-xs text-muted-foreground">Held by {item.assigned_moderator_email}</p>
+        <p className="text-xs text-muted-foreground">{trNode("Held by {p0}", { p0: item.assigned_moderator_email })}</p>
       )}
     </div>
   )
@@ -58,7 +60,7 @@ export function CareFeedTab() {
     try {
       setItems(await moderationService.getCareFeed(50))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load the Care Feed")
+      setError(err instanceof Error ? err.message : tr("Failed to load the Care Feed"))
     } finally {
       setLoading(false)
     }
@@ -72,12 +74,11 @@ export function CareFeedTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Care extended across the community — blessings and feedback given by guardians, alongside the cases
-          currently being held. Nothing here needs action.
+          {tr("Care extended across the community — blessings and feedback given by guardians, alongside the cases currently being held. Nothing here needs action.")}
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -96,8 +97,8 @@ export function CareFeedTab() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
           <Heart className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <p className="font-medium text-foreground">No care recorded yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Blessings and feedback appear here as they&apos;re given.</p>
+          <p className="font-medium text-foreground">{tr("No care recorded yet")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tr("Blessings and feedback appear here as they're given.")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -121,7 +122,7 @@ export function CareFeedTab() {
                         )}
                         {item.is_anonymous && (
                           <Badge variant="outline" className="text-xs">
-                            Anonymous
+                            {tr("Anonymous")}
                           </Badge>
                         )}
                       </div>
@@ -144,12 +145,12 @@ export function CareFeedTab() {
                         {item.created_at && (
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
-                            {new Date(item.created_at).toLocaleDateString()}
+                            {new Date(item.created_at).toLocaleDateString(fmtLocale())}
                           </span>
                         )}
                         {item.ritual && (
                           <Link href={`/member/ritual/${item.ritual}`} className="text-primary hover:underline">
-                            View ritual
+                            {tr("View ritual")}
                           </Link>
                         )}
                       </div>

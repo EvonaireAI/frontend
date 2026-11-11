@@ -4,6 +4,8 @@ import { useState } from "react"
 import { AlertTriangle, Info, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { verifyEventChain, type ChainCheck, type ClaimEvent } from "@/lib/claimchain"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // The check itself runs in the creator's browser over hashes they can read on
 // the same page. That is what makes it worth having: it is not us telling them
@@ -24,8 +26,7 @@ function Result({ result }: { result: ChainCheck }) {
       <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <Info className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />
         <p>
-          There are no events to check yet. Nothing has been recorded against this ritual, so
-          there is nothing to verify — this is not a pass.
+          {tr("There are no events to check yet. Nothing has been recorded against this ritual, so there is nothing to verify — this is not a pass.")}
         </p>
       </div>
     )
@@ -36,8 +37,7 @@ function Result({ result }: { result: ChainCheck }) {
       <div className="flex items-start gap-2 text-sm">
         <Info className="w-4 h-4 mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
         <p className="text-foreground">
-          One event recorded. There are no links to check yet — a second event will chain onto
-          this one.
+          {tr("One event recorded. There are no links to check yet — a second event will chain onto this one.")}
         </p>
       </div>
     )
@@ -49,11 +49,10 @@ function Result({ result }: { result: ChainCheck }) {
         <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-primary" aria-hidden />
         <div>
           <p className="text-foreground font-medium">
-            Record intact — {plural(result.events, "event")} verified
+            {trNode("Record intact — {p0} verified", { p0: plural(result.events, "event") })}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Every event carries the fingerprint of the one before it, so none of them has been
-            changed since it was written. Checked in your browser, from the hashes shown below.
+            {tr("Every event carries the fingerprint of the one before it, so none of them has been changed since it was written. Checked in your browser, from the hashes shown below.")}
           </p>
         </div>
       </div>
@@ -65,16 +64,13 @@ function Result({ result }: { result: ChainCheck }) {
       <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-destructive" aria-hidden />
       <div>
         <p className="text-foreground font-medium">
-          Couldn&apos;t confirm the link at event {result.brokenEventId}
+          {trNode("Couldn't confirm the link at event {p0}", { p0: result.brokenEventId })}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Event {result.brokenEventId} should carry the fingerprint of event{" "}
-          {result.previousEventId}, and it doesn&apos;t. Send those two event numbers to a Steward
-          — they can check the record against the full ledger.
+          {trNode("Event {p0} should carry the fingerprint of event {p1}, and it doesn't. Send those two event numbers to a Steward — they can check the record against the full ledger.", { p0: result.brokenEventId, p1: result.previousEventId })}
         </p>
         <p className="text-xs text-muted-foreground mt-2">
-          This view lists only the events about this ritual. If the ledger holds an unrelated
-          event between these two, a Steward will see the link that this page cannot.
+          {tr("This view lists only the events about this ritual. If the ledger holds an unrelated event between these two, a Steward will see the link that this page cannot.")}
         </p>
       </div>
     </div>
@@ -88,10 +84,9 @@ export function ChainCheckPanel({ events }: { events: ClaimEvent[] }) {
     <div className="rounded-lg border border-border bg-secondary/40 p-4 space-y-3">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-sm font-medium text-foreground">Check this record yourself</p>
+          <p className="text-sm font-medium text-foreground">{tr("Check this record yourself")}</p>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-prose">
-            Each event stores the fingerprint of the previous one. Walking that chain shows
-            whether any of them has been altered.
+            {tr("Each event stores the fingerprint of the previous one. Walking that chain shows whether any of them has been altered.")}
           </p>
         </div>
         <Button
@@ -102,7 +97,7 @@ export function ChainCheckPanel({ events }: { events: ClaimEvent[] }) {
           className="bg-transparent"
         >
           <ShieldCheck className="w-4 h-4 mr-2" aria-hidden />
-          Verify this record
+          {tr("Verify this record")}
         </Button>
       </div>
       {result && (

@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { format } from "date-fns"
+
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { AnchorStatusBadge } from "@/components/claimchain/anchoring-note"
 import { HashValue } from "@/components/claimchain/copy-value"
 import { eventLabel, type Anchoring, type ClaimEvent } from "@/lib/claimchain"
+import { formatDate,tr  } from "@/lib/i18n"
+
 
 // Oldest first: this is a history, and a history read newest-first makes the
 // chain links run backwards, which is exactly the thing the reader is being
@@ -47,7 +49,7 @@ function EventRow({
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <p className="text-sm font-medium text-foreground">{eventLabel(event.event_type)}</p>
         <time className="text-xs text-muted-foreground" dateTime={event.created_at}>
-          {format(new Date(event.created_at), "d MMM yyyy, HH:mm")}
+          {formatDate(new Date(event.created_at), "d MMM yyyy, HH:mm")}
         </time>
       </div>
 
@@ -64,37 +66,37 @@ function EventRow({
           ) : (
             <ChevronRight className="w-3.5 h-3.5" aria-hidden />
           )}
-          Technical detail
+          {tr("Technical detail")}
         </button>
       </div>
 
       {open && (
         <dl className="mt-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 divide-y divide-border">
-          <TechnicalRow label="Event">
+          <TechnicalRow label={tr("Event")}>
             <span className="font-mono">{event.id}</span>
           </TechnicalRow>
-          <TechnicalRow label="Payload hash">
-            <HashValue value={event.payload_hash} label="payload hash" />
+          <TechnicalRow label={tr("Payload hash")}>
+            <HashValue value={event.payload_hash} label={tr("payload hash")} />
           </TechnicalRow>
-          <TechnicalRow label="Previous hash">
+          <TechnicalRow label={tr("Previous hash")}>
             {event.prev_hash ? (
-              <HashValue value={event.prev_hash} label="previous hash" />
+              <HashValue value={event.prev_hash} label={tr("previous hash")} />
             ) : (
               <span className="text-muted-foreground">
-                None — this is the first event in the ledger
+                {tr("None — this is the first event in the ledger")}
               </span>
             )}
           </TechnicalRow>
-          <TechnicalRow label="Batch root">
+          <TechnicalRow label={tr("Batch root")}>
             {event.batch_root ? (
-              <HashValue value={event.batch_root} label="batch root" />
+              <HashValue value={event.batch_root} label={tr("batch root")} />
             ) : (
               <span className="text-muted-foreground">
-                Not yet sealed into a batch. Batches are sealed every few minutes.
+                {tr("Not yet sealed into a batch. Batches are sealed every few minutes.")}
               </span>
             )}
           </TechnicalRow>
-          <TechnicalRow label="Publication">
+          <TechnicalRow label={tr("Publication")}>
             <AnchorStatusBadge status={event.anchor_status} anchoring={anchoring} />
           </TechnicalRow>
         </dl>
@@ -119,7 +121,7 @@ export function ClaimTimeline({
   if (ordered.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No claim events recorded for this ritual yet.
+        {tr("No claim events recorded for this ritual yet.")}
       </p>
     )
   }

@@ -22,6 +22,8 @@ import {
   revokeLicense,
   type LicenseRecord,
 } from "@/lib/claimchain"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // The one destructive action in this feature, so: a confirmation dialog that
 // names the consequences in the order they happen, a reason the holder may
@@ -78,7 +80,7 @@ export function RevokeLicenseDialog({
       onOpenChange(false)
     } catch (err) {
       if (err instanceof ClaimChainError && err.status === 403) {
-        setError("Only the creator of this content or a Steward can revoke this license.")
+        setError(tr("Only the creator of this content or a Steward can revoke this license."))
       } else if (err instanceof ClaimChainError && err.status === 400) {
         // Almost always "already revoked" — someone else got there first, or a
         // refund did. Re-read the row so the table tells the truth, and close
@@ -89,11 +91,11 @@ export function RevokeLicenseDialog({
           onOpenChange(false)
           return
         }
-        setError(err.detail || "That reason wasn't accepted. Please add a little more detail.")
+        setError(err.detail || tr("That reason wasn't accepted. Please add a little more detail."))
       } else if (err instanceof ClaimChainError && err.status === 404) {
-        setError("This license no longer exists. Reload the page to see the current record.")
+        setError(tr("This license no longer exists. Reload the page to see the current record."))
       } else {
-        setError("We couldn't withdraw this license just now. Please try again.")
+        setError(tr("We couldn't withdraw this license just now. Please try again."))
       }
     } finally {
       setSubmitting(false)
@@ -113,7 +115,7 @@ export function RevokeLicenseDialog({
         onEscapeKeyDown={(event) => { if (submitting) event.preventDefault() }}
       >
         <DialogHeader>
-          <DialogTitle>Withdraw this license?</DialogTitle>
+          <DialogTitle>{tr("Withdraw this license?")}</DialogTitle>
           <DialogDescription>
             {licenseLevelLabel(license.level)} · {holder} · {ritualTitle}
           </DialogDescription>
@@ -121,21 +123,19 @@ export function RevokeLicenseDialog({
 
         <div className="space-y-4">
           <div className="text-sm text-foreground">
-            <p className="mb-2">Three things happen, in this order:</p>
+            <p className="mb-2">{tr("Three things happen, in this order:")}</p>
             <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
-              <li>The license is recorded as withdrawn, with your reason and the time.</li>
-              <li>Their access to this content is withdrawn.</li>
-              <li>Any playback they have open right now stops.</li>
+              <li>{tr("The license is recorded as withdrawn, with your reason and the time.")}</li>
+              <li>{tr("Their access to this content is withdrawn.")}</li>
+              <li>{tr("Any playback they have open right now stops.")}</li>
             </ol>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="revoke-reason">Reason for withdrawing</Label>
+            <Label htmlFor="revoke-reason">{tr("Reason for withdrawing")}</Label>
             {/* Said before they type, not as a validation error afterwards. */}
             <p className="text-xs text-muted-foreground">
-              Required, at least {REVOKE_REASON_MIN_LENGTH} characters. Write it as though it
-              will be read: <strong className="font-medium text-foreground">the person who
-              bought this may be shown this reason</strong>.
+              {trNode("Required, at least {p0} characters. Write it as though it will be read: ", { p0: REVOKE_REASON_MIN_LENGTH })}<strong className="font-medium text-foreground">{tr("the person who bought this may be shown this reason")}</strong>.
             </p>
             <Textarea
               id="revoke-reason"
@@ -143,19 +143,18 @@ export function RevokeLicenseDialog({
               onChange={(event) => setReason(event.target.value)}
               rows={3}
               disabled={submitting}
-              placeholder="Withdrawn at the request of the community this ritual came from."
+              placeholder={tr("Withdrawn at the request of the community this ritual came from.")}
               aria-describedby="revoke-reason-count"
             />
             <p id="revoke-reason-count" className="text-xs text-muted-foreground">
               {longEnough
                 ? `${trimmed.length} characters`
-                : `${remaining} more character${remaining === 1 ? "" : "s"} needed`}
+                : trNode("{p0} more character{p1} needed", { p0: remaining, p1: remaining === 1 ? "" : "s" })}
             </p>
           </div>
 
           <p className="text-xs text-muted-foreground border-l-2 border-border pl-3">
-            Their access stops immediately. A stream already loading in their player may finish
-            the next few minutes of audio.
+            {tr("Their access stops immediately. A stream already loading in their player may finish the next few minutes of audio.")}
           </p>
 
           {error && (
@@ -174,7 +173,7 @@ export function RevokeLicenseDialog({
             disabled={submitting}
             className="bg-transparent"
           >
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button
             type="button"
@@ -183,7 +182,7 @@ export function RevokeLicenseDialog({
             disabled={!longEnough || submitting}
           >
             {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Withdraw license
+            {tr("Withdraw license")}
           </Button>
         </DialogFooter>
       </DialogContent>

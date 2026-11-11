@@ -1,11 +1,13 @@
 "use client"
 
-import { format } from "date-fns"
+
 import { ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AiUseChips } from "@/components/claimchain/ai-use"
 import { CopyButton } from "@/components/claimchain/copy-value"
 import { licenseLevelLabel, type LicenseRecord } from "@/lib/claimchain"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // What a buyer actually holds, attached to the purchase they already recognise.
 //
@@ -20,18 +22,16 @@ export function HeldLicensePanel({ license }: { license: LicenseRecord }) {
     <div className="mt-3 pt-3 border-t border-border space-y-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="text-xs text-muted-foreground">
-          License {licenseLevelLabel(license.level)}
+          {trNode("License {p0}", { p0: licenseLevelLabel(license.level) })}
         </span>
         <AiUseChips aiUse={license.ai_use} />
       </div>
 
       {revoked && (
         <p className="text-xs text-muted-foreground">
-          This license was withdrawn
-          {license.revoked_at
-            ? ` on ${format(new Date(license.revoked_at), "d MMMM")}`
-            : ""}
-          . If you weren&apos;t expecting this, contact support.
+          {trNode("This license was withdrawn{p0}. If you weren't expecting this, contact support.", { p0: license.revoked_at
+            ? ` on ${formatDate(new Date(license.revoked_at), "d MMMM")}`
+            : "" })}
         </p>
       )}
 
@@ -43,11 +43,11 @@ export function HeldLicensePanel({ license }: { license: LicenseRecord }) {
             rel="noopener noreferrer"
             className="text-xs"
           >
-            Verification page
+            {tr("Verification page")}
             <ExternalLink className="w-3 h-3 ml-1" aria-hidden />
           </a>
         </Button>
-        <CopyButton value={license.verify_url} label="Copy the verification link" />
+        <CopyButton value={license.verify_url} label={tr("Copy the verification link")} />
       </div>
     </div>
   )

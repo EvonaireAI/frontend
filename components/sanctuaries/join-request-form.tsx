@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 interface JoinRequestFormProps {
   sanctuaryId: number
@@ -33,7 +35,7 @@ export function JoinRequestForm({ sanctuaryId, sanctuaryTitle, onSubmit, onSucce
       setInviteToken("")
       onSuccess?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit request")
+      setError(err instanceof Error ? err.message : tr("Failed to submit request"))
     } finally {
       setLoading(false)
     }
@@ -42,15 +44,15 @@ export function JoinRequestForm({ sanctuaryId, sanctuaryTitle, onSubmit, onSucce
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Request to Join</CardTitle>
-        <CardDescription>Request access to {sanctuaryTitle}</CardDescription>
+        <CardTitle>{tr("Request to Join")}</CardTitle>
+        <CardDescription>{trNode("Request access to {p0}", { p0: sanctuaryTitle })}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">Tell us about yourself (optional)</label>
+            <label className="text-sm font-medium mb-2 block">{tr("Tell us about yourself (optional)")}</label>
             <Textarea
-              placeholder="Share why you're interested in joining this sanctuary..."
+              placeholder={tr("Share why you're interested in joining this sanctuary...")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="min-h-24"
@@ -58,9 +60,9 @@ export function JoinRequestForm({ sanctuaryId, sanctuaryTitle, onSubmit, onSucce
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Invite Token (if you have one)</label>
+            <label className="text-sm font-medium mb-2 block">{tr("Invite Token (if you have one)")}</label>
             <Input
-              placeholder="Enter your invite token"
+              placeholder={tr("Enter your invite token")}
               value={inviteToken}
               onChange={(e) => setInviteToken(e.target.value)}
             />
@@ -70,7 +72,7 @@ export function JoinRequestForm({ sanctuaryId, sanctuaryTitle, onSubmit, onSucce
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Submit Request
+            {tr("Submit Request")}
           </Button>
         </form>
       </CardContent>

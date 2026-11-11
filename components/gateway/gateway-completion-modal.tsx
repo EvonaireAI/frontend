@@ -15,6 +15,8 @@ import {
   type GatewayProgress,
   type GatewayQuizQuestion,
 } from "@/lib/gateway-quiz"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // Opened by a gateway_incomplete 403 on a consequential action (checkout, join,
 // withdraw). Lets the user answer the remaining questions inline; on completion
@@ -60,7 +62,7 @@ export function GatewayCompletionModalHost() {
       }
       setQueue(next.questions)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't load your questions")
+      setError(err instanceof Error ? err.message : tr("Couldn't load your questions"))
     } finally {
       setLoading(false)
     }
@@ -126,18 +128,18 @@ export function GatewayCompletionModalHost() {
             <Compass className="h-5 w-5 text-primary" />
           </div>
           <DialogTitle className="text-center text-foreground">
-            Finish your Gateway questions to continue
+            {tr("Finish your Gateway questions to continue")}
           </DialogTitle>
           <DialogDescription className="text-center">
             {remaining > 0
-              ? `Just ${remaining} more to go. Your answers help us shape your journey — then we'll pick up right where you left off.`
+              ? trNode("Just {p0} more to go. Your answers help us shape your journey — then we'll pick up right where you left off.", { p0: remaining })
               : "Almost there — one moment."}
           </DialogDescription>
         </DialogHeader>
 
         {total > 0 && (
           <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">
-            Gateway · {answered} / {total}
+            {trNode("Gateway · {p0} / {p1}", { p0: answered, p1: total })}
           </p>
         )}
 
@@ -152,7 +154,7 @@ export function GatewayCompletionModalHost() {
               onClick={() => void loadBatch()}
               className="w-full bg-primary text-primary-foreground hover:bg-gold-muted"
             >
-              Try again
+              {tr("Try again")}
             </Button>
           </div>
         ) : current ? (

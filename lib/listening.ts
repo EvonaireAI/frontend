@@ -4,6 +4,7 @@
 // empty. Qualified minutes are what royalties are based on.
 
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -60,7 +61,7 @@ class ListeningService {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to fetch listening analytics")
+      throw new Error(tr("Failed to fetch listening analytics"))
     }
 
     return response.json()

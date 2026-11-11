@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Sanctuary } from "@/lib/sanctuaries"
 import { Users, Lock, Globe, Calendar } from "lucide-react"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 interface SanctuaryDetailModalProps {
   sanctuary: Sanctuary | null
@@ -63,7 +65,7 @@ export function SanctuaryDetailModal({
           {sanctuary.welcome_message && (
             <Card className="border-l-4 border-l-primary bg-secondary border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Welcome Message</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">{tr("Welcome Message")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">{sanctuary.welcome_message}</p>
@@ -76,20 +78,20 @@ export function SanctuaryDetailModal({
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  Membership
+                  {tr("Membership")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-primary">
                   {sanctuary.active_members_count}/{sanctuary.capacity}
                 </p>
-                <p className="text-xs text-muted-foreground">Active members</p>
+                <p className="text-xs text-muted-foreground">{tr("Active members")}</p>
               </CardContent>
             </Card>
 
             <Card className="bg-secondary border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Join Policy</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">{tr("Join Policy")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm font-medium text-foreground">{sanctuary.allow_open_join ? "Open Join" : "Request Required"}</p>
@@ -102,7 +104,7 @@ export function SanctuaryDetailModal({
 
           {sanctuary.tags.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2 text-foreground">Practice Types</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground">{tr("Practice Types")}</h4>
               <div className="flex flex-wrap gap-2">
                 {sanctuary.tags.map((tag) => (
                   <Badge key={tag.id} className="bg-secondary text-secondary-foreground border-0">
@@ -117,11 +119,11 @@ export function SanctuaryDetailModal({
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                Created
+                {tr("Created")}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-foreground">{new Date(sanctuary.created_at).toLocaleDateString()}</p>
+              <p className="text-sm text-foreground">{new Date(sanctuary.created_at).toLocaleDateString(fmtLocale())}</p>
             </CardContent>
           </Card>
 
@@ -129,15 +131,15 @@ export function SanctuaryDetailModal({
             <div className="flex gap-2 pt-4">
               {sanctuary.membership_status === "approved" ? (
                 <Button variant="destructive" className="flex-1" onClick={() => onLeave?.(sanctuary.id)}>
-                  Leave Sanctuary
+                  {tr("Leave Sanctuary")}
                 </Button>
               ) : sanctuary.membership_status === "pending" ? (
                 <Button disabled className="flex-1 bg-secondary text-muted-foreground">
-                  Request Pending
+                  {tr("Request Pending")}
                 </Button>
               ) : (
                 <Button className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted" onClick={() => onJoin?.(sanctuary.id)}>
-                  Request to Join
+                  {tr("Request to Join")}
                 </Button>
               )}
             </div>

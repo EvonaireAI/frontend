@@ -9,6 +9,8 @@
 // pages redirect instead of rendering broken.
 
 import { authedFetch } from "./authed-fetch"
+import { trDeep } from "./i18n/index.ts"
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -221,7 +223,7 @@ export const royaltiesService = new RoyaltiesService()
 
 // --- status chip config (Badge variant="outline" + these classes) ---
 
-export const PAYOUT_STATUS_CHIPS: Record<PayoutStatus, { label: string; className: string }> = {
+export const PAYOUT_STATUS_CHIPS: Record<PayoutStatus, { label: string; className: string }> = trDeep({
   sent: {
     label: "Paid",
     className: "bg-green-900/30 text-green-400 border-green-500/30",
@@ -242,9 +244,9 @@ export const PAYOUT_STATUS_CHIPS: Record<PayoutStatus, { label: string; classNam
     label: "Processing",
     className: "bg-muted text-muted-foreground border-border",
   },
-}
+})
 
-export const PERIOD_STATUS_CHIPS: Record<RoyaltyPeriodStatus, { label: string; className: string }> = {
+export const PERIOD_STATUS_CHIPS: Record<RoyaltyPeriodStatus, { label: string; className: string }> = trDeep({
   open: {
     label: "Open",
     className: "bg-muted text-muted-foreground border-border",
@@ -269,4 +271,4 @@ export const PERIOD_STATUS_CHIPS: Record<RoyaltyPeriodStatus, { label: string; c
     label: "Paid",
     className: "bg-green-900/30 text-green-400 border-green-500/30",
   },
-}
+})

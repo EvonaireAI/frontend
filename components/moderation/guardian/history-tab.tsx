@@ -15,6 +15,8 @@ import { CaseDetail } from "@/components/moderation/case-detail"
 import { ArchiveCaseDialog, type GuardianOption } from "@/components/moderation/case-actions"
 import { useCaseList } from "./use-case-list"
 import { SEVERITY_CHIPS, violationLabel, type CaseFilters, type ModerationCase } from "@/lib/moderation"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // Care History — the only paginated tab. Sending `page` flips the cases
 // endpoint into the `{count, next, previous, results}` envelope; `unwrapList`
@@ -86,27 +88,27 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
       <div className="rounded-lg border border-border p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
-            <Label htmlFor="history-severity">Severity</Label>
+            <Label htmlFor="history-severity">{tr("Severity")}</Label>
             <Select value={severity} onValueChange={setSeverity}>
               <SelectTrigger id="history-severity">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All severities</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="all">{tr("All severities")}</SelectItem>
+                <SelectItem value="high">{tr("High")}</SelectItem>
+                <SelectItem value="medium">{tr("Medium")}</SelectItem>
+                <SelectItem value="low">{tr("Low")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="history-violation">Violation type</Label>
+            <Label htmlFor="history-violation">{tr("Violation type")}</Label>
             <Select value={violationType} onValueChange={setViolationType}>
               <SelectTrigger id="history-violation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="all">{tr("All types")}</SelectItem>
                 {VIOLATION_OPTIONS.map((type) => (
                   <SelectItem key={type} value={type}>
                     {violationLabel(type)}
@@ -116,18 +118,18 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="history-since">From</Label>
+            <Label htmlFor="history-since">{tr("From")}</Label>
             <Input id="history-since" type="date" value={since} onChange={(e) => setSince(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="history-until">To</Label>
+            <Label htmlFor="history-until">{tr("To")}</Label>
             <Input id="history-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
           </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <div className="min-w-[12rem] flex-1 space-y-1.5">
-            <Label htmlFor="history-q">Search</Label>
+            <Label htmlFor="history-q">{tr("Search")}</Label>
             <div className="flex gap-2">
               <Input
                 id="history-q"
@@ -136,23 +138,23 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") setQuery(queryInput.trim())
                 }}
-                placeholder="Reason, resolution note or ritual title"
+                placeholder={tr("Reason, resolution note or ritual title")}
               />
               <Button variant="outline" onClick={() => setQuery(queryInput.trim())}>
                 <Search className="h-4 w-4" />
-                <span className="sr-only">Search</span>
+                <span className="sr-only">{tr("Search")}</span>
               </Button>
             </div>
           </div>
           <div className="flex items-center gap-2 pb-2">
             <Switch id="history-archived" checked={archived} onCheckedChange={setArchived} />
             <Label htmlFor="history-archived" className="cursor-pointer">
-              Archived only
+              {tr("Archived only")}
             </Label>
           </div>
           <Button variant="outline" size="sm" className="mb-1" onClick={reload} disabled={loading}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            {tr("Refresh")}
           </Button>
         </div>
       </div>
@@ -171,8 +173,8 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
         </div>
       ) : cases.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
-          <p className="font-medium text-foreground">Nothing matches these filters</p>
-          <p className="mt-1 text-sm text-muted-foreground">Widen the date range or clear the search.</p>
+          <p className="font-medium text-foreground">{tr("Nothing matches these filters")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tr("Widen the date range or clear the search.")}</p>
         </div>
       ) : (
         <>
@@ -182,13 +184,13 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
             <Table className="min-w-[52rem]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Case</TableHead>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Resolution note</TableHead>
-                  <TableHead>Resolved by</TableHead>
-                  <TableHead>Resolved</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead>{tr("Case")}</TableHead>
+                  <TableHead>{tr("Severity")}</TableHead>
+                  <TableHead>{tr("Type")}</TableHead>
+                  <TableHead>{tr("Resolution note")}</TableHead>
+                  <TableHead>{tr("Resolved by")}</TableHead>
+                  <TableHead>{tr("Resolved")}</TableHead>
+                  <TableHead className="text-right">{tr("Action")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -224,14 +226,14 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {moderationCase.resolved_at
-                          ? new Date(moderationCase.resolved_at).toLocaleDateString()
+                          ? new Date(moderationCase.resolved_at).toLocaleDateString(fmtLocale())
                           : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         {!archived && (
                           <Button variant="outline" size="sm" onClick={() => setArchiveFor(moderationCase)}>
                             <Archive className="mr-2 h-4 w-4" />
-                            Archive
+                            {tr("Archive")}
                           </Button>
                         )}
                       </TableCell>
@@ -244,7 +246,7 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              Showing {firstRow.toLocaleString()}–{lastRow.toLocaleString()} of {total.toLocaleString()}
+              {trNode("Showing {p0}–{p1} of {p2}", { p0: firstRow.toLocaleString(fmtLocale()), p1: lastRow.toLocaleString(fmtLocale()), p2: total.toLocaleString(fmtLocale()) })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -253,7 +255,7 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
                 disabled={!hasPrevious || loading}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
               >
-                Previous
+                {tr("Previous")}
               </Button>
               <Button
                 variant="outline"
@@ -261,7 +263,7 @@ export function HistoryTab({ guardians }: { guardians: GuardianOption[] }) {
                 disabled={!hasNext || loading}
                 onClick={() => setPage((current) => current + 1)}
               >
-                Next
+                {tr("Next")}
               </Button>
             </div>
           </div>

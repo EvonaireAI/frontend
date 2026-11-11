@@ -10,6 +10,8 @@ import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import { v1Reflections, type Reflection } from "@/lib/v1"
 import { Loader2, LifeBuoy, Wind, Heart, ArrowLeft, NotebookPen } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 // The Reflection Room (formerly "Safety Room" — see API_CONTRACTS.md Session 09
 // GAIA terminology) is a calm surface a member can step into for grounding and
@@ -46,7 +48,7 @@ export default function ReflectionRoomPage() {
         <Button asChild variant="ghost" size="sm" className="mb-6 text-muted-foreground">
           <Link href="/member/my-sanctuary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to My Sanctuary
+            {tr("Back to My Sanctuary")}
           </Link>
         </Button>
 
@@ -55,11 +57,10 @@ export default function ReflectionRoomPage() {
             <Wind className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-2xl md:text-3xl font-serif text-foreground tracking-wide mb-2">
-            Reflection Room
+            {tr("Reflection Room")}
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto text-sm leading-relaxed">
-            A quiet place to pause, breathe, and steady yourself. There is no rush here —
-            stay as long as you need.
+            {tr("A quiet place to pause, breathe, and steady yourself. There is no rush here — stay as long as you need.")}
           </p>
         </div>
 
@@ -67,11 +68,10 @@ export default function ReflectionRoomPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <LifeBuoy className="w-5 h-5 text-primary" />
-              Would some support help right now?
+              {tr("Would some support help right now?")}
             </CardTitle>
             <CardDescription>
-              Guardians are members of the community trained to listen and help you find your
-              footing. You can reach out anytime — no situation is too small.
+              {tr("Guardians are members of the community trained to listen and help you find your footing. You can reach out anytime — no situation is too small.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-3">
@@ -80,23 +80,23 @@ export default function ReflectionRoomPage() {
                   API_CONTRACTS.md yet; routes to the Agora for now. */}
               <Link href="/member/agora">
                 <Heart className="w-4 h-4 mr-2" />
-                Connect with a Guardian
+                {tr("Connect with a Guardian")}
               </Link>
             </Button>
             <Button asChild variant="outline" className="flex-1">
-              <Link href="/member/agora">Visit the Agora</Link>
+              <Link href="/member/agora">{tr("Visit the Agora")}</Link>
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">A moment to ground</CardTitle>
+            <CardTitle className="text-base">{tr("A moment to ground")}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground leading-relaxed space-y-3">
-            <p>Notice five things you can see. Four you can touch. Three you can hear.</p>
-            <p>Breathe in slowly for four counts, hold for four, and release for six.</p>
-            <p>You are safe here, and you are not alone.</p>
+            <p>{tr("Notice five things you can see. Four you can touch. Three you can hear.")}</p>
+            <p>{tr("Breathe in slowly for four counts, hold for four, and release for six.")}</p>
+            <p>{tr("You are safe here, and you are not alone.")}</p>
           </CardContent>
         </Card>
 
@@ -138,7 +138,7 @@ function PrivateReflections() {
       setText("")
       if (persist) await load()
     } catch {
-      toast.error("Reflection could not be saved")
+      toast.error(tr("Reflection could not be saved"))
     } finally {
       setBusy(false)
     }
@@ -149,26 +149,25 @@ function PrivateReflections() {
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <NotebookPen className="w-4 h-4 text-primary" />
-          Private reflections
+          {tr("Private reflections")}
         </CardTitle>
         <CardDescription>
-          Yours alone unless you choose to save or share. Ephemeral entries are
-          never stored.
+          {tr("Yours alone unless you choose to save or share. Ephemeral entries are never stored.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Write whatever is on your mind."
+          placeholder={tr("Write whatever is on your mind.")}
           rows={3}
         />
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => void save(false)} disabled={busy}>
-            Reflect once
+            {tr("Reflect once")}
           </Button>
           <Button size="sm" onClick={() => void save(true)} disabled={busy}>
-            Save to my reflections
+            {tr("Save to my reflections")}
           </Button>
         </div>
         {entries.map((entry) => (
@@ -187,7 +186,7 @@ function PrivateReflections() {
                     await load()
                   }}
                 >
-                  Share
+                  {tr("Share")}
                 </Button>
               )}
               <Button
@@ -198,7 +197,7 @@ function PrivateReflections() {
                   await load()
                 }}
               >
-                Delete
+                {tr("Delete")}
               </Button>
             </div>
           </div>

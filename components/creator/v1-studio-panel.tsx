@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Banknote, Coins, Receipt } from "lucide-react"
 import { v1Creator, V1Error } from "@/lib/v1"
+import { tr } from "@/lib/i18n"
+
 
 export function V1StudioPanel() {
   const [earnings, setEarnings] = useState<{ available_balance: string; lifetime: string } | null>(null)
@@ -55,9 +57,9 @@ export function V1StudioPanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Coins className="w-5 h-5 text-primary" />
-          Marketplace earnings
+          {tr("Marketplace earnings")}
         </CardTitle>
-        <CardDescription>From the /api/v1/ creator ledger</CardDescription>
+        <CardDescription>{tr("From the /api/v1/ creator ledger")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
@@ -67,7 +69,7 @@ export function V1StudioPanel() {
             {earnings && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <Banknote className="w-4 h-4" /> Available balance
+                  <Banknote className="w-4 h-4" />{tr(" Available balance")}
                 </span>
                 <span className="font-medium text-foreground">
                   ${earnings.available_balance}
@@ -77,7 +79,7 @@ export function V1StudioPanel() {
             {revenue && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <Receipt className="w-4 h-4" /> Gross payable
+                  <Receipt className="w-4 h-4" />{tr(" Gross payable")}
                 </span>
                 <span className="font-medium text-foreground">
                   ${revenue.gross_payable}
@@ -86,14 +88,14 @@ export function V1StudioPanel() {
             )}
             {lastPayout && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Latest payout</span>
+                <span className="text-muted-foreground">{tr("Latest payout")}</span>
                 <Badge variant="secondary" className="text-xs">
                   {lastPayout.status} {lastPayout.amount ? `$${lastPayout.amount}` : ""}
                 </Badge>
               </div>
             )}
             <Link href="/creator/payouts" className="text-xs text-primary hover:underline">
-              Manage payouts
+              {tr("Manage payouts")}
             </Link>
           </>
         )}

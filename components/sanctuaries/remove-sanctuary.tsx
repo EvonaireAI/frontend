@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { sanctuariesService, SanctuaryRemovalError } from "@/lib/sanctuaries"
 import { Loader2, Trash2, AlertTriangle } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // Shown only if the preflight can't reach the server. The real copy is
 // server-owned (API_CONTRACTS Session 10) and fetched when the dialog opens —
@@ -96,11 +98,15 @@ export function RemoveSanctuary({
       setOpen(false)
       // The server owns the wording of the confirmation too.
       toast.success(result.detail, {
-        description: `${result.membershipsRevoked} ${
-          result.membershipsRevoked === 1 ? "member" : "members"
-        } notified · ${result.circlesArchived} ${
-          result.circlesArchived === 1 ? "circle" : "circles"
-        } archived · rituals kept.`,
+        description: tr(
+          "{p0} {p1} notified · {p2} {p3} archived · rituals kept.",
+          {
+            p0: result.membershipsRevoked,
+            p1: tr(result.membershipsRevoked === 1 ? "member" : "members"),
+            p2: result.circlesArchived,
+            p3: tr(result.circlesArchived === 1 ? "circle" : "circles"),
+          },
+        ),
       })
       router.push(redirectTo)
       router.refresh()
@@ -113,7 +119,7 @@ export function RemoveSanctuary({
         router.refresh()
         return
       }
-      setError(err instanceof Error ? err.message : "Failed to remove sanctuary")
+      setError(err instanceof Error ? err.message : tr("Failed to remove sanctuary"))
     } finally {
       setRemoving(false)
     }
@@ -124,11 +130,9 @@ export function RemoveSanctuary({
       <div className="flex items-start gap-3 mb-4">
         <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
         <div>
-          <h2 className="text-base font-semibold text-foreground">Remove Sanctuary</h2>
+          <h2 className="text-base font-semibold text-foreground">{tr("Remove Sanctuary")}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Remove this sanctuary from Evonaire. Members lose access and circles are archived.
-            You cannot undo this yourself — only platform staff can restore it, and restoring
-            does not bring members or circles back. Your rituals are not deleted.
+            {tr("Remove this sanctuary from Evonaire. Members lose access and circles are archived. You cannot undo this yourself — only platform staff can restore it, and restoring does not bring members or circles back. Your rituals are not deleted.")}
           </p>
         </div>
       </div>
@@ -141,20 +145,20 @@ export function RemoveSanctuary({
         className="w-full sm:w-auto h-11 sm:h-9"
       >
         <Trash2 className="w-4 h-4 mr-2" />
-        Remove Sanctuary
+        {tr("Remove Sanctuary")}
       </Button>
 
       <AlertDialog open={open} onOpenChange={handleOpenChange}>
         <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove &ldquo;{sanctuaryTitle}&rdquo;?</AlertDialogTitle>
+            <AlertDialogTitle>{trNode("Remove &ldquo;{p0}&rdquo;?", { p0: sanctuaryTitle })}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left">
-                <p>Removing this sanctuary means:</p>
+                <p>{tr("Removing this sanctuary means:")}</p>
                 {loadingCopy && consequences === null ? (
                   <p className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Checking what this will affect…
+                    {tr("Checking what this will affect…")}
                   </p>
                 ) : (
                   <ul className="list-disc pl-5 space-y-1">
@@ -176,7 +180,7 @@ export function RemoveSanctuary({
               className="mt-0.5"
             />
             <span id="remove-sanctuary-ack" className="text-sm text-foreground">
-              I understand this cannot be undone from my account.
+              {tr("I understand this cannot be undone from my account.")}
             </span>
           </label>
 
@@ -187,7 +191,7 @@ export function RemoveSanctuary({
           )}
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={removing}>Keep sanctuary</AlertDialogCancel>
+            <AlertDialogCancel disabled={removing}>{tr("Keep sanctuary")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 // Keep the dialog open on failure so the error stays visible.
@@ -198,7 +202,7 @@ export function RemoveSanctuary({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {removing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Remove Sanctuary
+              {tr("Remove Sanctuary")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

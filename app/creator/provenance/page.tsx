@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,8 @@ import {
   ritualIdFromSubjectRef,
   type ContentFingerprint,
 } from "@/lib/claimchain"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // The creator's provenance record: what was published, when it was first seen,
 // and the fingerprint that identifies it.
@@ -77,7 +79,7 @@ function VersionHistory({ group }: { group: ContentGroup }) {
   const [open, setOpen] = useState(false)
   // The date the *newest* fingerprint arrived is the interesting one: it is the
   // day the file changed.
-  const changedOn = format(new Date(group.fingerprints[0].created_at), "d MMMM")
+  const changedOn = formatDate(new Date(group.fingerprints[0].created_at), "d MMMM")
 
   return (
     <div className="mt-3 pt-3 border-t border-border">
@@ -92,13 +94,13 @@ function VersionHistory({ group }: { group: ContentGroup }) {
         ) : (
           <ChevronRight className="w-3.5 h-3.5" aria-hidden />
         )}
-        {group.fingerprints.length} versions
+        {trNode("{p0} versions", { p0: group.fingerprints.length })}
       </button>
 
       {open && (
         <div className="mt-2 space-y-3">
           <p className="text-xs text-muted-foreground max-w-prose">
-            The audio for this ritual changed on {changedOn}. Both versions are recorded.
+            {trNode("The audio for this ritual changed on {p0}. Both versions are recorded.", { p0: changedOn })}
           </p>
           <ul className="space-y-2">
             {group.fingerprints.map((fingerprint, index) => (
@@ -109,10 +111,10 @@ function VersionHistory({ group }: { group: ContentGroup }) {
                 >
                   {index === 0 ? "Current" : "Earlier"}
                 </Badge>
-                <HashValue value={fingerprint.sha256} label="fingerprint" truncate />
+                <HashValue value={fingerprint.sha256} label={tr("fingerprint")} truncate />
                 <span className="text-xs text-muted-foreground">
                   {humaniseBytes(fingerprint.byte_size)} ·{" "}
-                  {format(new Date(fingerprint.created_at), "d MMM yyyy")}
+                  {formatDate(new Date(fingerprint.created_at), "d MMM yyyy")}
                 </span>
               </li>
             ))}
@@ -192,20 +194,20 @@ export default function CreatorProvenancePage() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <ScrollText className="w-5 h-5 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">Provenance &amp; Licenses</h1>
+          <h1 className="text-3xl font-bold text-foreground">{tr("Provenance & Licenses")}</h1>
         </div>
         <p className="text-muted-foreground max-w-prose">
-          A record of what you published, when it was first seen, and who holds a license to it.
+          {tr("A record of what you published, when it was first seen, and who holds a license to it.")}
         </p>
       </div>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-            <span>We couldn&apos;t load your provenance record right now.</span>
+            <span>{tr("We couldn't load your provenance record right now.")}</span>
             <Button variant="outline" size="sm" onClick={load} className="bg-transparent">
               <RefreshCw className="w-4 h-4 mr-2" aria-hidden />
-              Retry
+              {tr("Retry")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -228,14 +230,14 @@ export default function CreatorProvenancePage() {
         // rather than showing a zero that looks like a failure.
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-3" aria-hidden />
-          <p className="text-foreground font-medium">Nothing recorded yet</p>
+          <p className="text-foreground font-medium">{tr("Nothing recorded yet")}</p>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-            Rituals are added to your provenance record when they&apos;re approved.
+            {tr("Rituals are added to your provenance record when they're approved.")}
           </p>
           <Button asChild variant="outline" className="mt-5 bg-transparent">
             <Link href="/creator" className="flex items-center gap-2">
               <Music className="w-4 h-4" aria-hidden />
-              Your rituals
+              {tr("Your rituals")}
             </Link>
           </Button>
         </div>
@@ -252,19 +254,18 @@ export default function CreatorProvenancePage() {
                         {group.title ?? "Untitled ritual"}
                       </h2>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-muted-foreground">Fingerprint (SHA-256)</span>
-                        <HashValue value={newest.sha256} label="fingerprint" truncate />
+                        <span className="text-xs text-muted-foreground">{tr("Fingerprint (SHA-256)")}</span>
+                        <HashValue value={newest.sha256} label={tr("fingerprint")} truncate />
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {humaniseBytes(newest.byte_size)} · First seen{" "}
-                        {format(new Date(newest.first_seen_at), "d MMMM yyyy")}
+                        {trNode("{p0} · First seen {p1}", { p0: humaniseBytes(newest.byte_size), p1: formatDate(new Date(newest.first_seen_at), "d MMMM yyyy") })}
                       </p>
                     </div>
 
                     {group.ritualId !== null && (
                       <Button asChild variant="outline" size="sm" className="bg-transparent">
                         <Link href={`/creator/provenance/${group.ritualId}`}>
-                          Record &amp; licenses
+                          {tr("Record & licenses")}
                         </Link>
                       </Button>
                     )}

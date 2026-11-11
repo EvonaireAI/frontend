@@ -22,6 +22,8 @@
 
 import { licenseLabel, type LicenseLevel } from "./commons"
 import { authedFetch } from "./authed-fetch"
+import { tr, trDeep } from "./i18n/index.ts"
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -262,16 +264,16 @@ export function anchorStatusLabel(
   status: AnchorStatus | null | undefined,
   anchoring?: Anchoring | null,
 ): string {
-  if (!status) return "Not yet sealed"
+  if (!status) return tr("Not yet sealed")
   switch (status) {
     case "pending":
       return anchoring?.enabled
-        ? "Sealed — awaiting publication"
-        : "Sealed — not yet published externally"
+        ? tr("Sealed — awaiting publication")
+        : tr("Sealed — not yet published externally")
     case "anchored":
-      return "Sealed and published externally"
+      return tr("Sealed and published externally")
     case "failed":
-      return "Sealed — publication did not complete"
+      return tr("Sealed — publication did not complete")
     default:
       return status
   }
@@ -284,12 +286,12 @@ export function anchorStatusLabel(
  * All four are false today, and a chip reading "AI training" would be read as a
  * permission by anyone not hovering it.
  */
-export const AI_USE_ROWS: Array<{ key: keyof AiUse; label: string; deniedLabel: string }> = [
+export const AI_USE_ROWS: Array<{ key: keyof AiUse; label: string; deniedLabel: string }> = trDeep([
   { key: "train", label: "AI training", deniedLabel: "No AI training" },
   { key: "finetune", label: "Fine-tuning", deniedLabel: "No fine-tuning" },
   { key: "dataset_reuse", label: "Dataset reuse", deniedLabel: "No dataset reuse" },
   { key: "redistribute", label: "Redistribution", deniedLabel: "No redistribution" },
-]
+])
 
 /** "sha256" is a field value; "SHA-256" is how it is written for a reader. */
 export function algoLabel(algo: string): string {

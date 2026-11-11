@@ -31,6 +31,8 @@ import {
   type ListingDraftInput,
   type MyListing,
 } from "@/lib/commons"
+import { tr } from "@/lib/i18n"
+
 
 interface Props {
   open: boolean
@@ -91,15 +93,15 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
     setPriceError(null)
     if (!earlyAccessOnly) {
       if (!title.trim() || !summary.trim()) {
-        toast.error("Title and summary are required.")
+        toast.error(tr("Title and summary are required."))
         return
       }
       if (Number.isNaN(priceCents) || priceCents < 0) {
-        setPriceError("Enter a valid price.")
+        setPriceError(tr("Enter a valid price."))
         return
       }
       if (freeOnGuided) {
-        setPriceError("Free offerings must use the L1 · Public license.")
+        setPriceError(tr("Free offerings must use the {p0} license.", { p0: "L1 · Public" }))
         return
       }
     }
@@ -123,14 +125,14 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
         }
         saved = isEdit ? await updateListing(listing.id, payload) : await createListing(payload)
       }
-      toast.success(isEdit ? "Listing updated" : "Draft created")
+      toast.success(isEdit ? tr("Listing updated") : tr("Draft created"))
       onSaved(saved)
       onOpenChange(false)
     } catch (err) {
       if (err instanceof CommonsApiError && /price/i.test(err.message)) {
         setPriceError(err.message)
       } else {
-        toast.error(err instanceof Error ? err.message : "Failed to save the listing")
+        toast.error(err instanceof Error ? err.message : tr("Failed to save the listing"))
       }
     } finally {
       setSaving(false)
@@ -151,36 +153,36 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="listing-title">Title</Label>
+            <Label htmlFor="listing-title">{tr("Title")}</Label>
             <Input
               id="listing-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={earlyAccessOnly}
-              placeholder="Grief Tending — Guided Series"
+              placeholder={tr("Grief Tending — Guided Series")}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="listing-summary">Summary</Label>
+            <Label htmlFor="listing-summary">{tr("Summary")}</Label>
             <Textarea
               id="listing-summary"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               disabled={earlyAccessOnly}
               rows={3}
-              placeholder="Four-part guided practice for early grief."
+              placeholder={tr("Four-part guided practice for early grief.")}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Linked Ritual (optional)</Label>
+            <Label>{tr("Linked Ritual (optional)")}</Label>
             <Select value={ritualId} onValueChange={setRitualId} disabled={earlyAccessOnly}>
               <SelectTrigger>
-                <SelectValue placeholder="None" />
+                <SelectValue placeholder={tr("None")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NONE}>None</SelectItem>
+                <SelectItem value={NONE}>{tr("None")}</SelectItem>
                 {rituals.map((r) => (
                   <SelectItem key={r.id} value={String(r.id)}>
                     {r.title}
@@ -192,7 +194,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>License Level</Label>
+              <Label>{tr("License Level")}</Label>
               <Select
                 value={license}
                 onValueChange={(v) => setLicense(v as LicenseLevel)}
@@ -202,14 +204,14 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="L1_open">L1 · Public</SelectItem>
-                  <SelectItem value="L2_guided">L2 · Sanctuary</SelectItem>
+                  <SelectItem value="L1_open">{tr("L1 · Public")}</SelectItem>
+                  <SelectItem value="L2_guided">{tr("L2 · Sanctuary")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="listing-price">Price (USD)</Label>
+              <Label htmlFor="listing-price">{tr("Price (USD)")}</Label>
               <Input
                 id="listing-price"
                 type="number"
@@ -224,13 +226,13 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
           </div>
           {freeOnGuided && !earlyAccessOnly && (
             <p className="text-xs text-destructive">
-              Free offerings must use the L1 · Public license.
+              {tr("Free offerings must use the L1 · Public license.")}
             </p>
           )}
           {priceError && <p className="text-xs text-destructive">{priceError}</p>}
 
           <div className="space-y-1.5">
-            <Label htmlFor="listing-early">Early access until (optional)</Label>
+            <Label htmlFor="listing-early">{tr("Early access until (optional)")}</Label>
             <Input
               id="listing-early"
               type="date"
@@ -238,14 +240,14 @@ export function ListingFormDialog({ open, onOpenChange, listing, rituals, onSave
               onChange={(e) => setEarlyAccess(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Scholars get this offering first, up to 7 days before it opens to everyone.
+              {tr("Scholars get this offering first, up to 7 days before it opens to everyone.")}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={saving || (freeOnGuided && !earlyAccessOnly)}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

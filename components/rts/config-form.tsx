@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { rtsService, type RTSConfig } from "@/lib/rts"
 import { Loader2, Settings } from "lucide-react"
 import { toast } from "sonner"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export function ConfigForm() {
   const [loading, setLoading] = useState(true)
@@ -26,7 +28,7 @@ export function ConfigForm() {
       setConfig(data)
     } catch (error) {
       console.error("Failed to load config:", error)
-      toast.error("Failed to load RTS configuration")
+      toast.error(tr("Failed to load RTS configuration"))
     } finally {
       setLoading(false)
     }
@@ -48,10 +50,10 @@ export function ConfigForm() {
         threshold_pause: config.threshold_pause,
       })
       setConfig(updated)
-      toast.success("RTS configuration updated successfully")
+      toast.success(tr("RTS configuration updated successfully"))
     } catch (error) {
       console.error("Failed to update config:", error)
-      toast.error("Failed to update RTS configuration")
+      toast.error(tr("Failed to update RTS configuration"))
     } finally {
       setSubmitting(false)
     }
@@ -82,7 +84,7 @@ export function ConfigForm() {
     return (
       <Card>
         <CardContent className="text-center py-8 text-muted-foreground">
-          <p>Failed to load configuration</p>
+          <p>{tr("Failed to load configuration")}</p>
         </CardContent>
       </Card>
     )
@@ -93,19 +95,19 @@ export function ConfigForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-primary" />
-          Resonance Configuration
+          {tr("Resonance Configuration")}
         </CardTitle>
-        <CardDescription>Configure weights, thresholds, and decay settings for the RTS system</CardDescription>
+        <CardDescription>{tr("Configure weights, thresholds, and decay settings for the RTS system")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Signal Weights</h3>
+            <h3 className="text-sm font-semibold">{tr("Signal Weights")}</h3>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(config.weights).map(([key, value]) => (
                 <div key={key} className="space-y-2">
                   <Label htmlFor={`weight_${key}`} className="capitalize">
-                    {key.replace(/_/g, " ")} Weight
+                    {trNode("{p0} Weight", { p0: key.replace(/_/g, " ") })}
                   </Label>
                   <Input
                     id={`weight_${key}`}
@@ -120,10 +122,10 @@ export function ConfigForm() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Thresholds</h3>
+            <h3 className="text-sm font-semibold">{tr("Thresholds")}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="threshold_expand">Expand Threshold (≥)</Label>
+                <Label htmlFor="threshold_expand">{tr("Expand Threshold (≥)")}</Label>
                 <Input
                   id="threshold_expand"
                   type="number"
@@ -133,7 +135,7 @@ export function ConfigForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="threshold_clear">Clear Threshold (≥)</Label>
+                <Label htmlFor="threshold_clear">{tr("Clear Threshold (≥)")}</Label>
                 <Input
                   id="threshold_clear"
                   type="number"
@@ -143,7 +145,7 @@ export function ConfigForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="threshold_caution">Check-In Threshold (≥)</Label>
+                <Label htmlFor="threshold_caution">{tr("Check-In Threshold (≥)")}</Label>
                 <Input
                   id="threshold_caution"
                   type="number"
@@ -153,7 +155,7 @@ export function ConfigForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="threshold_pause">Caution Threshold (≥)</Label>
+                <Label htmlFor="threshold_pause">{tr("Caution Threshold (≥)")}</Label>
                 <Input
                   id="threshold_pause"
                   type="number"
@@ -166,7 +168,7 @@ export function ConfigForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="decay_half_life_hours">Time Decay (hours)</Label>
+            <Label htmlFor="decay_half_life_hours">{tr("Time Decay (hours)")}</Label>
             <Input
               id="decay_half_life_hours"
               type="number"
@@ -174,14 +176,14 @@ export function ConfigForm() {
               value={config.decay_half_life_hours}
               onChange={(e) => setConfig({ ...config, decay_half_life_hours: Number.parseFloat(e.target.value) })}
             />
-            <p className="text-xs text-muted-foreground">Number of hours for signal decay half-life</p>
+            <p className="text-xs text-muted-foreground">{tr("Number of hours for signal decay half-life")}</p>
           </div>
 
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Updating Configuration...
+                {tr("Updating Configuration...")}
               </>
             ) : (
               "Update Configuration"
@@ -189,7 +191,7 @@ export function ConfigForm() {
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Last updated: {new Date(config.updated_at).toLocaleString()}
+            {trNode("Last updated: {p0}", { p0: new Date(config.updated_at).toLocaleString(fmtLocale()) })}
           </p>
         </form>
       </CardContent>

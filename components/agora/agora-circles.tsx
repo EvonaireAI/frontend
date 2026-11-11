@@ -28,6 +28,8 @@ import {
 import { EntitlementDeniedError, openUpgradeModal } from "@/lib/entitlements"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { Loader2, Landmark, ChevronDown, Sparkles, MessageCircle } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 function CircleCard({ sanctuaryId, circle }: { sanctuaryId: number; circle: Circle }) {
   return (
@@ -40,7 +42,7 @@ function CircleCard({ sanctuaryId, circle }: { sanctuaryId: number; circle: Circ
             </CardTitle>
             {circle.status === "archived" && (
               <Badge variant="outline" className="border-border text-muted-foreground text-xs shrink-0">
-                archived
+                {tr("archived")}
               </Badge>
             )}
           </div>
@@ -50,7 +52,7 @@ function CircleCard({ sanctuaryId, circle }: { sanctuaryId: number; circle: Circ
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>Hosted by {circle.host.display_name}</span>
+            <span>{trNode("Hosted by {p0}", { p0: circle.host.display_name })}</span>
             <span className="flex items-center gap-1">
               <MessageCircle className="w-3 h-3" />
               {circle.post_count}
@@ -93,7 +95,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
   const handleCreate = async () => {
     const trimmed = title.trim()
     if (!trimmed) {
-      setTitleError("Give your circle a title.")
+      setTitleError(tr("Give your circle a title."))
       return
     }
     setCreating(true)
@@ -107,7 +109,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
       setCreateOpen(false)
       setTitle("")
       setDescription("")
-      toast.success("Your circle is open.")
+      toast.success(tr("Your circle is open."))
     } catch (err) {
       if (err instanceof EntitlementDeniedError) {
         setCreateOpen(false)
@@ -116,7 +118,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
       } else if (err instanceof ThrottledError) {
         toast(err.message)
       } else {
-        toast.error(err instanceof Error ? err.message : "Failed to start the circle")
+        toast.error(err instanceof Error ? err.message : tr("Failed to start the circle"))
       }
     } finally {
       setCreating(false)
@@ -126,7 +128,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
   const sectionHeader = (
     <div className="flex items-center gap-2">
       <Landmark className="w-4 h-4 text-primary" />
-      <CardTitle>The Agora</CardTitle>
+      <CardTitle>{tr("The Agora")}</CardTitle>
     </div>
   )
 
@@ -147,11 +149,11 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
       <Card className="bg-card border-border">
         <CardHeader>
           {sectionHeader}
-          <CardDescription>Discussion circles for this sanctuary&apos;s members</CardDescription>
+          <CardDescription>{tr("Discussion circles for this sanctuary's members")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Join this sanctuary first to take part in its circles.
+            {tr("Join this sanctuary first to take part in its circles.")}
           </p>
         </CardContent>
       </Card>
@@ -170,7 +172,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
           <div>
             {sectionHeader}
             <CardDescription className="mt-1.5">
-              Discussion circles for this sanctuary&apos;s members
+              {tr("Discussion circles for this sanctuary's members")}
             </CardDescription>
           </div>
           {data.capabilities.can_host ? (
@@ -179,7 +181,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
               onClick={() => setCreateOpen(true)}
               className="bg-primary text-primary-foreground hover:bg-gold-muted shrink-0"
             >
-              Start a circle
+              {tr("Start a circle")}
             </Button>
           ) : (
             <Button
@@ -191,7 +193,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
               className="text-gold-muted hover:text-primary shrink-0 gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              Host your own circles with Scholar
+              {tr("Host your own circles with Scholar")}
             </Button>
           )}
         </div>
@@ -199,7 +201,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
       <CardContent className="space-y-4">
         {active.length === 0 && archived.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            No circles yet — this sanctuary&apos;s agora is quiet for now.
+            {tr("No circles yet — this sanctuary's agora is quiet for now.")}
           </p>
         ) : (
           <>
@@ -213,7 +215,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
               <Collapsible>
                 <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <ChevronDown className="w-4 h-4" />
-                  Archived ({archived.length})
+                  {trNode("Archived ({p0})", { p0: archived.length })}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-3">
                   <div className="grid gap-3 md:grid-cols-2">
@@ -231,14 +233,14 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-md bg-card border-border">
           <DialogHeader>
-            <DialogTitle>Start a circle</DialogTitle>
+            <DialogTitle>{tr("Start a circle")}</DialogTitle>
             <DialogDescription>
-              Open a calm space for this sanctuary&apos;s members to gather around a theme.
+              {tr("Open a calm space for this sanctuary's members to gather around a theme.")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="circle-title">Title</Label>
+              <Label htmlFor="circle-title">{tr("Title")}</Label>
               <Input
                 id="circle-title"
                 value={title}
@@ -247,19 +249,19 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
                   setTitleError(null)
                 }}
                 maxLength={255}
-                placeholder="Morning Reflections"
+                placeholder={tr("Morning Reflections")}
                 className="bg-secondary border-border"
               />
               {titleError && <p className="text-sm text-destructive">{titleError}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="circle-description">Description (optional)</Label>
+              <Label htmlFor="circle-description">{tr("Description (optional)")}</Label>
               <Textarea
                 id="circle-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                placeholder="What is this circle for?"
+                placeholder={tr("What is this circle for?")}
                 className="bg-secondary border-border"
               />
             </div>
@@ -270,7 +272,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
                 disabled={creating}
                 className="bg-transparent border-border text-muted-foreground hover:bg-secondary"
               >
-                Cancel
+                {tr("Cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
@@ -280,7 +282,7 @@ export function AgoraCircles({ sanctuaryId }: { sanctuaryId: number }) {
                 {creating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Starting…
+                    {tr("Starting…")}
                   </>
                 ) : (
                   "Start circle"

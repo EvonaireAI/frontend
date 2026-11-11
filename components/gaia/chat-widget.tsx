@@ -9,6 +9,8 @@ import { gaiaService } from "@/lib/gaia"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import type { GaiaRoute } from "@/lib/v1"
+import { tr, trDeep } from "@/lib/i18n"
+
 
 interface ChatMessage {
   id: number
@@ -20,7 +22,7 @@ const HIDDEN_ROUTES = new Set<string>(["/", "/auth/login", "/auth/register", "/c
 
 // Direct product routes shown whenever GAIA is off or unreachable —
 // Zero Dependence means the platform must stay navigable without it.
-const FALLBACK_ROUTES: GaiaRoute[] = [
+const FALLBACK_ROUTES: GaiaRoute[] = trDeep([
   { id: "gateway", label: "Gateway education and application", route: "/gateway-quiz" },
   { id: "browse", label: "Browse the Commons", route: "/commons" },
   { id: "sanctuary", label: "My Sanctuary and licenses", route: "/member/my-sanctuary" },
@@ -28,13 +30,13 @@ const FALLBACK_ROUTES: GaiaRoute[] = [
   { id: "creator", label: "Creator Studio", route: "/creator" },
   { id: "guardian", label: "Human Guardian support", route: "/moderate" },
   { id: "privacy", label: "Consent, export and deletion", route: "/privacy" },
-]
+])
 
-const GREETING: ChatMessage = {
+const GREETING: ChatMessage = trDeep({
   id: 0,
   from: "gaia",
   text: "Hello. I am GAIA, your guide to Evonaire. Ask about rituals, sanctuaries, your account, privacy, or safety.",
-}
+} as ChatMessage)
 
 export function GaiaChatWidget() {
   const pathname = usePathname()
@@ -124,7 +126,7 @@ export function GaiaChatWidget() {
         {
           id: idRef.current++,
           from: "gaia",
-          text: "I could not reach the guidance service. Please try again in a moment.",
+          text: tr("I could not reach the guidance service. Please try again in a moment."),
         },
       ])
     } finally {
@@ -148,7 +150,7 @@ export function GaiaChatWidget() {
         {
           id: idRef.current++,
           from: "gaia",
-          text: "The consent service is unreachable. Your pages below still work without GAIA.",
+          text: tr("The consent service is unreachable. Your pages below still work without GAIA."),
         },
       ])
     } finally {
@@ -170,7 +172,7 @@ export function GaiaChatWidget() {
         {
           id: idRef.current++,
           from: "gaia",
-          text: "GAIA could not be turned off right now. Try again, or manage AI permissions on the privacy page.",
+          text: tr("GAIA could not be turned off right now. Try again, or manage AI permissions on the privacy page."),
         },
       ])
     } finally {
@@ -183,7 +185,7 @@ export function GaiaChatWidget() {
       {!open && (
         <button
           type="button"
-          aria-label="Open GAIA guide"
+          aria-label={tr("Open GAIA guide")}
           onClick={() => setOpen(true)}
           className={cn(
             "fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full",
@@ -199,7 +201,7 @@ export function GaiaChatWidget() {
       {open && (
         <div
           role="dialog"
-          aria-label="GAIA guide"
+          aria-label={tr("GAIA guide")}
           className={cn(
             "fixed bottom-5 right-5 z-50 flex w-[min(22rem,calc(100vw-2.5rem))] flex-col",
             "h-[min(32rem,calc(100vh-6rem))] overflow-hidden rounded-xl border border-border",
@@ -210,14 +212,14 @@ export function GaiaChatWidget() {
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               <div className="leading-tight">
-                <div className="text-sm font-semibold text-foreground">GAIA</div>
-                <div className="text-[11px] text-muted-foreground">Deterministic guide</div>
+                <div className="text-sm font-semibold text-foreground">{tr("GAIA")}</div>
+                <div className="text-[11px] text-muted-foreground">{tr("Deterministic guide")}</div>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Close GAIA guide"
+              aria-label={tr("Close GAIA guide")}
               onClick={() => setOpen(false)}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
@@ -228,9 +230,7 @@ export function GaiaChatWidget() {
           {consent === "off" ? (
             <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                GAIA Lite is off. It only answers approved platform
-                questions and never reads your text, reflections, or
-                history. Every page below works without it.
+                {tr("GAIA Lite is off. It only answers approved platform questions and never reads your text, reflections, or history. Every page below works without it.")}
               </p>
               <Button
                 type="button"
@@ -242,7 +242,7 @@ export function GaiaChatWidget() {
               </Button>
               <div>
                 <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Go directly
+                  {tr("Go directly")}
                 </div>
                 <div className="flex flex-col gap-1">
                   {routes.map((r) => (
@@ -283,7 +283,7 @@ export function GaiaChatWidget() {
             {sending && (
               <div className="flex justify-start">
                 <div className="rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
-                  <Loader2 className="inline h-3 w-3 animate-spin" /> thinking
+                  <Loader2 className="inline h-3 w-3 animate-spin" />{tr(" thinking")}
                 </div>
               </div>
             )}
@@ -293,7 +293,7 @@ export function GaiaChatWidget() {
           {consent === "on" && quickReplies.length > 0 && messages.length <= 1 && (
             <div className="border-t border-border px-3 pb-2 pt-2">
               <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                Try asking
+                {tr("Try asking")}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {quickReplies.map((q) => (
@@ -322,7 +322,7 @@ export function GaiaChatWidget() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about anything on the platform"
+              placeholder={tr("Ask about anything on the platform")}
               maxLength={256}
               disabled={sending}
               className={cn(
@@ -335,7 +335,7 @@ export function GaiaChatWidget() {
               type="submit"
               size="icon"
               disabled={sending || !input.trim()}
-              aria-label="Send"
+              aria-label={tr("Send")}
               className="h-9 w-9 bg-primary text-primary-foreground hover:bg-gold-muted"
             >
               <Send className="h-4 w-4" />
@@ -351,7 +351,7 @@ export function GaiaChatWidget() {
                 disabled={toggling}
                 className="text-[11px] text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
               >
-                Turn off GAIA
+                {tr("Turn off GAIA")}
               </button>
             </div>
           )}

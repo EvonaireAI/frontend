@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth-context"
 import { safeReturnPath } from "@/lib/return-path"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 function LoginForm() {
   const [email, setEmail] = useState("")
@@ -37,7 +39,7 @@ function LoginForm() {
       }
       router.push(from ?? "/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed")
+      setError(err instanceof Error ? err.message : tr("Login failed"))
     } finally {
       setLoading(false)
     }
@@ -51,13 +53,13 @@ function LoginForm() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
           />
           <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300">
-            Evonaire
+            {tr("Evonaire")}
           </span>
         </Link>
       </header>
@@ -67,8 +69,8 @@ function LoginForm() {
         <div className="w-full max-w-md">
           {/* Heading */}
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Welcome Back</h1>
-            <p className="text-cream/50 text-sm">Sign in to your Evonaire account</p>
+            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">{tr("Welcome Back")}</h1>
+            <p className="text-cream/50 text-sm">{tr("Sign in to your Evonaire account")}</p>
           </div>
 
           {/* Card */}
@@ -82,7 +84,7 @@ function LoginForm() {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-cream/70 text-sm font-medium">
-                  Email
+                  {tr("Email")}
                 </label>
                 <input
                   id="email"
@@ -91,14 +93,14 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="you@example.com"
+                  placeholder={tr("you@example.com")}
                   className="w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-cream/70 text-sm font-medium">
-                  Password
+                  {tr("Password")}
                 </label>
                 <div className="relative">
                   <input
@@ -108,7 +110,7 @@ function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    placeholder="Enter your password"
+                    placeholder={tr("Enter your password")}
                     className="w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 pr-12 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all"
                   />
                   <button
@@ -127,13 +129,13 @@ function LoginForm() {
                   href="/auth/forgot-password"
                   className="text-xs text-gold/70 hover:text-gold transition-colors"
                 >
-                  Forgot password?
+                  {tr("Forgot password?")}
                 </Link>
                 <Link
                   href="/auth/resend-activation"
                   className="text-xs text-gold/70 hover:text-gold transition-colors"
                 >
-                  Resend activation email
+                  {tr("Resend activation email")}
                 </Link>
               </div>
 
@@ -143,15 +145,15 @@ function LoginForm() {
                 className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2 cursor-pointer"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Sign In
+                {tr("Sign In")}
               </button>
             </form>
           </div>
 
           <p className="text-center text-cream/40 text-sm mt-6">
-            {"Don't have an account? "}
+            {tr("Don't have an account? ")}
             <Link href="/auth/register" className="text-gold hover:text-gold-muted transition-colors">
-              Sign up
+              {tr("Sign up")}
             </Link>
           </p>
         </div>

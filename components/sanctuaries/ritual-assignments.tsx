@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import type { RitualAssignment } from "@/lib/sanctuaries"
 import { AddRitualsModal } from "./add-rituals-modal"
 import { Loader2, Trash2, Plus } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface RitualAssignmentsProps {
   rituals: RitualAssignment[]
@@ -29,7 +31,7 @@ export function RitualAssignments({
   const [addRitualsOpen, setAddRitualsOpen] = useState(false)
 
   const handleRemove = async (ritualId: number) => {
-    if (!confirm("Are you sure you want to remove this ritual?")) return
+    if (!confirm(tr("Are you sure you want to remove this ritual?"))) return
 
     setProcessingId(ritualId)
     try {
@@ -58,13 +60,13 @@ export function RitualAssignments({
       <Card className="bg-card border-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-foreground">Assigned Rituals</CardTitle>
-            <CardDescription>Rituals available in this sanctuary</CardDescription>
+            <CardTitle className="text-foreground">{tr("Assigned Rituals")}</CardTitle>
+            <CardDescription>{tr("Rituals available in this sanctuary")}</CardDescription>
           </div>
           {isCreatorView && sanctuaryId && (
             <Button size="sm" onClick={() => setAddRitualsOpen(true)} className="bg-primary text-primary-foreground hover:bg-gold-muted">
               <Plus className="w-4 h-4 mr-2" />
-              Add Ritual
+              {tr("Add Ritual")}
             </Button>
           )}
         </CardHeader>
@@ -75,7 +77,7 @@ export function RitualAssignments({
             </div>
           ) : rituals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p className="text-sm">No rituals assigned yet</p>
+              <p className="text-sm">{tr("No rituals assigned yet")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -94,7 +96,7 @@ export function RitualAssignments({
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Assigned {new Date(ritual.assigned_at).toLocaleDateString()}
+                          {trNode("Assigned {p0}", { p0: new Date(ritual.assigned_at).toLocaleDateString(fmtLocale()) })}
                         </p>
                       </div>
                       <Button

@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "packageManager": "npm@11.20.0",
   "private": true,
+  "browserslist": [
+    "chrome >= 69",
+    "and_chr >= 69",
+    "firefox >= 68",
+    "edge >= 79",
+    "safari >= 12",
+    "ios_saf >= 12"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -63,6 +71,8 @@
     "vaul": "^0.9.9"
   },
   "devDependencies": {
+    "@csstools/postcss-cascade-layers": "^6.0.2",
+    "@csstools/postcss-oklab-function": "^4.0.12",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",

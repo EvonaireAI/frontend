@@ -2,6 +2,7 @@ import { authService } from "./auth"
 import { authedFetch } from "./authed-fetch"
 import { throwIfGated } from "./gateway-quiz"
 import { unwrapList } from "./moderation"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -122,7 +123,7 @@ class SanctuariesService {
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to list sanctuaries: ${response.statusText}`)
+        throw new Error(tr("Failed to list sanctuaries: {p0}", { p0: response.statusText }))
       }
 
       const page = unwrapList<Sanctuary>(await response.json())
@@ -140,7 +141,7 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to get owned sanctuaries: ${response.statusText}`)
+      throw new Error(tr("Failed to get owned sanctuaries: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -160,7 +161,7 @@ class SanctuariesService {
     if (!response.ok) {
       const body = await readJson(response)
       throw new SanctuaryRequestError(
-        body?.detail || `Failed to get sanctuary: ${response.statusText}`,
+        body?.detail || tr("Failed to get sanctuary: {p0}", { p0: response.statusText }),
         response.status,
       )
     }
@@ -181,7 +182,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to create sanctuary: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to create sanctuary: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -200,7 +201,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to update sanctuary: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to update sanctuary: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -219,7 +220,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to adjust capacity: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to adjust capacity: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -238,7 +239,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to change status: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to change status: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -260,7 +261,7 @@ class SanctuariesService {
       // finishes the Gateway then retries the join); sanctuary_limit 403s open
       // the upgrade modal; other 403s surface their detail as a normal error.
       const error = await throwIfGated(response)
-      throw new Error(error?.detail || `Failed to request join: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to request join: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -275,7 +276,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to get membership status: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to get membership status: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -290,7 +291,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to leave sanctuary: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to leave sanctuary: {p0}", { p0: response.statusText }))
     }
   }
 
@@ -302,7 +303,7 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to get pending requests: ${response.statusText}`)
+      throw new Error(tr("Failed to get pending requests: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -321,7 +322,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to approve request: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to approve request: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -340,7 +341,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to reject request: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to reject request: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -354,7 +355,7 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to get members: ${response.statusText}`)
+      throw new Error(tr("Failed to get members: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -373,7 +374,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to revoke membership: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to revoke membership: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -387,7 +388,7 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to get audit log: ${response.statusText}`)
+      throw new Error(tr("Failed to get audit log: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -401,7 +402,7 @@ class SanctuariesService {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to get rituals: ${response.statusText}`)
+      throw new Error(tr("Failed to get rituals: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -416,7 +417,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to assign ritual: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to assign ritual: {p0}", { p0: response.statusText }))
     }
 
     return response.json()
@@ -431,7 +432,7 @@ class SanctuariesService {
 
     if (!response.ok) {
       const error = await readJson(response)
-      throw new Error(error?.detail || `Failed to remove ritual: ${response.statusText}`)
+      throw new Error(error?.detail || tr("Failed to remove ritual: {p0}", { p0: response.statusText }))
     }
   }
 
@@ -570,9 +571,9 @@ function toRemovalError(response: Response, body: any): SanctuaryRemovalError {
   if (!message) {
     message =
       response.status === 403
-        ? "Only the sanctuary owner or platform staff can remove this sanctuary."
+        ? tr("Only the sanctuary owner or platform staff can remove this sanctuary.")
         : response.status === 404
-        ? "This sanctuary no longer exists."
+        ? tr("This sanctuary no longer exists.")
         : `Failed to remove sanctuary: ${response.statusText}`
   }
 

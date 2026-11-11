@@ -16,6 +16,8 @@ import { RemoveSanctuary } from "@/components/sanctuaries/remove-sanctuary"
 import { toast } from "sonner"
 import { Loader2, ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
+import { tr } from "@/lib/i18n"
+
 
 export default function EditSanctuaryPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -71,7 +73,7 @@ export default function EditSanctuaryPage() {
         // A removed sanctuary now 404s for its former owner. That's "gone",
         // not "signed out" — bouncing to the login screen would be a lie.
         if (err instanceof SanctuaryRequestError && (err.status === 404 || err.status === 403)) {
-          toast.error(err.message || "This sanctuary no longer exists.")
+          toast.error(err.message || tr("This sanctuary no longer exists."))
           router.push("/creator?tab=sanctuaries")
           return
         }
@@ -119,7 +121,7 @@ export default function EditSanctuaryPage() {
 
       router.push(`/creator/sanctuaries/${sanctuaryId}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update sanctuary")
+      setError(err instanceof Error ? err.message : tr("Failed to update sanctuary"))
     } finally {
       setSubmitting(false)
     }
@@ -140,24 +142,24 @@ export default function EditSanctuaryPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent">
             <Link href={`/creator/sanctuaries/${sanctuaryId}`}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sanctuary
+              {tr("Back to Sanctuary")}
             </Link>
           </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Sanctuary Settings</h1>
-          <p className="text-muted-foreground">Update your sanctuary&rsquo;s details, privacy and membership</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">{tr("Sanctuary Settings")}</h1>
+          <p className="text-muted-foreground">{tr("Update your sanctuary&rsquo;s details, privacy and membership")}</p>
         </div>
 
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-foreground">Sanctuary Details</CardTitle>
-            <CardDescription>Modify your sanctuary information</CardDescription>
+            <CardTitle className="text-foreground">{tr("Sanctuary Details")}</CardTitle>
+            <CardDescription>{tr("Modify your sanctuary information")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">Sanctuary Title *</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Sanctuary Title *")}</label>
                 <Input
-                  placeholder="e.g., Luminous Roots Circle"
+                  placeholder={tr("e.g., Luminous Roots Circle")}
                   value={formData.title}
                   onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   required
@@ -165,9 +167,9 @@ export default function EditSanctuaryPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Description</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Description")}</label>
                 <Textarea
-                  placeholder="Describe your sanctuary and what members can expect..."
+                  placeholder={tr("Describe your sanctuary and what members can expect...")}
                   value={formData.description}
                   onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                   className="min-h-24"
@@ -175,9 +177,9 @@ export default function EditSanctuaryPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Welcome Message</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Welcome Message")}</label>
                 <Textarea
-                  placeholder="A message to greet new members..."
+                  placeholder={tr("A message to greet new members...")}
                   value={formData.welcome_message}
                   onChange={(e) => setFormData((prev) => ({ ...prev, welcome_message: e.target.value }))}
                   className="min-h-20"
@@ -186,7 +188,7 @@ export default function EditSanctuaryPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Privacy</label>
+                  <label className="text-sm font-medium mb-2 block">{tr("Privacy")}</label>
                   <select
                     value={formData.privacy}
                     onChange={(e) =>
@@ -194,13 +196,13 @@ export default function EditSanctuaryPage() {
                     }
                     className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
                   >
-                    <option value="public">Public</option>
-                    <option value="invite_only">Invite Only</option>
+                    <option value="public">{tr("Public")}</option>
+                    <option value="invite_only">{tr("Invite Only")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Capacity</label>
+                  <label className="text-sm font-medium mb-2 block">{tr("Capacity")}</label>
                   <Input
                     type="number"
                     min="1"
@@ -219,15 +221,15 @@ export default function EditSanctuaryPage() {
                   className="w-4 h-4"
                 />
                 <label htmlFor="open_join" className="text-sm font-medium cursor-pointer">
-                  Allow open join (members can join without approval)
+                  {tr("Allow open join (members can join without approval)")}
                 </label>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Practice Types (Tags)</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Practice Types (Tags)")}</label>
                 <div className="flex gap-2 mb-2">
                   <Input
-                    placeholder="Add a tag..."
+                    placeholder={tr("Add a tag...")}
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
@@ -259,10 +261,10 @@ export default function EditSanctuaryPage() {
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={submitting} className="flex-1">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Save Changes
+                  {tr("Save Changes")}
                 </Button>
                 <Button type="button" variant="outline" asChild>
-                  <Link href={`/creator/sanctuaries/${sanctuaryId}`}>Cancel</Link>
+                  <Link href={`/creator/sanctuaries/${sanctuaryId}`}>{tr("Cancel")}</Link>
                 </Button>
               </div>
             </form>

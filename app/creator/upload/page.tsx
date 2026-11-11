@@ -16,6 +16,8 @@ import { audioFileError, extensionForAudioType, preferredRecordingType } from "@
 import { RitualRecorder } from "@/lib/ritual-recorder"
 import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, Loader2 } from "lucide-react"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { tr, trNode } from "@/lib/i18n"
+
 
 export default function RitualUpload() {
   const [user, setUser] = useState<User | null>(null)
@@ -150,7 +152,7 @@ export default function RitualUpload() {
       }, 1000)
     } catch (err) {
       console.error("Failed to start recording:", err)
-      setMediaError("Microphone access is needed to record. Allow it in the browser, or upload a file below.")
+      setMediaError(tr("Microphone access is needed to record. Allow it in the browser, or upload a file below."))
     }
   }
 
@@ -248,7 +250,7 @@ export default function RitualUpload() {
       router.push("/creator")
     } catch (err) {
       console.error("Failed to upload ritual:", err)
-      setMediaError("The upload failed. Your audio is still here — try again.")
+      setMediaError(tr("The upload failed. Your audio is still here — try again."))
     } finally {
       setUploading(false)
     }
@@ -274,26 +276,26 @@ export default function RitualUpload() {
         <div className="flex items-center gap-4 mb-8">
           <Button variant="outline" onClick={() => router.back()} className="bg-transparent border-border text-foreground hover:bg-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            {tr("Back")}
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Upload Ritual</h1>
-            <p className="text-muted-foreground">Share your practice with the community</p>
+            <h1 className="text-3xl font-bold text-foreground">{tr("Upload Ritual")}</h1>
+            <p className="text-muted-foreground">{tr("Share your practice with the community")}</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground">Audio Source</CardTitle>
-              <CardDescription>Record directly or upload an existing audio file</CardDescription>
+              <CardTitle className="text-foreground">{tr("Audio Source")}</CardTitle>
+              <CardDescription>{tr("Record directly or upload an existing audio file")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Recording Section */}
               <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                 <Mic className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Record New Ritual</h3>
-                <p className="text-muted-foreground mb-4">Maximum 5 minutes</p>
+                <h3 className="text-lg font-semibold mb-2">{tr("Record New Ritual")}</h3>
+                <p className="text-muted-foreground mb-4">{tr("Maximum 5 minutes")}</p>
 
                 {!recordedBlob ? (
                   <Button
@@ -307,7 +309,7 @@ export default function RitualUpload() {
                   </Button>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Recording complete: {formatTime(recordingTime)}</p>
+                    <p className="text-sm text-muted-foreground">{trNode("Recording complete: {p0}", { p0: formatTime(recordingTime) })}</p>
                     <div className="flex gap-2 justify-center">
                       <Button type="button" onClick={playRecording} variant="outline">
                         {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
@@ -315,7 +317,7 @@ export default function RitualUpload() {
                       </Button>
                       <Button type="button" onClick={deleteRecording} variant="outline">
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
+                        {tr("Delete")}
                       </Button>
                     </div>
                   </div>
@@ -324,11 +326,11 @@ export default function RitualUpload() {
 
               {/* File Upload Section */}
               <div className="text-center">
-                <p className="text-muted-foreground mb-4">Or</p>
+                <p className="text-muted-foreground mb-4">{tr("Or")}</p>
                 <div className="border-2 border-dashed border-border rounded-lg p-6">
                   <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Upload Audio File</h3>
-                  <p className="text-muted-foreground mb-4">MP3, WAV, or other audio formats</p>
+                  <h3 className="text-lg font-semibold mb-2">{tr("Upload Audio File")}</h3>
+                  <p className="text-muted-foreground mb-4">{tr("MP3, WAV, or other audio formats")}</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -337,9 +339,9 @@ export default function RitualUpload() {
                     className="hidden"
                   />
                   <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline">
-                    Choose File
+                    {tr("Choose File")}
                   </Button>
-                  {uploadedFile && <p className="text-sm text-muted-foreground mt-2">Selected: {uploadedFile.name}</p>}
+                  {uploadedFile && <p className="text-sm text-muted-foreground mt-2">{trNode("Selected: {p0}", { p0: uploadedFile.name })}</p>}
                 </div>
               </div>
 
@@ -351,28 +353,28 @@ export default function RitualUpload() {
 
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground">Ritual Details</CardTitle>
-              <CardDescription>Provide information about your sacred practice</CardDescription>
+              <CardTitle className="text-foreground">{tr("Ritual Details")}</CardTitle>
+              <CardDescription>{tr("Provide information about your sacred practice")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">{tr("Title *")}</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Name your ritual..."
+                  placeholder={tr("Name your ritual...")}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description">{tr("Description *")}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe the purpose and practice of this ritual..."
+                  placeholder={tr("Describe the purpose and practice of this ritual...")}
                   rows={4}
                   required
                 />
@@ -380,8 +382,8 @@ export default function RitualUpload() {
 
               <div>
                 <Label htmlFor="care_level" className="inline-flex items-center gap-1.5">
-                  Care Level
-                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel="About care level" />
+                  {tr("Care Level")}
+                  <GaiaInfoTip infoKey="ritual.care_level" ariaLabel={tr("About care level")} />
                 </Label>
                 <Select
                   value={formData.care_level}
@@ -393,28 +395,28 @@ export default function RitualUpload() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="level1">Level 1 - Gentle</SelectItem>
-                    <SelectItem value="level2">Level 2 - Moderate</SelectItem>
-                    <SelectItem value="level3">Level 3 - Intensive</SelectItem>
+                    <SelectItem value="level1">{tr("Level 1 - Gentle")}</SelectItem>
+                    <SelectItem value="level2">{tr("Level 2 - Moderate")}</SelectItem>
+                    <SelectItem value="level3">{tr("Level 3 - Intensive")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
                 <Label htmlFor="tags" className="inline-flex items-center gap-1.5">
-                  Tags
-                  <GaiaInfoTip infoKey="creator.tags" ariaLabel="About tags" />
+                  {tr("Tags")}
+                  <GaiaInfoTip infoKey="creator.tags" ariaLabel={tr("About tags")} />
                 </Label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     id="tags"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add a tag..."
+                    placeholder={tr("Add a tag...")}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                   />
                   <Button type="button" onClick={addTag} variant="outline">
-                    Add
+                    {tr("Add")}
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -428,14 +430,14 @@ export default function RitualUpload() {
 
               <div>
                 <Label htmlFor="cultural_declaration" className="inline-flex items-center gap-1.5">
-                  Cultural Declaration
-                  <GaiaInfoTip infoKey="creator.declaration" ariaLabel="About cultural declaration" />
+                  {tr("Cultural Declaration")}
+                  <GaiaInfoTip infoKey="creator.declaration" ariaLabel={tr("About cultural declaration")} />
                 </Label>
                 <Textarea
                   id="cultural_declaration"
                   value={formData.cultural_declaration}
                   onChange={(e) => setFormData({ ...formData, cultural_declaration: e.target.value })}
-                  placeholder="Acknowledge any cultural traditions or practices this ritual draws from..."
+                  placeholder={tr("Acknowledge any cultural traditions or practices this ritual draws from...")}
                   rows={3}
                 />
               </div>
@@ -444,7 +446,7 @@ export default function RitualUpload() {
 
           <div className="flex gap-4 items-center">
             <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary">
-              Cancel
+              {tr("Cancel")}
             </Button>
             <div className="flex-1 flex items-center gap-2">
               <Button
@@ -455,13 +457,13 @@ export default function RitualUpload() {
                 {uploading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading...
+                    {tr("Uploading...")}
                   </>
                 ) : (
                   "Upload Ritual"
                 )}
               </Button>
-              <GaiaInfoTip infoKey="creator.upload" ariaLabel="About uploading a ritual" />
+              <GaiaInfoTip infoKey="creator.upload" ariaLabel={tr("About uploading a ritual")} />
             </div>
           </div>
         </form>

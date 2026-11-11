@@ -18,6 +18,8 @@ import {
   type ArchivePage,
   type ArchiveType,
 } from "@/lib/admin"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // The Archive: four append-only sources merged into one reverse-chronological
 // trail with a single uniform entry shape, so this is ONE row component, not
@@ -108,12 +110,12 @@ function ArchiveRow({ entry }: { entry: ArchiveEntry }) {
             <Badge variant="outline" className="text-xs capitalize">
               {entry.action.replace(/_/g, " ")}
             </Badge>
-            <span className="text-xs text-muted-foreground">{new Date(entry.at).toLocaleString()}</span>
+            <span className="text-xs text-muted-foreground">{new Date(entry.at).toLocaleString(fmtLocale())}</span>
           </span>
           <span className="block break-words text-sm text-foreground">{entry.summary}</span>
           <span className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
             <span className="break-words">{entry.subject}</span>
-            <span className="break-all">by {actorLabel(entry.actor, entry.type)}</span>
+            <span className="break-all">{trNode("by {p0}", { p0: actorLabel(entry.actor, entry.type) })}</span>
           </span>
         </span>
       </button>
@@ -166,7 +168,7 @@ export function ArchiveTab() {
         }),
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load The Archive")
+      setError(err instanceof Error ? err.message : tr("Failed to load The Archive"))
     } finally {
       setLoading(false)
     }
@@ -207,12 +209,11 @@ export function ArchiveTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted-foreground">
-          One trail across every append-only source the platform keeps. Read-only — nothing here can be edited or
-          removed.
+          {tr("One trail across every append-only source the platform keeps. Read-only — nothing here can be edited or removed.")}
         </p>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -226,7 +227,7 @@ export function ArchiveTab() {
               : "border-border text-muted-foreground hover:text-foreground"
           }`}
         >
-          All sources
+          {tr("All sources")}
         </button>
         {availableTypes.map((type) => (
           <button
@@ -246,13 +247,13 @@ export function ArchiveTab() {
 
       <div className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1.5">
-          <Label htmlFor="archive-action">Action</Label>
+          <Label htmlFor="archive-action">{tr("Action")}</Label>
           <Select value={action} onValueChange={setAction}>
             <SelectTrigger id="archive-action">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Any action</SelectItem>
+              <SelectItem value="all">{tr("Any action")}</SelectItem>
               {actionOptions.map((option) => (
                 <SelectItem key={option} value={option}>
                   {option.replace(/_/g, " ")}
@@ -262,21 +263,21 @@ export function ArchiveTab() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="archive-since">From</Label>
+          <Label htmlFor="archive-since">{tr("From")}</Label>
           <Input id="archive-since" type="date" value={since} onChange={(e) => setSince(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="archive-until">To</Label>
+          <Label htmlFor="archive-until">{tr("To")}</Label>
           <Input id="archive-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="archive-actor">Actor user id</Label>
+          <Label htmlFor="archive-actor">{tr("Actor user id")}</Label>
           <Input
             id="archive-actor"
             inputMode="numeric"
             value={actorId}
             onChange={(e) => setActorId(e.target.value.replace(/\D/g, ""))}
-            placeholder="e.g. 7"
+            placeholder={tr("e.g. 7")}
           />
         </div>
       </div>
@@ -290,8 +291,7 @@ export function ArchiveTab() {
       {deepPaging && (
         <Alert>
           <AlertDescription className="text-sm">
-            Deep paging gets slower the further back you go — narrowing by source and date range is much faster
-            than scrolling.
+            {tr("Deep paging gets slower the further back you go — narrowing by source and date range is much faster than scrolling.")}
           </AlertDescription>
         </Alert>
       )}
@@ -304,8 +304,8 @@ export function ArchiveTab() {
         </div>
       ) : error ? null : !data || data.entries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
-          <p className="font-medium text-foreground">Nothing matches these filters</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try a wider date range or all sources.</p>
+          <p className="font-medium text-foreground">{tr("Nothing matches these filters")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tr("Try a wider date range or all sources.")}</p>
         </div>
       ) : (
         <>
@@ -321,7 +321,7 @@ export function ArchiveTab() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              Showing {firstRow.toLocaleString()}–{lastRow.toLocaleString()} of {total.toLocaleString()}
+              {trNode("Showing {p0}–{p1} of {p2}", { p0: firstRow.toLocaleString(fmtLocale()), p1: lastRow.toLocaleString(fmtLocale()), p2: total.toLocaleString(fmtLocale()) })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -330,7 +330,7 @@ export function ArchiveTab() {
                 disabled={offset === 0 || loading}
                 onClick={() => setOffset((current) => Math.max(0, current - PAGE_SIZE))}
               >
-                Previous
+                {tr("Previous")}
               </Button>
               <Button
                 variant="outline"
@@ -338,7 +338,7 @@ export function ArchiveTab() {
                 disabled={!data.has_more || loading}
                 onClick={() => setOffset((current) => current + PAGE_SIZE)}
               >
-                Next
+                {tr("Next")}
               </Button>
             </div>
           </div>

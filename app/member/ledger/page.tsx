@@ -24,6 +24,8 @@ import {
 } from "lucide-react"
 import { GLOSSARY } from "@/lib/glossary"
 import { MyPractice } from "@/components/member/my-practice"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface PlayHistoryItem {
   id: number
@@ -138,13 +140,13 @@ export default function LedgerPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
             <ScrollText className="w-5 h-5 text-primary" />
-            <p className="text-sm uppercase tracking-widest text-gold-muted">Records</p>
+            <p className="text-sm uppercase tracking-widest text-gold-muted">{tr("Records")}</p>
           </div>
           <h1 className="text-3xl md:text-4xl font-serif text-foreground tracking-wide mb-2">
             {GLOSSARY.ledger}
           </h1>
           <p className="text-muted-foreground">
-            A record of your practice — every ritual experienced, every blessing given.
+            {tr("A record of your practice — every ritual experienced, every blessing given.")}
           </p>
         </div>
 
@@ -159,14 +161,14 @@ export default function LedgerPage() {
               className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Play className="w-4 h-4" />
-              <span>Sessions</span>
+              <span>{tr("Sessions")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="blessings"
               className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Heart className="w-4 h-4" />
-              <span>Blessings</span>
+              <span>{tr("Blessings")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="billing"
@@ -180,19 +182,19 @@ export default function LedgerPage() {
           {/* Play History */}
           <TabsContent value="history" className="space-y-3">
             <h2 className="text-base font-semibold text-foreground">
-              Practice Sessions ({playHistory.length})
+              {trNode("Practice Sessions ({p0})", { p0: playHistory.length })}
             </h2>
 
             {playHistory.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
                   <Music className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-40" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No sessions yet</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{tr("No sessions yet")}</h3>
                   <p className="text-muted-foreground mb-4 text-sm">
-                    Your ritual experiences will appear here
+                    {tr("Your ritual experiences will appear here")}
                   </p>
                   <Button asChild>
-                    <Link href="/member">Open the {GLOSSARY.sacredLibrary}</Link>
+                    <Link href="/member">{trNode("Open the {p0}", { p0: GLOSSARY.sacredLibrary })}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -221,7 +223,7 @@ export default function LedgerPage() {
                             {formatDuration(play.progress_seconds)}
                           </span>
                           <span className="text-xs text-muted-foreground hidden sm:inline">
-                            {new Date(play.started_at).toLocaleDateString()}
+                            {new Date(play.started_at).toLocaleDateString(fmtLocale())}
                           </span>
                         </div>
                       </div>
@@ -241,19 +243,19 @@ export default function LedgerPage() {
           {/* Blessings */}
           <TabsContent value="blessings" className="space-y-3">
             <h2 className="text-base font-semibold text-foreground">
-              Blessings Given ({blessings.length})
+              {trNode("Blessings Given ({p0})", { p0: blessings.length })}
             </h2>
 
             {blessings.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
                   <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-40" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No blessings yet</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{tr("No blessings yet")}</h3>
                   <p className="text-muted-foreground mb-4 text-sm">
-                    Bless rituals that resonate with you
+                    {tr("Bless rituals that resonate with you")}
                   </p>
                   <Button asChild>
-                    <Link href="/member">Open the {GLOSSARY.sacredLibrary}</Link>
+                    <Link href="/member">{trNode("Open the {p0}", { p0: GLOSSARY.sacredLibrary })}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -274,7 +276,7 @@ export default function LedgerPage() {
                           </Badge>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {new Date(blessing.created_at).toLocaleDateString()}
+                            {new Date(blessing.created_at).toLocaleDateString(fmtLocale())}
                           </span>
                         </div>
                       </div>
@@ -282,7 +284,7 @@ export default function LedgerPage() {
                     <Button asChild variant="ghost" size="sm" className="flex-shrink-0 text-primary hover:text-gold-muted">
                       <Link href={`/member/ritual/${blessing.ritual}`}>
                         <Play className="w-3.5 h-3.5 mr-1" />
-                        Experience
+                        {tr("Experience")}
                       </Link>
                     </Button>
                   </div>
@@ -295,13 +297,12 @@ export default function LedgerPage() {
           <TabsContent value="billing" className="space-y-4">
             <div className="bg-card border border-border rounded-xl p-8 text-center">
               <CreditCard className="w-10 h-10 text-primary mx-auto mb-4 opacity-60" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Billing &amp; Invoices</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{tr("Billing & Invoices")}</h3>
               <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
-                View your subscription details, plan status, and invoice history issued by
-                Evonaire, Inc.
+                {tr("View your subscription details, plan status, and invoice history issued by Evonaire, Inc.")}
               </p>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                <Link href="/member/billing">Go to {GLOSSARY.billing}</Link>
+                <Link href="/member/billing">{trNode("Go to {p0}", { p0: GLOSSARY.billing })}</Link>
               </Button>
             </div>
 
@@ -313,20 +314,20 @@ export default function LedgerPage() {
                   <Coins className="w-6 h-6 text-primary mb-3 opacity-70" />
                   <h3 className="text-base font-semibold text-foreground mb-1">{GLOSSARY.earnings}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Royalty statements for your rituals, period by period.
+                    {tr("Royalty statements for your rituals, period by period.")}
                   </p>
                   <Button asChild variant="outline" className="bg-transparent border-border">
-                    <Link href="/creator/earnings">View {GLOSSARY.earnings}</Link>
+                    <Link href="/creator/earnings">{trNode("View {p0}", { p0: GLOSSARY.earnings })}</Link>
                   </Button>
                 </div>
                 <div className="bg-card border border-border rounded-xl p-6">
                   <Banknote className="w-6 h-6 text-primary mb-3 opacity-70" />
                   <h3 className="text-base font-semibold text-foreground mb-1">{GLOSSARY.payouts}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Your payout account and transfer history.
+                    {tr("Your payout account and transfer history.")}
                   </p>
                   <Button asChild variant="outline" className="bg-transparent border-border">
-                    <Link href="/creator/payouts">View {GLOSSARY.payouts}</Link>
+                    <Link href="/creator/payouts">{trNode("View {p0}", { p0: GLOSSARY.payouts })}</Link>
                   </Button>
                 </div>
               </div>

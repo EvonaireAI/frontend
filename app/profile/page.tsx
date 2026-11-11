@@ -17,6 +17,8 @@ import { roleDashboardLabel } from "@/lib/roles"
 import { Loader2, ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export default function ProfilePage() {
   const { user, loading: authLoading, refreshUser } = useAuth()
@@ -85,10 +87,10 @@ export default function ProfilePage() {
         first_name: updatedUser.first_name || "",
         last_name: updatedUser.last_name || "",
       })
-      setMessage("Profile updated successfully!")
+      setMessage(tr("Profile updated successfully!"))
       setProfilePicture(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update profile")
+      setError(err instanceof Error ? err.message : tr("Failed to update profile"))
     } finally {
       setSaving(false)
     }
@@ -128,19 +130,19 @@ export default function ProfilePage() {
           <Button asChild className="cursor-pointer">
             <Link href="/dashboard">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              {tr("Back to Dashboard")}
             </Link>
           </Button>
           <h1 className="text-3xl font-serif text-cream tracking-wide inline-flex items-center gap-2">
-            Profile Settings
-            <GaiaInfoTip infoKey="profile.picture" ariaLabel="About profile settings" side="bottom" />
+            {tr("Profile Settings")}
+            <GaiaInfoTip infoKey="profile.picture" ariaLabel={tr("About profile settings")} side="bottom" />
           </h1>
         </div>
 
         <Card className="bg-[#141f2a] border-gold/20 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your profile information and settings</CardDescription>
+            <CardTitle>{tr("Personal Information")}</CardTitle>
+            <CardDescription>{tr("Update your profile information and settings")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -190,11 +192,11 @@ export default function ProfilePage() {
                   </Label>
                   {profilePicture ? (
                     <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
-                      Selected: {profilePicture.name} — press Save Changes to upload.
+                      {trNode("Selected: {p0} — press Save Changes to upload.", { p0: profilePicture.name })}
                     </p>
                   ) : (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      PNG, JPEG, WebP, or GIF. Camera or library on mobile.
+                      {tr("PNG, JPEG, WebP, or GIF. Camera or library on mobile.")}
                     </p>
                   )}
                 </div>
@@ -202,7 +204,7 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
+                  <Label htmlFor="first_name">{tr("First Name")}</Label>
                   <Input
                     id="first_name"
                     value={formData.first_name}
@@ -211,7 +213,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
+                  <Label htmlFor="last_name">{tr("Last Name")}</Label>
                   <Input
                     id="last_name"
                     value={formData.last_name}
@@ -223,24 +225,24 @@ export default function ProfilePage() {
 
               <div className="divide-y divide-gold/10 rounded-md border border-gold/20 bg-[#0f1820]">
                 <div className="px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-cream/50">Email</p>
+                  <p className="text-xs uppercase tracking-wide text-cream/50">{tr("Email")}</p>
                   <p className="mt-1 text-sm text-cream">{user.email}</p>
-                  <p className="mt-1 text-xs text-cream/40">Email cannot be changed. Contact support if needed.</p>
+                  <p className="mt-1 text-xs text-cream/40">{tr("Email cannot be changed. Contact support if needed.")}</p>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-cream/50">Role</p>
+                  <p className="text-xs uppercase tracking-wide text-cream/50">{tr("Role")}</p>
                   <p className="mt-1 text-sm text-cream">{roleDashboardLabel(user.role)}</p>
-                  <p className="mt-1 text-xs text-cream/40">Role changes require admin approval.</p>
+                  <p className="mt-1 text-xs text-cream/40">{tr("Role changes require admin approval.")}</p>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-cream/50">Member Since</p>
-                  <p className="mt-1 text-sm text-cream">{new Date(user.date_joined).toLocaleDateString()}</p>
+                  <p className="text-xs uppercase tracking-wide text-cream/50">{tr("Member Since")}</p>
+                  <p className="mt-1 text-sm text-cream">{new Date(user.date_joined).toLocaleDateString(fmtLocale())}</p>
                 </div>
               </div>
 
               <Button type="submit" disabled={saving} className="w-full cursor-pointer">
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+                {tr("Save Changes")}
               </Button>
             </form>
           </CardContent>

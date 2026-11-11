@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -37,8 +37,10 @@ import {
 import { LicenseChip } from "@/components/commons/listing-chips"
 import { ListingFormDialog } from "@/components/commons/listing-form-dialog"
 import { GiftDialog } from "@/components/commons/gift-dialog"
+import { formatDate,tr, trDeep, trNode  } from "@/lib/i18n"
 
-const STATUS_META: Record<ListingStatus, { label: string; className: string }> = {
+
+const STATUS_META: Record<ListingStatus, { label: string; className: string }> = trDeep({
   draft: { label: "Draft", className: "bg-secondary text-secondary-foreground border-border" },
   pending_review: {
     label: "In review",
@@ -47,7 +49,7 @@ const STATUS_META: Record<ListingStatus, { label: string; className: string }> =
   published: { label: "Published", className: "bg-primary/10 text-primary border-primary/30" },
   paused: { label: "Paused", className: "bg-muted text-muted-foreground border-border" },
   rejected: { label: "Needs changes", className: "bg-destructive/10 text-destructive border-destructive/30" },
-}
+})
 
 export default function CreatorListingsPage() {
   const router = useRouter()
@@ -134,7 +136,7 @@ export default function CreatorListingsPage() {
       if (err instanceof CommonsApiError && err.code === "connect_not_ready") {
         setConnectBlockedId(id)
       } else {
-        toast.error(err instanceof Error ? err.message : "Something went wrong")
+        toast.error(err instanceof Error ? err.message : tr("Something went wrong"))
       }
     } finally {
       setBusyId(null)
@@ -160,25 +162,25 @@ export default function CreatorListingsPage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <Store className="w-5 h-5 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">My listings</h1>
+            <h1 className="text-3xl font-bold text-foreground">{tr("My listings")}</h1>
           </div>
           <p className="text-muted-foreground">
-            Sell one-off offerings in the Commons — draft, submit for review, then publish.
+            {tr("Sell one-off offerings in the Commons — draft, submit for review, then publish.")}
           </p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="w-4 h-4 mr-2" />
-          New listing
+          {tr("New listing")}
         </Button>
       </div>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-            <span>We couldn&apos;t load your listings.</span>
+            <span>{tr("We couldn't load your listings.")}</span>
             <Button variant="outline" size="sm" onClick={load}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
+              {tr("Retry")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -199,13 +201,13 @@ export default function CreatorListingsPage() {
       ) : listings.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Store className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-foreground font-medium">No listings yet</p>
+          <p className="text-foreground font-medium">{tr("No listings yet")}</p>
           <p className="text-sm text-muted-foreground mt-1 mb-5">
-            Create your first offering to sell it in the Commons.
+            {tr("Create your first offering to sell it in the Commons.")}
           </p>
           <Button onClick={openCreate}>
             <Plus className="w-4 h-4 mr-2" />
-            New listing
+            {tr("New listing")}
           </Button>
         </div>
       ) : (
@@ -239,8 +241,7 @@ export default function CreatorListingsPage() {
                       )}
                       {listing.early_access_until && (
                         <p className="text-xs text-muted-foreground">
-                          Scholar early access until{" "}
-                          {format(new Date(listing.early_access_until), "MMM d, yyyy")}
+                          {trNode("Scholar early access until {p0}", { p0: formatDate(new Date(listing.early_access_until), "MMM d, yyyy") })}
                         </p>
                       )}
                     </div>
@@ -250,7 +251,7 @@ export default function CreatorListingsPage() {
                   {listing.status === "rejected" && listing.review_note && (
                     <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
                       <p className="text-xs font-medium text-destructive mb-0.5">
-                        Reviewer note
+                        {tr("Reviewer note")}
                       </p>
                       <p className="text-sm text-foreground/90">{listing.review_note}</p>
                     </div>
@@ -261,12 +262,12 @@ export default function CreatorListingsPage() {
                     <Alert>
                       <AlertDescription className="flex items-center justify-between gap-3 flex-wrap">
                         <span className="text-sm">
-                          Finish your payout setup before publishing a paid offering.
+                          {tr("Finish your payout setup before publishing a paid offering.")}
                         </span>
                         <Button asChild size="sm" variant="outline">
                           <Link href="/creator/payouts" className="flex items-center gap-2">
                             <Banknote className="w-4 h-4" />
-                            Finish payout setup
+                            {tr("Finish payout setup")}
                           </Link>
                         </Button>
                       </AlertDescription>
@@ -283,7 +284,7 @@ export default function CreatorListingsPage() {
                         <Button
                           size="sm"
                           onClick={() =>
-                            runAction(listing.id, () => submitForReview(listing.id), "Submitted for review")
+                            runAction(listing.id, () => submitForReview(listing.id), tr("Submitted for review"))
                           }
                           disabled={busy}
                         >
@@ -292,7 +293,7 @@ export default function CreatorListingsPage() {
                           ) : (
                             <Send className="w-4 h-4 mr-2" />
                           )}
-                          Submit for review
+                          {tr("Submit for review")}
                         </Button>
                       </>
                     )}
@@ -300,7 +301,7 @@ export default function CreatorListingsPage() {
                     {canEditEarlyAccess && (
                       <Button variant="outline" size="sm" onClick={() => openEdit(listing)}>
                         <Pencil className="w-4 h-4 mr-2" />
-                        Edit early access
+                        {tr("Edit early access")}
                       </Button>
                     )}
 
@@ -309,7 +310,7 @@ export default function CreatorListingsPage() {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          runAction(listing.id, () => pauseListing(listing.id), "Listing paused")
+                          runAction(listing.id, () => pauseListing(listing.id), tr("Listing paused"))
                         }
                         disabled={busy}
                       >
@@ -318,7 +319,7 @@ export default function CreatorListingsPage() {
                         ) : (
                           <Pause className="w-4 h-4 mr-2" />
                         )}
-                        Pause
+                        {tr("Pause")}
                       </Button>
                     )}
 
@@ -327,7 +328,7 @@ export default function CreatorListingsPage() {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          runAction(listing.id, () => resumeListing(listing.id), "Listing resumed")
+                          runAction(listing.id, () => resumeListing(listing.id), tr("Listing resumed"))
                         }
                         disabled={busy}
                       >
@@ -336,14 +337,14 @@ export default function CreatorListingsPage() {
                         ) : (
                           <Play className="w-4 h-4 mr-2" />
                         )}
-                        Resume
+                        {tr("Resume")}
                       </Button>
                     )}
 
                     {(listing.status === "published" || listing.status === "paused") && (
                       <Button variant="ghost" size="sm" onClick={() => openGift(listing)}>
                         <Gift className="w-4 h-4 mr-2" />
-                        Gift
+                        {tr("Gift")}
                       </Button>
                     )}
                   </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { format } from "date-fns"
+
 import { AlertTriangle, CircleSlash, Loader2, ShieldCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -18,6 +18,8 @@ import {
   sourceLabel,
   type Verification,
 } from "@/lib/claimchain"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // A certificate, not a dashboard. The visitor is a stranger — a distribution
 // platform working a takedown request, or a lawyer — and they came for one
@@ -51,19 +53,18 @@ function Verdict({ verification }: { verification: Verification }) {
 
   if (revoked) {
     const on = verification.revoked_at
-      ? format(new Date(verification.revoked_at), "d MMMM yyyy")
+      ? formatDate(new Date(verification.revoked_at), "d MMMM yyyy")
       : null
     return (
       <div className="flex items-start gap-3">
         <CircleSlash className="w-7 h-7 shrink-0 text-muted-foreground mt-1" aria-hidden />
         <div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground text-balance">
-            This license was <span className="text-muted-foreground">withdrawn</span>
+            {tr("This license was ")}<span className="text-muted-foreground">{tr("withdrawn")}</span>
             {on ? ` on ${on}` : ""}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            It was granted on {format(new Date(verification.granted_at), "d MMMM yyyy")} and is no
-            longer in force.
+            {trNode("It was granted on {p0} and is no longer in force.", { p0: formatDate(new Date(verification.granted_at), "d MMMM yyyy") })}
           </p>
         </div>
       </div>
@@ -75,11 +76,10 @@ function Verdict({ verification }: { verification: Verification }) {
       <ShieldCheck className="w-7 h-7 shrink-0 text-primary mt-1" aria-hidden />
       <div>
         <p className="text-2xl sm:text-3xl font-bold text-foreground text-balance">
-          This license is <span className="text-primary">active</span>
+          {tr("This license is ")}<span className="text-primary">{tr("active")}</span>
         </p>
         <p className="text-sm text-muted-foreground mt-2">
-          Granted on {format(new Date(verification.granted_at), "d MMMM yyyy")} and in force as of
-          now.
+          {trNode("Granted on {p0} and in force as of now.", { p0: formatDate(new Date(verification.granted_at), "d MMMM yyyy") })}
         </p>
       </div>
     </div>
@@ -121,7 +121,7 @@ export function VerificationCard() {
     <main className="min-h-screen bg-background flex items-start justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4 text-center">
-          Evonaire · License verification
+          {tr("Evonaire · License verification")}
         </p>
 
         <Card className="bg-card border-border">
@@ -130,7 +130,7 @@ export function VerificationCard() {
               <div className="space-y-4" aria-busy="true">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
-                  Checking this license…
+                  {tr("Checking this license…")}
                 </div>
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="h-24 w-full" />
@@ -143,7 +143,7 @@ export function VerificationCard() {
               <div className="text-center py-8">
                 <CircleSlash className="w-8 h-8 text-muted-foreground mx-auto mb-3" aria-hidden />
                 <p className="text-xl font-semibold text-foreground">
-                  No license matches this link.
+                  {tr("No license matches this link.")}
                 </p>
               </div>
             )}
@@ -152,11 +152,10 @@ export function VerificationCard() {
               <div className="text-center py-8">
                 <AlertTriangle className="w-8 h-8 text-muted-foreground mx-auto mb-3" aria-hidden />
                 <p className="text-xl font-semibold text-foreground">
-                  This license couldn&apos;t be checked right now.
+                  {tr("This license couldn't be checked right now.")}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Nothing about the license has changed — the check itself failed. Please try
-                  again shortly.
+                  {tr("Nothing about the license has changed — the check itself failed. Please try again shortly.")}
                 </p>
               </div>
             )}
@@ -165,63 +164,61 @@ export function VerificationCard() {
               <>
                 <Verdict verification={verification} />
 
-                <Section title="License">
+                <Section title={tr("License")}>
                   <dl className="divide-y divide-border">
-                    <Field label="Level">{licenseLevelLabel(verification.license.level)}</Field>
-                    <Field label="Scope">{scopeLabel(verification.license.scope)}</Field>
-                    <Field label="Source">{sourceLabel(verification.license.source)}</Field>
-                    <Field label="Terms version">{verification.license.terms_version}</Field>
-                    <Field label="Terms hash">
-                      <HashValue value={verification.license.terms_hash} label="terms hash" />
+                    <Field label={tr("Level")}>{licenseLevelLabel(verification.license.level)}</Field>
+                    <Field label={tr("Scope")}>{scopeLabel(verification.license.scope)}</Field>
+                    <Field label={tr("Source")}>{sourceLabel(verification.license.source)}</Field>
+                    <Field label={tr("Terms version")}>{verification.license.terms_version}</Field>
+                    <Field label={tr("Terms hash")}>
+                      <HashValue value={verification.license.terms_hash} label={tr("terms hash")} />
                     </Field>
                   </dl>
                 </Section>
 
-                <Section title="Machine use">
+                <Section title={tr("Machine use")}>
                   <AiUseRows aiUse={verification.license.ai_use} />
                   <p className="text-xs text-muted-foreground mt-3 max-w-prose">
-                    These four are recorded explicitly on every license. Nothing here is inferred:
-                    a right that is not granted is denied.
+                    {tr("These four are recorded explicitly on every license. Nothing here is inferred: a right that is not granted is denied.")}
                   </p>
                 </Section>
 
-                <Section title="Content fingerprint">
+                <Section title={tr("Content fingerprint")}>
                   <dl className="divide-y divide-border">
-                    <Field label="Algorithm">{algoLabel(verification.content.algo)}</Field>
-                    <Field label="Fingerprint">
-                      <HashValue value={verification.content.sha256} label="content fingerprint" />
+                    <Field label={tr("Algorithm")}>{algoLabel(verification.content.algo)}</Field>
+                    <Field label={tr("Fingerprint")}>
+                      <HashValue value={verification.content.sha256} label={tr("content fingerprint")} />
                     </Field>
-                    <Field label="Content reference">
+                    <Field label={tr("Content reference")}>
                       <code className="font-mono text-xs bg-secondary text-secondary-foreground rounded px-1.5 py-1 break-all">
                         {verification.content.ref}
                       </code>
                     </Field>
                   </dl>
                   <p className="text-xs text-muted-foreground mt-3 max-w-prose">
-                    Hash a suspect file with SHA-256 and compare it with the fingerprint above.
+                    {tr("Hash a suspect file with SHA-256 and compare it with the fingerprint above.")}
                   </p>
                 </Section>
 
-                <Section title="Parties">
+                <Section title={tr("Parties")}>
                   <dl className="divide-y divide-border">
-                    <Field label="Creator">
+                    <Field label={tr("Creator")}>
                       <code className="font-mono text-xs bg-secondary text-secondary-foreground rounded px-1.5 py-1 break-all">
                         {verification.parties.creator_ref}
                       </code>
                     </Field>
-                    <Field label="License holder">
+                    <Field label={tr("License holder")}>
                       <code className="font-mono text-xs bg-secondary text-secondary-foreground rounded px-1.5 py-1 break-all">
                         {verification.parties.holder_ref}
                       </code>
                     </Field>
                   </dl>
                   <p className="text-xs text-muted-foreground mt-3 max-w-prose">
-                    Parties are identified by one-way references. Evonaire can match these to
-                    accounts; nobody else can.
+                    {tr("Parties are identified by one-way references. Evonaire can match these to accounts; nobody else can.")}
                   </p>
                 </Section>
 
-                <Section title="Claim record">
+                <Section title={tr("Claim record")}>
                   <ol className="space-y-3">
                     {verification.chain.map((link, index) => (
                       <li
@@ -233,12 +230,12 @@ export function VerificationCard() {
                             {eventLabel(link.event_type)}
                           </span>
                           <time className="text-xs text-muted-foreground" dateTime={link.created_at}>
-                            {format(new Date(link.created_at), "d MMM yyyy, HH:mm")}
+                            {formatDate(new Date(link.created_at), "d MMM yyyy, HH:mm")}
                           </time>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
-                            Hash
+                            {tr("Hash")}
                             <code className="font-mono bg-secondary text-secondary-foreground rounded px-1 py-0.5 break-all">
                               {link.payload_hash}
                             </code>
@@ -246,7 +243,7 @@ export function VerificationCard() {
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
-                            Previous
+                            {tr("Previous")}
                             <code className="font-mono bg-secondary text-secondary-foreground rounded px-1 py-0.5 break-all">
                               {link.prev_hash ?? "—"}
                             </code>
@@ -261,7 +258,7 @@ export function VerificationCard() {
                   </ol>
                 </Section>
 
-                <Section title="How these records are kept">
+                <Section title={tr("How these records are kept")}>
                   <AnchoringNote anchoring={verification.anchoring} />
                 </Section>
               </>

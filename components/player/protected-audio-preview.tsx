@@ -25,6 +25,8 @@ import {
 } from "@/lib/screen-protection"
 import { derivePseudonym } from "@/lib/watermark"
 import { DynamicWatermark } from "./dynamic-watermark"
+import { tr } from "@/lib/i18n"
+
 
 interface ProtectedAudioPreviewProps {
   /** Resolved lazily so the URL never sits in a prop for longer than this call. */
@@ -80,7 +82,7 @@ export function ProtectedAudioPreview({
         controlsList="nodownload"
         {...({ disablePictureInPicture: true })}
       >
-        Your browser does not support the audio element.
+        {tr("Your browser does not support the audio element.")}
       </audio>
     </div>
   )

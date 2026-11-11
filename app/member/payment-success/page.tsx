@@ -7,6 +7,8 @@ import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useEntitlements } from "@/lib/entitlements-context"
 import { fetchSubscription, PLAN_DISPLAY } from "@/lib/subscription"
+import { tr, trNode } from "@/lib/i18n"
+
 
 function PaymentSuccessContent() {
   const router = useRouter()
@@ -70,10 +72,10 @@ function PaymentSuccessContent() {
               </div>
             </div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              Setting up your subscription…
+              {tr("Setting up your subscription…")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Activating your plan. This takes just a moment.
+              {tr("Activating your plan. This takes just a moment.")}
             </p>
           </>
         )}
@@ -86,16 +88,15 @@ function PaymentSuccessContent() {
               </div>
             </div>
             <h2 className="text-2xl font-serif text-foreground mb-2">
-              Welcome to {planName}!
+              {trNode("Welcome to {p0}!", { p0: planName })}
             </h2>
             <p className="text-sm text-muted-foreground mb-8">
-              Your {planName} plan is now active. Enjoy full access to all premium rituals and
-              features.
+              {trNode("Your {p0} plan is now active. Enjoy full access to all premium rituals and features.", { p0: planName })}
             </p>
 
             {sessionId && (
               <p className="text-xs text-muted-foreground/50 font-mono mb-6">
-                Ref: {sessionId.slice(0, 24)}…
+                {trNode("Ref: {p0}…", { p0: sessionId.slice(0, 24) })}
               </p>
             )}
 
@@ -105,18 +106,18 @@ function PaymentSuccessContent() {
                 className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
               >
                 <Sparkles className="w-4 h-4" />
-                Explore Sanctuaries →
+                {tr("Explore Sanctuaries →")}
               </Link>
               <Link
                 href="/member/billing"
                 className="w-full h-11 rounded-xl bg-transparent border border-border text-foreground font-medium text-sm hover:bg-secondary transition-colors flex items-center justify-center"
               >
-                View Billing
+                {tr("View Billing")}
               </Link>
             </div>
 
             <p className="text-xs text-muted-foreground mt-6">
-              Redirecting to your library shortly…
+              {tr("Redirecting to your library shortly…")}
             </p>
           </>
         )}
@@ -128,23 +129,22 @@ function PaymentSuccessContent() {
                 <CheckCircle className="w-7 h-7 text-muted-foreground" />
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Payment received</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">{tr("Payment received")}</h2>
             <p className="text-sm text-muted-foreground mb-8">
-              Your payment was received. Your account will be updated shortly — check your billing
-              page to confirm once it&apos;s active.
+              {tr("Your payment was received. Your account will be updated shortly — check your billing page to confirm once it's active.")}
             </p>
             <div className="space-y-3">
               <Link
                 href="/member/billing"
                 className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-200 flex items-center justify-center gap-2"
               >
-                Go to Billing
+                {tr("Go to Billing")}
               </Link>
               <Link
                 href="/member"
                 className="w-full h-11 rounded-xl bg-transparent border border-border text-foreground font-medium text-sm hover:bg-secondary transition-colors flex items-center justify-center"
               >
-                Back to Library
+                {tr("Back to Library")}
               </Link>
             </div>
           </>

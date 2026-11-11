@@ -22,6 +22,8 @@ import {
   Home,
 } from "lucide-react"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface PlayHistoryItem {
   id: number
@@ -127,15 +129,15 @@ export default function MySanctuaryPage() {
           <div className="flex items-center gap-2 mb-2">
             <Home className="w-5 h-5 text-primary" />
             <p className="text-sm uppercase tracking-widest text-gold-muted inline-flex items-center gap-2">
-              Personal Space
-              <GaiaInfoTip infoKey="member.my_space" ariaLabel="About My Sanctuary" side="bottom" />
+              {tr("Personal Space")}
+              <GaiaInfoTip infoKey="member.my_space" ariaLabel={tr("About My Sanctuary")} side="bottom" />
             </p>
           </div>
           <h1 className="text-3xl md:text-4xl font-serif text-foreground tracking-wide mb-2">
-            My Sanctuary
+            {tr("My Sanctuary")}
           </h1>
           <p className="text-muted-foreground">
-            Your personal space — sanctuaries joined, rituals blessed, and your practice history.
+            {tr("Your personal space — sanctuaries joined, rituals blessed, and your practice history.")}
           </p>
         </div>
 
@@ -149,7 +151,7 @@ export default function MySanctuaryPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">{sanctuaries.length}</p>
-                  <p className="text-sm text-muted-foreground">Sanctuaries Joined</p>
+                  <p className="text-sm text-muted-foreground">{tr("Sanctuaries Joined")}</p>
                 </div>
               </div>
             </CardContent>
@@ -162,7 +164,7 @@ export default function MySanctuaryPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">{blessings.length}</p>
-                  <p className="text-sm text-muted-foreground">Rituals Blessed</p>
+                  <p className="text-sm text-muted-foreground">{tr("Rituals Blessed")}</p>
                 </div>
               </div>
             </CardContent>
@@ -175,7 +177,7 @@ export default function MySanctuaryPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">{completedRituals}</p>
-                  <p className="text-sm text-muted-foreground">Rituals Completed</p>
+                  <p className="text-sm text-muted-foreground">{tr("Rituals Completed")}</p>
                 </div>
               </div>
             </CardContent>
@@ -188,9 +190,9 @@ export default function MySanctuaryPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {Math.floor(totalListenTime / 60)}m
+                    {trNode("{p0}m", { p0: Math.floor(totalListenTime / 60) })}
                   </p>
-                  <p className="text-sm text-muted-foreground">Total Listen Time</p>
+                  <p className="text-sm text-muted-foreground">{tr("Total Listen Time")}</p>
                 </div>
               </div>
             </CardContent>
@@ -205,21 +207,21 @@ export default function MySanctuaryPage() {
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Sanctuaries</span>
+              <span className="hidden sm:inline">{tr("Sanctuaries")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="blessings"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Heart className="w-4 h-4" />
-              <span className="hidden sm:inline">Blessed</span>
+              <span className="hidden sm:inline">{tr("Blessed")}</span>
             </TabsTrigger>
             <TabsTrigger
               value="history"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Play className="w-4 h-4" />
-              <span className="hidden sm:inline">History</span>
+              <span className="hidden sm:inline">{tr("History")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -227,11 +229,11 @@ export default function MySanctuaryPage() {
           <TabsContent value="sanctuaries" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-foreground">
-                My Sanctuaries ({sanctuaries.length})
+                {trNode("My Sanctuaries ({p0})", { p0: sanctuaries.length })}
               </h2>
               <Button asChild variant="outline" size="sm" className="bg-transparent border-border">
                 <Link href="/member/agora">
-                  Discover More
+                  {tr("Discover More")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
@@ -241,12 +243,12 @@ export default function MySanctuaryPage() {
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
                   <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No sanctuaries yet</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{tr("No sanctuaries yet")}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Join a sanctuary to connect with like-minded practitioners
+                    {tr("Join a sanctuary to connect with like-minded practitioners")}
                   </p>
                   <Button asChild>
-                    <Link href="/member/agora">Browse Sanctuaries</Link>
+                    <Link href="/member/agora">{tr("Browse Sanctuaries")}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -273,16 +275,16 @@ export default function MySanctuaryPage() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
-                          {sanctuary.active_members_count} members
+                          {trNode("{p0} members", { p0: sanctuary.active_members_count })}
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          Joined {new Date(sanctuary.member_since).toLocaleDateString()}
+                          {trNode("Joined {p0}", { p0: new Date(sanctuary.member_since).toLocaleDateString(fmtLocale()) })}
                         </div>
                       </div>
                       <Button asChild className="w-full" size="sm">
                         <Link href={`/member/sanctuaries/${sanctuary.sanctuary_id}`}>
-                          Enter Sanctuary
+                          {tr("Enter Sanctuary")}
                         </Link>
                       </Button>
                     </CardContent>
@@ -296,11 +298,11 @@ export default function MySanctuaryPage() {
           <TabsContent value="blessings" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-foreground">
-                Blessed Rituals ({blessings.length})
+                {trNode("Blessed Rituals ({p0})", { p0: blessings.length })}
               </h2>
               <Button asChild variant="outline" size="sm" className="bg-transparent border-border">
                 <Link href="/member/agora">
-                  Discover More
+                  {tr("Discover More")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
@@ -310,12 +312,12 @@ export default function MySanctuaryPage() {
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
                   <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No blessed rituals</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{tr("No blessed rituals")}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Bless rituals that resonate with you to save them here
+                    {tr("Bless rituals that resonate with you to save them here")}
                   </p>
                   <Button asChild>
-                    <Link href="/member">Explore Rituals</Link>
+                    <Link href="/member">{tr("Explore Rituals")}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -338,12 +340,12 @@ export default function MySanctuaryPage() {
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4" />
-                        Blessed {new Date(blessing.created_at).toLocaleDateString()}
+                        {trNode("Blessed {p0}", { p0: new Date(blessing.created_at).toLocaleDateString(fmtLocale()) })}
                       </div>
                       <Button asChild className="w-full" size="sm">
                         <Link href={`/member/ritual/${blessing.ritual}`}>
                           <Play className="w-4 h-4 mr-2" />
-                          Experience Again
+                          {tr("Experience Again")}
                         </Link>
                       </Button>
                     </CardContent>
@@ -357,7 +359,7 @@ export default function MySanctuaryPage() {
           <TabsContent value="history" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-foreground">
-                Play History ({playHistory.length})
+                {trNode("Play History ({p0})", { p0: playHistory.length })}
               </h2>
             </div>
 
@@ -365,12 +367,12 @@ export default function MySanctuaryPage() {
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
                   <Music className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No play history</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{tr("No play history")}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Your ritual experiences will appear here
+                    {tr("Your ritual experiences will appear here")}
                   </p>
                   <Button asChild>
-                    <Link href="/member">Start Exploring</Link>
+                    <Link href="/member">{tr("Start Exploring")}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -394,8 +396,8 @@ export default function MySanctuaryPage() {
                               <Badge variant="outline" className={`text-xs ${getCareLevelColor(play.ritual_care_level)}`}>
                                 {getCareLevel(play.ritual_care_level)}
                               </Badge>
-                              <span>{formatDuration(play.progress_seconds)} listened</span>
-                              <span>{new Date(play.started_at).toLocaleDateString()}</span>
+                              <span>{trNode("{p0} listened", { p0: formatDuration(play.progress_seconds) })}</span>
+                              <span>{new Date(play.started_at).toLocaleDateString(fmtLocale())}</span>
                             </div>
                           </div>
                         </div>

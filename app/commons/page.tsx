@@ -14,6 +14,8 @@ import {
   type LicenseLevel,
 } from "@/lib/commons"
 import { ListingCard } from "@/components/commons/listing-card"
+import { tr } from "@/lib/i18n"
+
 
 type LicenseFilter = "all" | LicenseLevel
 type PriceFilter = "all" | "free" | "paid"
@@ -54,7 +56,7 @@ export default function CommonsBrowsePage() {
       setHasMore(page.has_more)
       setIsScholar(page.is_scholar)
     } catch {
-      setError("We couldn't load the Commons right now.")
+      setError(tr("We couldn't load the Commons right now."))
     } finally {
       setLoading(false)
     }
@@ -73,7 +75,7 @@ export default function CommonsBrowsePage() {
       setNextBefore(page.next_before)
       setHasMore(page.has_more)
     } catch {
-      setError("We couldn't load more listings.")
+      setError(tr("We couldn't load more listings."))
     } finally {
       setLoadingMore(false)
     }
@@ -85,16 +87,16 @@ export default function CommonsBrowsePage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <Store className="w-5 h-5 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Symposium</h1>
+            <h1 className="text-3xl font-bold text-foreground">{tr("Symposium")}</h1>
           </div>
           <p className="text-muted-foreground">
-            One-off offerings from creators — classes, care sessions, bundles and premium rituals.
+            {tr("One-off offerings from creators — classes, care sessions, bundles and premium rituals.")}
           </p>
         </div>
         <Button asChild variant="outline" className="cursor-pointer">
           <Link href="/commons/library" className="flex items-center gap-2">
             <Library className="w-4 h-4" />
-            My purchases
+            {tr("My purchases")}
           </Link>
         </Button>
       </div>
@@ -102,14 +104,14 @@ export default function CommonsBrowsePage() {
       {isScholar && (
         <div className="mb-6 flex items-center gap-2 text-sm text-primary bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5">
           <Sparkles className="w-4 h-4 flex-shrink-0" />
-          You&apos;re a Scholar — you&apos;re seeing early-access offerings before everyone else.
+          {tr("You're a Scholar — you're seeing early-access offerings before everyone else.")}
         </div>
       )}
 
       {/* Filters */}
       <div className="mb-6 flex flex-wrap items-center gap-6">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">License</span>
+          <span className="text-xs text-muted-foreground">{tr("License")}</span>
           <ToggleGroup
             type="single"
             value={license}
@@ -117,13 +119,13 @@ export default function CommonsBrowsePage() {
             variant="outline"
             size="sm"
           >
-            <ToggleGroupItem value="all" className="cursor-pointer px-6">All</ToggleGroupItem>
-            <ToggleGroupItem value="L1_open" className="cursor-pointer px-6">L1 · Public</ToggleGroupItem>
-            <ToggleGroupItem value="L2_guided" className="cursor-pointer px-6">L2 · Sanctuary</ToggleGroupItem>
+            <ToggleGroupItem value="all" className="cursor-pointer px-6">{tr("All")}</ToggleGroupItem>
+            <ToggleGroupItem value="L1_open" className="cursor-pointer px-6">{tr("L1 · Public")}</ToggleGroupItem>
+            <ToggleGroupItem value="L2_guided" className="cursor-pointer px-6">{tr("L2 · Sanctuary")}</ToggleGroupItem>
           </ToggleGroup>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Price</span>
+          <span className="text-xs text-muted-foreground">{tr("Price")}</span>
           <ToggleGroup
             type="single"
             value={price}
@@ -131,9 +133,9 @@ export default function CommonsBrowsePage() {
             variant="outline"
             size="sm"
           >
-            <ToggleGroupItem value="all" className="cursor-pointer px-6">All</ToggleGroupItem>
-            <ToggleGroupItem value="free" className="cursor-pointer px-6">Free</ToggleGroupItem>
-            <ToggleGroupItem value="paid" className="cursor-pointer px-6">Paid</ToggleGroupItem>
+            <ToggleGroupItem value="all" className="cursor-pointer px-6">{tr("All")}</ToggleGroupItem>
+            <ToggleGroupItem value="free" className="cursor-pointer px-6">{tr("Free")}</ToggleGroupItem>
+            <ToggleGroupItem value="paid" className="cursor-pointer px-6">{tr("Paid")}</ToggleGroupItem>
           </ToggleGroup>
         </div>
       </div>
@@ -144,7 +146,7 @@ export default function CommonsBrowsePage() {
             <span>{error}</span>
             <Button variant="outline" size="sm" onClick={load} className="cursor-pointer">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
+              {tr("Retry")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -166,9 +168,9 @@ export default function CommonsBrowsePage() {
       ) : listings.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Store className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-foreground font-medium">Nothing here yet</p>
+          <p className="text-foreground font-medium">{tr("Nothing here yet")}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            No offerings match these filters right now — check back soon.
+            {tr("No offerings match these filters right now — check back soon.")}
           </p>
         </div>
       ) : (
@@ -185,7 +187,7 @@ export default function CommonsBrowsePage() {
                 {loadingMore ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading…
+                    {tr("Loading…")}
                   </>
                 ) : (
                   "Load more"

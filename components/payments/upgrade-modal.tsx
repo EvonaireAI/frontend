@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { format } from "date-fns"
+
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -19,19 +19,21 @@ import { paymentService } from "@/lib/payments"
 import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { Loader2, Lock, Sparkles } from "lucide-react"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 function denialTitle(denial: EntitlementDenial): string {
   switch (denial.reason) {
     case "care_level":
-      return `This ritual is part of the ${planDisplayName(denial.required_plan)} tier.`
+      return tr("This ritual is part of the {p0} tier.", { p0: planDisplayName(denial.required_plan) })
     case "quota_exceeded":
-      return "You've reached your monthly ritual limit"
+      return tr("You've reached your monthly ritual limit")
     case "sanctuary_limit":
-      return "You've reached your plan's sanctuary limit."
+      return tr("You've reached your plan's sanctuary limit.")
     case "agora_tier":
       return denial.required_plan === "evobloom"
-        ? "Hosting circles is part of the Scholar tier."
-        : `Joining discussions is part of the ${planDisplayName(denial.required_plan)} tier.`
+        ? tr("Hosting circles is part of the Scholar tier.")
+        : tr("Joining discussions is part of the {p0} tier.", { p0: planDisplayName(denial.required_plan) })
   }
 }
 
@@ -39,20 +41,20 @@ function denialBody(denial: EntitlementDenial): string {
   const requiredName = planDisplayName(denial.required_plan)
   switch (denial.reason) {
     case "care_level":
-      return `Upgrade to ${requiredName} to experience this ritual and everything else in the tier.`
+      return tr("Upgrade to {p0} to experience this ritual and everything else in the tier.", { p0: requiredName })
     case "quota_exceeded": {
       if (denial.quota) {
-        const resets = format(new Date(denial.quota.resets_at), "MMMM d, yyyy")
-        return `You've used ${denial.quota.used} of ${denial.quota.limit} free rituals this month. Resets ${resets}.`
+        const resets = formatDate(new Date(denial.quota.resets_at), "MMMM d, yyyy")
+        return tr("You've used {p0} of {p1} free rituals this month. Resets {p2}.", { p0: denial.quota.used, p1: denial.quota.limit, p2: resets })
       }
-      return `Upgrade to ${requiredName} for unlimited rituals.`
+      return tr("Upgrade to {p0} for unlimited rituals.", { p0: requiredName })
     }
     case "sanctuary_limit":
-      return `Upgrade to ${requiredName} to join more sanctuaries.`
+      return tr("Upgrade to {p0} to join more sanctuaries.", { p0: requiredName })
     case "agora_tier":
       return denial.required_plan === "evobloom"
-        ? `Upgrade to ${requiredName} to host your own discussion circles.`
-        : `Upgrade to ${requiredName} to post and reply in sanctuary circles.`
+        ? tr("Upgrade to {p0} to host your own discussion circles.", { p0: requiredName })
+        : tr("Upgrade to {p0} to post and reply in sanctuary circles.", { p0: requiredName })
   }
 }
 
@@ -63,12 +65,12 @@ function comparisonRows(currentPlan: string, requiredPlan: string) {
   const required = getPlanEntitlements(requiredPlan)
   return [
     {
-      label: "Ritual library",
+      label: tr("Ritual library"),
       current: formatCareLevelAccess(current.max_care_level),
       required: formatCareLevelAccess(required.max_care_level),
     },
     {
-      label: "Monthly plays",
+      label: tr("Monthly plays"),
       current:
         current.monthly_level1_play_quota === null
           ? "Unlimited"
@@ -79,12 +81,12 @@ function comparisonRows(currentPlan: string, requiredPlan: string) {
           : `${required.monthly_level1_play_quota}/month`,
     },
     {
-      label: "Sanctuaries",
+      label: tr("Sanctuaries"),
       current: formatLimit(current.max_sanctuaries),
       required: formatLimit(required.max_sanctuaries),
     },
     {
-      label: "Agora circles",
+      label: tr("Agora circles"),
       current: formatAgoraAccess(current.agora),
       required: formatAgoraAccess(required.agora),
     },
@@ -119,7 +121,7 @@ export function UpgradeModalHost() {
       if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {
-        throw new Error("Checkout returned an unexpected URL")
+        throw new Error(tr("Checkout returned an unexpected URL"))
       }
     } catch (err) {
       if (err instanceof GatewayCancelledError) {
@@ -127,7 +129,7 @@ export function UpgradeModalHost() {
         setCheckoutLoading(false)
         return
       }
-      toast.error(err instanceof Error ? err.message : "Failed to start checkout")
+      toast.error(err instanceof Error ? err.message : tr("Failed to start checkout"))
       setCheckoutLoading(false)
     }
   }
@@ -178,12 +180,12 @@ export function UpgradeModalHost() {
             {checkoutLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing…
+                {tr("Processing…")}
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4 mr-2" />
-                Upgrade to {requiredName}{price !== undefined ? ` — $${price}/mo` : ""}
+                {trNode("Upgrade to {p0}{p1}", { p0: requiredName, p1: price !== undefined ? ` — $${price}/mo` : "" })}
               </>
             )}
           </Button>
@@ -193,7 +195,7 @@ export function UpgradeModalHost() {
             disabled={checkoutLoading}
             className="w-full h-11 bg-transparent border-border text-muted-foreground hover:bg-secondary"
           >
-            Maybe later
+            {tr("Maybe later")}
           </Button>
         </div>
       </DialogContent>

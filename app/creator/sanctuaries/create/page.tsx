@@ -13,6 +13,8 @@ import { authService, type User } from "@/lib/auth"
 import { sanctuariesService } from "@/lib/sanctuaries"
 import { Loader2, ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
+import { tr } from "@/lib/i18n"
+
 
 export default function CreateSanctuaryPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -93,7 +95,7 @@ export default function CreateSanctuaryPage() {
 
       router.push(`/creator/sanctuaries/${sanctuary.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create sanctuary")
+      setError(err instanceof Error ? err.message : tr("Failed to create sanctuary"))
     } finally {
       setSubmitting(false)
     }
@@ -114,24 +116,24 @@ export default function CreateSanctuaryPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Creator Studio
+              {tr("Back to Creator Studio")}
             </Link>
           </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Create New Sanctuary</h1>
-          <p className="text-muted-foreground">Build a community around your sacred practices</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">{tr("Create New Sanctuary")}</h1>
+          <p className="text-muted-foreground">{tr("Build a community around your sacred practices")}</p>
         </div>
 
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-foreground">Sanctuary Details</CardTitle>
-            <CardDescription>Set up your sanctuary with basic information</CardDescription>
+            <CardTitle className="text-foreground">{tr("Sanctuary Details")}</CardTitle>
+            <CardDescription>{tr("Set up your sanctuary with basic information")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">Sanctuary Title *</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Sanctuary Title *")}</label>
                 <Input
-                  placeholder="e.g., Luminous Roots Circle"
+                  placeholder={tr("e.g., Luminous Roots Circle")}
                   value={formData.title}
                   onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   required
@@ -139,9 +141,9 @@ export default function CreateSanctuaryPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Description</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Description")}</label>
                 <Textarea
-                  placeholder="Describe your sanctuary and what members can expect..."
+                  placeholder={tr("Describe your sanctuary and what members can expect...")}
                   value={formData.description}
                   onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                   className="min-h-24"
@@ -149,9 +151,9 @@ export default function CreateSanctuaryPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Welcome Message</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Welcome Message")}</label>
                 <Textarea
-                  placeholder="A message to greet new members..."
+                  placeholder={tr("A message to greet new members...")}
                   value={formData.welcome_message}
                   onChange={(e) => setFormData((prev) => ({ ...prev, welcome_message: e.target.value }))}
                   className="min-h-20"
@@ -160,7 +162,7 @@ export default function CreateSanctuaryPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Privacy</label>
+                  <label className="text-sm font-medium mb-2 block">{tr("Privacy")}</label>
                   <select
                     value={formData.privacy}
                     onChange={(e) =>
@@ -168,13 +170,13 @@ export default function CreateSanctuaryPage() {
                     }
                     className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
                   >
-                    <option value="public">Public</option>
-                    <option value="invite_only">Invite Only</option>
+                    <option value="public">{tr("Public")}</option>
+                    <option value="invite_only">{tr("Invite Only")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Capacity</label>
+                  <label className="text-sm font-medium mb-2 block">{tr("Capacity")}</label>
                   <Input
                     type="number"
                     min="1"
@@ -193,15 +195,15 @@ export default function CreateSanctuaryPage() {
                   className="w-4 h-4"
                 />
                 <label htmlFor="open_join" className="text-sm font-medium cursor-pointer">
-                  Allow open join (members can join without approval)
+                  {tr("Allow open join (members can join without approval)")}
                 </label>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Practice Types (Tags)</label>
+                <label className="text-sm font-medium mb-2 block">{tr("Practice Types (Tags)")}</label>
                 <div className="flex gap-2 mb-2">
                   <Input
-                    placeholder="Add a tag..."
+                    placeholder={tr("Add a tag...")}
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
@@ -233,10 +235,10 @@ export default function CreateSanctuaryPage() {
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={submitting} className="flex-1">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create Sanctuary
+                  {tr("Create Sanctuary")}
                 </Button>
                 <Button type="button" variant="outline" asChild>
-                  <Link href="/creator">Cancel</Link>
+                  <Link href="/creator">{tr("Cancel")}</Link>
                 </Button>
               </div>
             </form>

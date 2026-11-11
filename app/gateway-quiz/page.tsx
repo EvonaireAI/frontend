@@ -18,6 +18,8 @@ import {
   type GatewayQuizOptionKey,
   type GatewayQuizQuestion,
 } from "@/lib/gateway-quiz"
+import { tr, trNode } from "@/lib/i18n"
+
 
 type Stage = "loading" | "intro" | "question" | "guidance" | "complete"
 
@@ -92,7 +94,7 @@ export default function GatewayQuizPage() {
         setStage("intro")
       } catch (err) {
         if (cancelled) return
-        setError(err instanceof Error ? err.message : "Unable to load the Gateway Quiz")
+        setError(err instanceof Error ? err.message : tr("Unable to load the Gateway Quiz"))
         setStage("intro")
       }
     }
@@ -111,7 +113,7 @@ export default function GatewayQuizPage() {
       setCurrentQuestionNumber(attempt.next_question_number ?? 1)
       setStage("question")
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to start the quiz"
+      const message = err instanceof Error ? err.message : tr("Unable to start the quiz")
       setError(message)
       toast.error(message)
     } finally {
@@ -134,7 +136,7 @@ export default function GatewayQuizPage() {
       }
       setStage("guidance")
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to record your answer"
+      const message = err instanceof Error ? err.message : tr("Unable to record your answer")
       setError(message)
       toast.error(message)
     } finally {
@@ -157,7 +159,7 @@ export default function GatewayQuizPage() {
         setCurrentQuestionNumber(attempt.next_question_number ?? 1)
         setStage("question")
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Unable to restart the quiz"
+        const message = err instanceof Error ? err.message : tr("Unable to restart the quiz")
         setError(message)
         toast.error(message)
       }
@@ -189,12 +191,12 @@ export default function GatewayQuizPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)]"
           />
-          <span className="text-cream font-serif text-lg tracking-wide">Evonaire</span>
+          <span className="text-cream font-serif text-lg tracking-wide">{tr("Evonaire")}</span>
         </Link>
       </header>
 
@@ -262,7 +264,7 @@ function IntroPanel({ title, message, totalQuestions, starting, error, onBegin }
         </div>
         <h1 className="text-3xl font-serif text-cream mb-3 tracking-wide">{title}</h1>
         <p className="text-cream/50 text-sm">
-          {totalQuestions} reflections · take your time, there is no rush here
+          {trNode("{p0} reflections · take your time, there is no rush here", { p0: totalQuestions })}
         </p>
       </div>
 
@@ -283,11 +285,11 @@ function IntroPanel({ title, message, totalQuestions, starting, error, onBegin }
           {starting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Opening the gateway…
+              {tr("Opening the gateway…")}
             </>
           ) : (
             <>
-              Begin the Gateway
+              {tr("Begin the Gateway")}
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -382,11 +384,11 @@ function QuestionPanel({
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Reflecting…
+                {tr("Reflecting…")}
               </>
             ) : (
               <>
-                Offer Reflection
+                {tr("Offer Reflection")}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -409,16 +411,16 @@ function GuidancePanel({ question, result, totalQuestions, onContinue }: Guidanc
   const passed = result.passed === true
 
   const headline = !isFinal
-    ? "Your reflection is received."
+    ? tr("Your reflection is received.")
     : passed
-      ? "Your reflections resonate with the sanctuary."
-      : "The Gateway asks you to walk it once more."
+      ? tr("Your reflections resonate with the sanctuary.")
+      : tr("The Gateway asks you to walk it once more.")
 
   const body = !isFinal
-    ? "There is no score to watch on the way through. Continue when you are ready."
+    ? tr("There is no score to watch on the way through. Continue when you are ready.")
     : passed
-      ? `${result.correct_count ?? 0} of ${result.total_questions} reflections aligned with the sanctuary's wisdom. Carry it forward.`
-      : `${result.correct_count ?? 0} of ${result.total_questions} reflections aligned, and ${result.required_correct_count} are asked. Sit with the questions again when you are ready.`
+      ? tr("{p0} of {p1} reflections aligned with the sanctuary's wisdom. Carry it forward.", { p0: result.correct_count ?? 0, p1: result.total_questions })
+      : tr("{p0} of {p1} reflections aligned, and {p2} are asked. Sit with the questions again when you are ready.", { p0: result.correct_count ?? 0, p1: result.total_questions, p2: result.required_correct_count })
 
   const progressPct = Math.round((question.question_number / totalQuestions) * 100)
 
@@ -464,9 +466,9 @@ function CompletionPanel({ message, onEnter }: { message: string; onEnter: () =>
           <Sparkles className="w-8 h-8 text-gold" />
         </div>
         <h1 className="text-3xl font-serif text-cream mb-3 tracking-wide">
-          You have passed through the Gateway
+          {tr("You have passed through the Gateway")}
         </h1>
-        <p className="text-cream/50 text-sm">Welcome to Evonaire</p>
+        <p className="text-cream/50 text-sm">{tr("Welcome to Evonaire")}</p>
       </div>
 
       <blockquote className="border-l-2 border-gold/40 pl-5 my-8 text-cream/80 leading-relaxed font-serif text-lg whitespace-pre-line">
@@ -478,7 +480,7 @@ function CompletionPanel({ message, onEnter }: { message: string; onEnter: () =>
           onClick={onEnter}
           className="inline-flex items-center justify-center gap-2 min-w-[200px] h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 shadow-[0_0_20px_rgba(217,181,116,0.25)]"
         >
-          Enter Evonaire
+          {tr("Enter Evonaire")}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -505,7 +507,7 @@ function ProgressHeader({
     <div>
       <div className="flex items-center justify-between text-xs text-cream/50 mb-2">
         <span className="uppercase tracking-widest">
-          Question {questionNumber} of {totalQuestions}
+          {trNode("Question {p0} of {p1}", { p0: questionNumber, p1: totalQuestions })}
         </span>
         {sectionTitle && (
           <span className="text-gold/70 truncate ml-3 text-right">{sectionTitle}</span>

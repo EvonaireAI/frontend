@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authService } from "@/lib/auth"
 import { Loader2 } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 export default function ResendActivationPage() {
   const [email, setEmail] = useState("")
@@ -28,7 +30,7 @@ export default function ResendActivationPage() {
       const result = await authService.resendActivation(email)
       setMessage(result.message)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to resend activation")
+      setError(err instanceof Error ? err.message : tr("Failed to resend activation"))
     } finally {
       setLoading(false)
     }
@@ -43,13 +45,13 @@ export default function ResendActivationPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
           />
           <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300">
-            Evonaire
+            {tr("Evonaire")}
           </span>
         </Link>
       </header>
@@ -57,8 +59,8 @@ export default function ResendActivationPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Resend Activation</h1>
-            <p className="text-cream/50 text-sm">Enter your email to receive a new activation link</p>
+            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">{tr("Resend Activation")}</h1>
+            <p className="text-cream/50 text-sm">{tr("Enter your email to receive a new activation link")}</p>
           </div>
 
           <Card className="w-full max-w-md justify-center" >
@@ -77,7 +79,7 @@ export default function ResendActivationPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-cream/70 text-sm font-medium">Email</Label>
+                  <Label htmlFor="email" className="text-cream/70 text-sm font-medium">{tr("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -85,14 +87,14 @@ export default function ResendActivationPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    placeholder="Enter your email address"
+                    placeholder={tr("Enter your email address")}
                     className="w-full bg-dark-navy border border-gold/20 rounded-md px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold/60"
                   />
                 </div>
 
                 <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Resend Activation Link
+                  {tr("Resend Activation Link")}
                 </Button>
               </form>
 
@@ -101,9 +103,9 @@ export default function ResendActivationPage() {
           </Card>
           <div className="mt-6 text-center">
             <p className="text-sm text-cream/40">
-              {"Remember your password?  "}
+              {tr("Remember your password?  ")}
               <Link href="/auth/login" className="text-gold hover:text-gold-muted transition-colors">
-                Sign in
+                {tr("Sign in")}
               </Link>
             </p>
           </div>

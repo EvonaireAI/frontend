@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authService, type User, type Ritual } from "@/lib/auth"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
 import Link from "next/link"
+import { tr, trNode } from "@/lib/i18n"
+
 
 export default function EditRitualPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -54,7 +56,7 @@ export default function EditRitualPage() {
         const found = rituals.find((r) => r.id === ritualId)
 
         if (!found) {
-          setError("Ritual not found or you do not have permission to edit it.")
+          setError(tr("Ritual not found or you do not have permission to edit it."))
           setLoading(false)
           return
         }
@@ -67,7 +69,7 @@ export default function EditRitualPage() {
         setTags(found.tags.map((t) => (typeof t === "string" ? t : t.name)))
       } catch (err) {
         console.error("Failed to load ritual:", err)
-        setError("Failed to load ritual data.")
+        setError(tr("Failed to load ritual data."))
       } finally {
         setLoading(false)
       }
@@ -103,7 +105,7 @@ export default function EditRitualPage() {
       })
       setSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update ritual")
+      setError(err instanceof Error ? err.message : tr("Failed to update ritual"))
     } finally {
       setSaving(false)
     }
@@ -124,7 +126,7 @@ export default function EditRitualPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Creator Studio
+              {tr("Back to Creator Studio")}
             </Link>
           </Button>
           <Alert variant="destructive">
@@ -142,18 +144,18 @@ export default function EditRitualPage() {
           <Button asChild variant="outline" className="bg-transparent">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {tr("Back")}
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Edit Ritual</h1>
-            <p className="text-muted-foreground">Update your sacred practice details</p>
+            <h1 className="text-3xl font-bold text-foreground">{tr("Edit Ritual")}</h1>
+            <p className="text-muted-foreground">{tr("Update your sacred practice details")}</p>
           </div>
         </div>
 
         {success && (
           <Alert className="mb-6 border-green-200 bg-green-50 text-green-800">
-            <AlertDescription>Ritual updated successfully.</AlertDescription>
+            <AlertDescription>{tr("Ritual updated successfully.")}</AlertDescription>
           </Alert>
         )}
 
@@ -166,38 +168,37 @@ export default function EditRitualPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground">Ritual Details</CardTitle>
+              <CardTitle className="text-foreground">{tr("Ritual Details")}</CardTitle>
               <CardDescription>
-                Update the information for your sacred practice.
-                {ritual?.status === "approved" && " Note: Changes to approved rituals may trigger re-review."}
+                {trNode("Update the information for your sacred practice.{p0}", { p0: ritual?.status === "approved" && " Note: Changes to approved rituals may trigger re-review." })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{tr("Title")}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ritual title..."
+                  placeholder={tr("Ritual title...")}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{tr("Description")}</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the purpose and practice..."
+                  placeholder={tr("Describe the purpose and practice...")}
                   rows={4}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="care_level">Care Level</Label>
+                <Label htmlFor="care_level">{tr("Care Level")}</Label>
                 <Select
                   value={careLevel}
                   onValueChange={(value: "level1" | "level2" | "level3") => setCareLevel(value)}
@@ -206,21 +207,21 @@ export default function EditRitualPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="level1">Level 1 - Gentle</SelectItem>
-                    <SelectItem value="level2">Level 2 - Moderate</SelectItem>
-                    <SelectItem value="level3">Level 3 - Intensive</SelectItem>
+                    <SelectItem value="level1">{tr("Level 1 - Gentle")}</SelectItem>
+                    <SelectItem value="level2">{tr("Level 2 - Moderate")}</SelectItem>
+                    <SelectItem value="level3">{tr("Level 3 - Intensive")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="tags">Tags</Label>
+                <Label htmlFor="tags">{tr("Tags")}</Label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     id="tags"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add a tag..."
+                    placeholder={tr("Add a tag...")}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault()
@@ -229,25 +230,25 @@ export default function EditRitualPage() {
                     }}
                   />
                   <Button type="button" onClick={addTag} variant="outline" className="bg-transparent">
-                    Add
+                    {tr("Add")}
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag) => (
                     <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                      {tag} x
+                      {trNode("{p0} x", { p0: tag })}
                     </Badge>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="cultural_declaration">Cultural Declaration</Label>
+                <Label htmlFor="cultural_declaration">{tr("Cultural Declaration")}</Label>
                 <Textarea
                   id="cultural_declaration"
                   value={culturalDeclaration}
                   onChange={(e) => setCulturalDeclaration(e.target.value)}
-                  placeholder="Acknowledge any cultural traditions..."
+                  placeholder={tr("Acknowledge any cultural traditions...")}
                   rows={3}
                 />
               </div>
@@ -256,18 +257,18 @@ export default function EditRitualPage() {
 
           <div className="flex gap-4">
             <Button asChild type="button" variant="outline" className="flex-1 bg-transparent">
-              <Link href="/creator">Cancel</Link>
+              <Link href="/creator">{tr("Cancel")}</Link>
             </Button>
             <Button type="submit" disabled={saving || !title || !description} className="flex-1">
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {tr("Saving...")}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Changes
+                  {tr("Save Changes")}
                 </>
               )}
             </Button>

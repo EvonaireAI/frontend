@@ -11,6 +11,8 @@ import {
   violationLabel,
   type ModerationCase,
 } from "@/lib/moderation"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // One row component for every care-case list — Pending Reviews, Active Cases
 // and Care History all render this. The differences between the tabs are the
@@ -59,12 +61,12 @@ export function CaseCard({
             onClick={() => onOpen(moderationCase)}
             className="font-semibold text-foreground hover:text-primary underline-offset-4 hover:underline"
           >
-            Case #{moderationCase.id}
+            {trNode("Case #{p0}", { p0: moderationCase.id })}
           </button>
           {escalated && (
             <Badge className="bg-red-600 text-white border-0">
               <AlertTriangle className="w-3 h-3 mr-1" />
-              Care Escalation
+              {tr("Care Escalation")}
             </Badge>
           )}
           <Badge variant="outline" className={severity.className}>
@@ -80,7 +82,7 @@ export function CaseCard({
             {moderationCase.flagged_by_ai ? (
               <>
                 <Bot className="w-3 h-3 mr-1" />
-                Flagged by GAIA
+                {tr("Flagged by GAIA")}
               </>
             ) : (
               <>
@@ -105,8 +107,7 @@ export function CaseCard({
           <div className="rounded-md bg-muted p-3 text-sm">
             <p className="text-foreground break-words">{moderationCase.resolution_note}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Resolved by {moderationCase.resolved_by_email || "—"}
-              {moderationCase.resolved_at && ` · ${new Date(moderationCase.resolved_at).toLocaleDateString()}`}
+              {trNode("Resolved by {p0}{p1}", { p0: moderationCase.resolved_by_email || "—", p1: moderationCase.resolved_at && ` · ${new Date(moderationCase.resolved_at).toLocaleDateString(fmtLocale())}` })}
             </p>
           </div>
         )}
@@ -114,7 +115,7 @@ export function CaseCard({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            {relativeAge(moderationCase.created_at)} old
+            {trNode("{p0} old", { p0: relativeAge(moderationCase.created_at) })}
           </span>
           {showAssignee && (
             <span className="flex items-center gap-1 break-all">
@@ -127,7 +128,7 @@ export function CaseCard({
         <div className="flex flex-wrap items-center gap-2 pt-1">
           {actions}
           <Button variant="ghost" size="sm" onClick={() => onOpen(moderationCase)}>
-            Open
+            {tr("Open")}
           </Button>
         </div>
       </CardContent>

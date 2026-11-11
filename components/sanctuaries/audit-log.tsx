@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import type { AuditLogEntry } from "@/lib/sanctuaries"
 import { Loader2 } from "lucide-react"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 interface AuditLogProps {
   entries: AuditLogEntry[]
@@ -40,8 +42,8 @@ export function AuditLog({ entries, loading = false }: AuditLogProps) {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">The Archive</CardTitle>
-        <CardDescription>Track all sanctuary activities</CardDescription>
+        <CardTitle className="text-foreground">{tr("The Archive")}</CardTitle>
+        <CardDescription>{tr("Track all sanctuary activities")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -50,7 +52,7 @@ export function AuditLog({ entries, loading = false }: AuditLogProps) {
           </div>
         ) : entries.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No audit entries yet</p>
+            <p className="text-sm">{tr("No audit entries yet")}</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -61,7 +63,7 @@ export function AuditLog({ entries, loading = false }: AuditLogProps) {
                     <Badge variant="outline" className={getActionColor(entry.action)}>
                       {getActionLabel(entry.action)}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">{new Date(entry.created_at).toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">{new Date(entry.created_at).toLocaleString(fmtLocale())}</span>
                   </div>
                   <p className="text-sm font-medium mb-1 text-foreground">
                     {entry.actor.first_name} {entry.actor.last_name}

@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Settings } from "lucide-react"
 import { rtsService, type RTSConfig } from "@/lib/rts"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // Guardians may READ the resonance weights they're measured against
 // (`GET /api/rts/config/`) but `PATCH` is steward-only since Session 11 — so
@@ -39,7 +41,7 @@ export function ConfigView() {
     return (
       <Card>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          The resonance configuration isn&apos;t available right now.
+          {tr("The resonance configuration isn't available right now.")}
         </CardContent>
       </Card>
     )
@@ -59,16 +61,16 @@ export function ConfigView() {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <Settings className="h-5 w-5 text-primary" />
-              Resonance Configuration
+              {tr("Resonance Configuration")}
             </CardTitle>
-            <CardDescription>The weights and thresholds every creator score is computed against.</CardDescription>
+            <CardDescription>{tr("The weights and thresholds every creator score is computed against.")}</CardDescription>
           </div>
-          <Badge variant="outline">Read-only</Badge>
+          <Badge variant="outline">{tr("Read-only")}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-foreground">Signal weights</h4>
+          <h4 className="mb-2 text-sm font-semibold text-foreground">{tr("Signal weights")}</h4>
           <div className="grid gap-2 sm:grid-cols-2">
             {Object.entries(config.weights ?? {}).map(([key, value]) => (
               <div key={key} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
@@ -80,7 +82,7 @@ export function ConfigView() {
         </div>
 
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-foreground">Thresholds</h4>
+          <h4 className="mb-2 text-sm font-semibold text-foreground">{tr("Thresholds")}</h4>
           <div className="grid gap-2 sm:grid-cols-2">
             {thresholds.map(([label, value]) => (
               <div key={label} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
@@ -92,12 +94,12 @@ export function ConfigView() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>Decay half-life: {config.decay_half_life_hours} hours</span>
-          <span>Last changed {new Date(config.updated_at).toLocaleString()}</span>
+          <span>{trNode("Decay half-life: {p0} hours", { p0: config.decay_half_life_hours })}</span>
+          <span>{trNode("Last changed {p0}", { p0: new Date(config.updated_at).toLocaleString(fmtLocale()) })}</span>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Stewards change these values in the Steward Console.
+          {tr("Stewards change these values in the Steward Console.")}
         </p>
       </CardContent>
     </Card>

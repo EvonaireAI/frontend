@@ -14,6 +14,8 @@ import {
   type TimeseriesMonth,
 } from "@/lib/metrics"
 import { useMetricsZone, ZoneError, ZoneRefetchDim } from "./zone"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 const WINDOW_OPTIONS = [3, 6, 12, 24] as const
 
@@ -25,8 +27,8 @@ interface TrendPoint extends TimeseriesMonth {
 }
 
 function dollarsAxisTick(value: number): string {
-  if (value >= 1000) return `$${(value / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k`
-  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+  if (value >= 1000) return `$${(value / 1000).toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })}k`
+  return `$${value.toLocaleString(fmtLocale(), { maximumFractionDigits: 0 })}`
 }
 
 // Custom tooltip: the month's MRR plus the movement breakdown behind it.
@@ -45,9 +47,9 @@ function MrrTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
     <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
       <p className="font-medium text-foreground">
         {monthLongLabel(p.month)}
-        {p.isCurrent && <span className="text-muted-foreground font-normal"> · month to date</span>}
+        {p.isCurrent && <span className="text-muted-foreground font-normal">{tr(" · month to date")}</span>}
       </p>
-      <p className="text-foreground mt-1 mb-2 font-semibold">MRR {centsToDollarString(p.eom_mrr_cents)}</p>
+      <p className="text-foreground mt-1 mb-2 font-semibold">{trNode("MRR {p0}", { p0: centsToDollarString(p.eom_mrr_cents) })}</p>
       <div className="space-y-0.5">
         {rows.map(([label, value]) => (
           <div key={label} className="flex items-center justify-between gap-6">
@@ -68,13 +70,13 @@ function ChurnTooltip({ active, payload }: { active?: boolean; payload?: Array<{
       <p className="font-medium text-foreground">{monthLongLabel(p.month)}</p>
       <div className="mt-1 space-y-0.5">
         <div className="flex items-center justify-between gap-6">
-          <span className="text-muted-foreground">Churn rate</span>
+          <span className="text-muted-foreground">{tr("Churn rate")}</span>
           <span className="text-foreground tabular-nums">
-            {p.churnPct.toLocaleString("en-US", { maximumFractionDigits: 1 })}%
+            {p.churnPct.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })}%
           </span>
         </div>
         <div className="flex items-center justify-between gap-6">
-          <span className="text-muted-foreground">Cancellations</span>
+          <span className="text-muted-foreground">{tr("Cancellations")}</span>
           <span className="text-foreground tabular-nums">{p.cancellations}</span>
         </div>
       </div>
@@ -115,7 +117,7 @@ export function MrrTrend() {
   }, [data])
 
   if (loading && !data) return <MrrTrendSkeleton />
-  if (error && !data) return <ZoneError label="the MRR trend" onRetry={retry} />
+  if (error && !data) return <ZoneError label={tr("the MRR trend")} onRetry={retry} />
   if (!data) return null
 
   return (
@@ -123,8 +125,8 @@ export function MrrTrend() {
       <CardHeader>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <CardTitle>MRR &amp; churn</CardTitle>
-            <CardDescription>End-of-month MRR with monthly churn rate; last month is in progress</CardDescription>
+            <CardTitle>{tr("MRR & churn")}</CardTitle>
+            <CardDescription>{tr("End-of-month MRR with monthly churn rate; last month is in progress")}</CardDescription>
           </div>
           <ToggleGroup
             type="single"
@@ -135,22 +137,22 @@ export function MrrTrend() {
           >
             {WINDOW_OPTIONS.map((opt) => (
               <ToggleGroupItem key={opt} value={String(opt)}>
-                {opt}m
+                {trNode("{p0}m", { p0: opt })}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </div>
       </CardHeader>
       <CardContent>
-        {error && <ZoneError label="the MRR trend" onRetry={retry} />}
+        {error && <ZoneError label={tr("the MRR trend")} onRetry={retry} />}
         {!error && points.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">No subscription activity yet</p>
+          <p className="text-center text-muted-foreground py-12">{tr("No subscription activity yet")}</p>
         )}
         {!error && points.length > 0 && (
           <ZoneRefetchDim dimmed={loading}>
-            <p className="text-xs text-muted-foreground mb-1">MRR ($)</p>
+            <p className="text-xs text-muted-foreground mb-1">{tr("MRR ($)")}</p>
             <ChartContainer
-              config={{ mrrDollars: { label: "MRR", color: "var(--chart-1)" } }}
+              config={{ mrrDollars: { label: tr("MRR"), color: "var(--chart-1)" } }}
               className="aspect-auto h-[220px] w-full"
             >
               <AreaChart data={points} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -169,9 +171,9 @@ export function MrrTrend() {
                 />
               </AreaChart>
             </ChartContainer>
-            <p className="text-xs text-muted-foreground mb-1 mt-6">Churn rate (%)</p>
+            <p className="text-xs text-muted-foreground mb-1 mt-6">{tr("Churn rate (%)")}</p>
             <ChartContainer
-              config={{ churnPct: { label: "Churn", color: "var(--chart-2)" } }}
+              config={{ churnPct: { label: tr("Churn"), color: "var(--chart-2)" } }}
               className="aspect-auto h-[120px] w-full"
             >
               <LineChart data={points} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -180,7 +182,7 @@ export function MrrTrend() {
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(v: number) => `${v.toLocaleString("en-US", { maximumFractionDigits: 1 })}%`}
+                  tickFormatter={(v: number) => `${v.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })}%`}
                   width={52}
                 />
                 <ChartTooltip content={<ChurnTooltip />} />

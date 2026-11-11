@@ -11,6 +11,8 @@ import { Loader2, ArrowLeft, Users, Lock, Globe, Calendar, Flag } from "lucide-r
 import { ReportModal } from "@/components/report-modal"
 import { AgoraCircles } from "@/components/agora/agora-circles"
 import Link from "next/link"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export default function MemberSanctuaryDetailPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -64,7 +66,7 @@ export default function MemberSanctuaryDetailPage() {
   }
 
   const handleLeaveSanctuary = async () => {
-    if (!confirm("Are you sure you want to leave this sanctuary?")) return
+    if (!confirm(tr("Are you sure you want to leave this sanctuary?"))) return
 
     try {
       await sanctuariesService.leaveSanctuary(sanctuaryId)
@@ -100,9 +102,9 @@ export default function MemberSanctuaryDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Sanctuary not found</p>
+            <p className="text-muted-foreground mb-4">{tr("Sanctuary not found")}</p>
             <Button asChild>
-              <Link href="/member">Back to Sacred Library</Link>
+              <Link href="/member">{tr("Back to Sacred Library")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -134,7 +136,7 @@ export default function MemberSanctuaryDetailPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent">
             <Link href="/member">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sacred Library
+              {tr("Back to Sacred Library")}
             </Link>
           </Button>
           <div className="flex justify-between items-start">
@@ -150,13 +152,13 @@ export default function MemberSanctuaryDetailPage() {
                 trigger={
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
                     <Flag className="w-4 h-4 mr-2" />
-                    Report
+                    {tr("Report")}
                   </Button>
                 }
               />
               {membershipStatus === "approved" && (
                 <Button variant="destructive" onClick={handleLeaveSanctuary}>
-                  Leave Sanctuary
+                  {tr("Leave Sanctuary")}
                 </Button>
               )}
             </div>
@@ -166,7 +168,7 @@ export default function MemberSanctuaryDetailPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Status</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Status")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge variant="outline" className="border-primary/30 text-primary capitalize">
@@ -176,7 +178,7 @@ export default function MemberSanctuaryDetailPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Privacy</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Privacy")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge variant="outline" className="flex items-center gap-1 w-fit border-border text-muted-foreground">
@@ -189,7 +191,7 @@ export default function MemberSanctuaryDetailPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Members
+                {tr("Members")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -200,7 +202,7 @@ export default function MemberSanctuaryDetailPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Your Status</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Your Status")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge variant="outline" className="capitalize border-primary/30 text-primary">
@@ -213,7 +215,7 @@ export default function MemberSanctuaryDetailPage() {
         {sanctuary.welcome_message && (
           <Card className="mb-8 border-l-4 border-l-primary bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Welcome Message</CardTitle>
+              <CardTitle className="text-sm">{tr("Welcome Message")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">{sanctuary.welcome_message}</p>
@@ -224,7 +226,7 @@ export default function MemberSanctuaryDetailPage() {
         {sanctuary.tags.length > 0 && (
           <Card className="mb-8 bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Practice Types</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Practice Types")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -241,8 +243,8 @@ export default function MemberSanctuaryDetailPage() {
         {membershipStatus === "approved" && rituals.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Available Rituals</CardTitle>
-              <CardDescription>Sacred practices available in this sanctuary</CardDescription>
+              <CardTitle>{tr("Available Rituals")}</CardTitle>
+              <CardDescription>{tr("Sacred practices available in this sanctuary")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -262,7 +264,7 @@ export default function MemberSanctuaryDetailPage() {
                           </div>
                         </div>
                         <Button asChild size="sm">
-                          <Link href={`/member/ritual/${ritual.ritual_id}`}>Experience</Link>
+                          <Link href={`/member/ritual/${ritual.ritual_id}`}>{tr("Experience")}</Link>
                         </Button>
                       </div>
                     </CardContent>
@@ -281,13 +283,13 @@ export default function MemberSanctuaryDetailPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              Created
+              {tr("Created")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{new Date(sanctuary.created_at).toLocaleDateString()}</p>
+            <p className="text-sm">{new Date(sanctuary.created_at).toLocaleDateString(fmtLocale())}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              by {sanctuary.owner.first_name} {sanctuary.owner.last_name}
+              {trNode("by {p0} {p1}", { p0: sanctuary.owner.first_name, p1: sanctuary.owner.last_name })}
             </p>
           </CardContent>
         </Card>

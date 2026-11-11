@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { tr, trDeep } from "@/lib/i18n"
 
-const PREFERENCE_OPTIONS = [
+
+const PREFERENCE_OPTIONS = trDeep([
   {
     key: "highContrast" as const,
     label: "Higher contrast",
@@ -39,7 +41,7 @@ const PREFERENCE_OPTIONS = [
     label: "Alternate readable font",
     description: "Change the font to an alternate readable font.",
   },
-]
+])
 
 export function AccessibilityWidget() {
   const { preferences, setPreference, resetPreferences } = useAccessibility()
@@ -60,7 +62,7 @@ export function AccessibilityWidget() {
       {!open && (
         <button
           type="button"
-          aria-label="Open accessibility menu"
+          aria-label={tr("Open accessibility menu")}
           aria-expanded={open}
           onClick={() => setOpen(true)}
           className={cn(
@@ -78,14 +80,14 @@ export function AccessibilityWidget() {
         <>
           <button
             type="button"
-            aria-label="Close accessibility menu"
+            aria-label={tr("Close accessibility menu")}
             className="fixed inset-0 z-[59] cursor-default bg-black/20"
             onClick={() => setOpen(false)}
           />
           <div
             role="dialog"
             aria-labelledby={titleId}
-            aria-label="Accessibility options"
+            aria-label={tr("Accessibility options")}
             className={cn(
               "fixed inset-y-0 left-0 z-[60] flex h-screen w-[min(22rem,100vw)] flex-col overflow-hidden",
               "rounded-none border-y border-r border-border sm:rounded-r-xl",
@@ -96,13 +98,13 @@ export function AccessibilityWidget() {
             <div className="flex items-center gap-2">
               <PersonStanding className="h-6 w-6 text-primary" aria-hidden="true" />
               <h2 id={titleId} className="text-xl font-semibold text-foreground">
-                Accessibility Menu
+                {tr("Accessibility Menu")}
               </h2>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Close accessibility menu"
+              aria-label={tr("Close accessibility menu")}
               onClick={() => setOpen(false)}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
@@ -149,7 +151,7 @@ export function AccessibilityWidget() {
                 resetPreferences()
               }}
             >
-              Reset to defaults
+              {tr("Reset to defaults")}
             </Button>
           </div>
         </div>

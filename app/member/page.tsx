@@ -28,6 +28,8 @@ import { GLOSSARY } from "@/lib/glossary"
 import { BeginHere } from "@/components/member/begin-here"
 import { AccountAccessCard } from "@/components/member/account-access-card"
 import { isPaidActive } from "@/lib/subscription"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // ── Subscription badge ─────────────────────────────────────────────────────────
 function SubscriptionBadge({
@@ -69,7 +71,7 @@ function SubscriptionBadge({
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-yellow-500/40 text-yellow-300 bg-yellow-900/20 hover:opacity-80 transition-opacity"
         >
           <AlertTriangle className="w-3 h-3" />
-          Payment Issue
+          {tr("Payment Issue")}
         </Link>
       )}
     </>
@@ -272,11 +274,11 @@ export default function MemberDashboard() {
         {/* Hero header */}
         <div className="text-center mb-10">
           <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">
-            {user ? `Welcome back, ${user.first_name}` : "Welcome Back"}
+            {user ? trNode("Welcome back, {p0}", { p0: user.first_name }) : "Welcome Back"}
           </p>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance inline-flex items-center gap-2 justify-center flex-wrap">
             <span>{GLOSSARY.sacredLibrary}</span>
-            <GaiaInfoTip infoKey="member.library" ariaLabel="About the Sacred Library" side="bottom" />
+            <GaiaInfoTip infoKey="member.library" ariaLabel={tr("About the Sacred Library")} side="bottom" />
           </h1>
           {/* Subscription badge */}
           {user && (
@@ -288,13 +290,13 @@ export default function MemberDashboard() {
             </div>
           )}
           <p className="text-muted-foreground max-w-md mx-auto">
-            Discover and experience transformative rituals and sanctuaries
+            {tr("Discover and experience transformative rituals and sanctuaries")}
           </p>
           <div className="flex gap-3 justify-center mt-6">
             <Button asChild variant="outline" className="border-border bg-transparent text-foreground hover:bg-secondary hover:text-secondary-foreground">
               <Link href="/dashboard">
                 <Eye className="w-4 h-4 mr-2" />
-                Dashboard
+                {tr("Dashboard")}
               </Link>
             </Button>
           </div>
@@ -312,11 +314,11 @@ export default function MemberDashboard() {
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-secondary border border-border">
             <TabsTrigger value="sanctuaries" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="w-4 h-4" />
-              Sanctuaries
+              {tr("Sanctuaries")}
             </TabsTrigger>
             <TabsTrigger value="rituals" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Play className="w-4 h-4" />
-              Rituals
+              {tr("Rituals")}
             </TabsTrigger>
           </TabsList>
 
@@ -326,16 +328,16 @@ export default function MemberDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Search className="w-5 h-5 text-primary" />
-                  Discover Sanctuaries
-                  <GaiaInfoTip infoKey="sanctuary.privacy" ariaLabel="About sanctuary privacy" />
+                  {tr("Discover Sanctuaries")}
+                  <GaiaInfoTip infoKey="sanctuary.privacy" ariaLabel={tr("About sanctuary privacy")} />
                 </CardTitle>
-                <CardDescription>Find communities aligned with your spiritual practice</CardDescription>
+                <CardDescription>{tr("Find communities aligned with your spiritual practice")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <Input
-                      placeholder="Search sanctuaries, creators..."
+                      placeholder={tr("Search sanctuaries, creators...")}
                       value={sanctuarySearchTerm}
                       onChange={(e) => setSanctuarySearchTerm(e.target.value)}
                       className="w-full bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -343,7 +345,7 @@ export default function MemberDashboard() {
                   </div>
                   <Button variant="outline" className="flex items-center gap-2 bg-transparent border-border text-foreground hover:bg-secondary">
                     <Filter className="w-4 h-4" />
-                    Filter
+                    {tr("Filter")}
                   </Button>
                 </div>
               </CardContent>
@@ -352,7 +354,7 @@ export default function MemberDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">
-                  {filteredSanctuaries.length} {filteredSanctuaries.length === 1 ? "Sanctuary" : "Sanctuaries"} Available
+                  {trNode("{p0} {p1} Available", { p0: filteredSanctuaries.length, p1: filteredSanctuaries.length === 1 ? "Sanctuary" : "Sanctuaries" })}
                 </h2>
               </div>
 
@@ -364,7 +366,7 @@ export default function MemberDashboard() {
                 <Card className="bg-card border-border">
                   <CardContent className="text-center py-12">
                     <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-foreground">No sanctuaries found</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No sanctuaries found")}</h3>
                     <p className="text-muted-foreground">
                       {sanctuarySearchTerm ? "Try adjusting your search" : "Check back soon for new sanctuaries"}
                     </p>
@@ -392,16 +394,16 @@ export default function MemberDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Search className="w-5 h-5 text-primary" />
-                  Find Your Practice
-                  <GaiaInfoTip infoKey="ritual.search" ariaLabel="About searching rituals" />
+                  {tr("Find Your Practice")}
+                  <GaiaInfoTip infoKey="ritual.search" ariaLabel={tr("About searching rituals")} />
                 </CardTitle>
-                <CardDescription>Search rituals and filter by practice type</CardDescription>
+                <CardDescription>{tr("Search rituals and filter by practice type")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <Input
-                      placeholder="Search rituals, creators, or descriptions..."
+                      placeholder={tr("Search rituals, creators, or descriptions...")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -409,15 +411,15 @@ export default function MemberDashboard() {
                   </div>
                   <Button variant="outline" className="flex items-center gap-2 bg-transparent border-border text-foreground hover:bg-secondary">
                     <Filter className="w-4 h-4" />
-                    Filter
+                    {tr("Filter")}
                   </Button>
                 </div>
 
                 {allTags.length > 0 && (
                   <div>
                     <p className="text-sm font-medium mb-2 text-foreground inline-flex items-center gap-1.5">
-                      Filter by practice type:
-                      <GaiaInfoTip infoKey="ritual.tags" ariaLabel="About tag filters" />
+                      {tr("Filter by practice type:")}
+                      <GaiaInfoTip infoKey="ritual.tags" ariaLabel={tr("About tag filters")} />
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {allTags.map((tag) => (
@@ -439,7 +441,7 @@ export default function MemberDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">
-                  {filteredRituals.length} Sacred {filteredRituals.length === 1 ? "Practice" : "Practices"} Available
+                  {trNode("{p0} Sacred {p1} Available", { p0: filteredRituals.length, p1: filteredRituals.length === 1 ? "Practice" : "Practices" })}
                 </h2>
               </div>
 
@@ -451,7 +453,7 @@ export default function MemberDashboard() {
                 <Card className="bg-card border-border">
                   <CardContent className="text-center py-12">
                     <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-foreground">No rituals found</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No rituals found")}</h3>
                     <p className="text-muted-foreground">
                       {searchTerm || selectedTags.length > 0
                         ? "Try adjusting your search or filters"
@@ -479,7 +481,7 @@ export default function MemberDashboard() {
                             {ritual.locked && (
                               <Badge variant="outline" className="border-primary/40 text-primary bg-primary/10 flex items-center gap-1">
                                 <Lock className="w-3 h-3" />
-                                Locked
+                                {tr("Locked")}
                               </Badge>
                             )}
                           </div>
@@ -490,7 +492,7 @@ export default function MemberDashboard() {
                               contentTitle={ritual.title}
                             />
                             <span className="text-xs text-muted-foreground">
-                              {new Date(ritual.created_at).toLocaleDateString()}
+                              {new Date(ritual.created_at).toLocaleDateString(fmtLocale())}
                             </span>
                           </div>
                         </div>
@@ -519,7 +521,7 @@ export default function MemberDashboard() {
 
                         <div className="flex items-center justify-between">
                           <div className="text-sm text-muted-foreground">
-                            by {ritual.creator.first_name} {ritual.creator.last_name}
+                            {trNode("by {p0} {p1}", { p0: ritual.creator.first_name, p1: ritual.creator.last_name })}
                           </div>
                           {ritual.locked ? (
                             <Button
@@ -535,7 +537,7 @@ export default function MemberDashboard() {
                               }
                             >
                               <Lock className="w-4 h-4 mr-2" />
-                              Experience
+                              {tr("Experience")}
                             </Button>
                           ) : (
                             <Button
@@ -545,14 +547,14 @@ export default function MemberDashboard() {
                             >
                               <Link href={`/member/ritual/${ritual.id}`}>
                                 <Play className="w-4 h-4 mr-2" />
-                                Experience
+                                {tr("Experience")}
                               </Link>
                             </Button>
                           )}
                         </div>
                         {ritual.locked && (
                           <p className="text-xs text-primary/90">
-                            Unlocks with {planDisplayName(ritual.required_plan ?? "evocore")}
+                            {trNode("Unlocks with {p0}", { p0: planDisplayName(ritual.required_plan ?? "evocore") })}
                           </p>
                         )}
                       </CardContent>
@@ -568,7 +570,7 @@ export default function MemberDashboard() {
           <Dialog open={joinFormOpen} onOpenChange={setJoinFormOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Request to Join</DialogTitle>
+                <DialogTitle>{tr("Request to Join")}</DialogTitle>
                 <DialogDescription>{selectedSanctuary.title}</DialogDescription>
               </DialogHeader>
               <JoinRequestForm

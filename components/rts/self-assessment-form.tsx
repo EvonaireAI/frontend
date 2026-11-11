@@ -10,6 +10,8 @@ import { Slider } from "@/components/ui/slider"
 import { rtsService, type RTSSelfAssessment } from "@/lib/rts"
 import { Loader2, Heart } from "lucide-react"
 import { toast } from "sonner"
+import { tr } from "@/lib/i18n"
+
 
 interface SelfAssessmentFormProps {
   onSubmitSuccess?: (newScore: number) => void
@@ -31,13 +33,13 @@ export function SelfAssessmentForm({ onSubmitSuccess }: SelfAssessmentFormProps)
 
     try {
       const result = await rtsService.submitSelfAssessment(assessment)
-      toast.success(`Self-assessment submitted! New score: ${result.new_score}`)
+      toast.success(tr("Self-assessment submitted! New score: {p0}", { p0: result.new_score }))
       if (onSubmitSuccess) {
         onSubmitSuccess(result.new_score)
       }
     } catch (error) {
       console.error("Failed to submit assessment:", error)
-      toast.error("Failed to submit self-assessment")
+      toast.error(tr("Failed to submit self-assessment"))
     } finally {
       setSubmitting(false)
     }
@@ -46,28 +48,28 @@ export function SelfAssessmentForm({ onSubmitSuccess }: SelfAssessmentFormProps)
   const assessmentFields: Array<{ key: keyof RTSSelfAssessment; label: string; description: string }> = [
     {
       key: "physical_health",
-      label: "Physical Health",
-      description: "How are you feeling physically?",
+      label: tr("Physical Health"),
+      description: tr("How are you feeling physically?"),
     },
     {
       key: "emotional_state",
-      label: "Emotional State",
-      description: "How are you feeling emotionally?",
+      label: tr("Emotional State"),
+      description: tr("How are you feeling emotionally?"),
     },
     {
       key: "spiritual_connection",
-      label: "Spiritual Connection",
-      description: "How connected do you feel spiritually?",
+      label: tr("Spiritual Connection"),
+      description: tr("How connected do you feel spiritually?"),
     },
     {
       key: "community_engagement",
-      label: "Community Engagement",
-      description: "How engaged are you with the community?",
+      label: tr("Community Engagement"),
+      description: tr("How engaged are you with the community?"),
     },
     {
       key: "creative_energy",
-      label: "Creative Energy",
-      description: "How is your creative energy?",
+      label: tr("Creative Energy"),
+      description: tr("How is your creative energy?"),
     },
   ]
 
@@ -76,9 +78,9 @@ export function SelfAssessmentForm({ onSubmitSuccess }: SelfAssessmentFormProps)
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Heart className="w-5 h-5 text-primary" />
-          Self-Assessment
+          {tr("Self-Assessment")}
         </CardTitle>
-        <CardDescription>Rate your current state on a scale of 1-5</CardDescription>
+        <CardDescription>{tr("Rate your current state on a scale of 1-5")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -104,8 +106,8 @@ export function SelfAssessmentForm({ onSubmitSuccess }: SelfAssessmentFormProps)
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Low</span>
-                <span>High</span>
+                <span>{tr("Low")}</span>
+                <span>{tr("High")}</span>
               </div>
             </div>
           ))}
@@ -114,7 +116,7 @@ export function SelfAssessmentForm({ onSubmitSuccess }: SelfAssessmentFormProps)
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Submitting...
+                {tr("Submitting...")}
               </>
             ) : (
               "Submit Assessment"

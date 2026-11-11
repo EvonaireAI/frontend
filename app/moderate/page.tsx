@@ -21,6 +21,8 @@ import { RtsTab } from "@/components/moderation/guardian/rts-tab"
 import { SanctuariesTab } from "@/components/moderation/guardian/sanctuaries-tab"
 import { SacredLibraryTab } from "@/components/moderation/guardian/sacred-library-tab"
 import { HistoryTab } from "@/components/moderation/guardian/history-tab"
+import { tr } from "@/lib/i18n"
+
 
 // The Guardian Dashboard: one tabbed workspace, every section deep-linkable as
 // `/moderate?tab=<id>`. That matches how the Steward Console addresses its own
@@ -119,7 +121,7 @@ function GuardianWorkspace() {
               {GLOSSARY.guardianDashboard}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Protecting cultural safety and emotional wellbeing.
+              {tr("Protecting cultural safety and emotional wellbeing.")}
             </p>
           </div>
         </div>

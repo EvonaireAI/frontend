@@ -6,6 +6,8 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authService } from "@/lib/auth"
 import { Loader2, ArrowLeft, Mail } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -35,13 +37,13 @@ export default function ForgotPasswordPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
           />
           <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300 cursor-pointer">
-            Evonaire
+            {tr("Evonaire")}
           </span>
         </Link>
       </header>
@@ -49,7 +51,7 @@ export default function ForgotPasswordPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Reset Password</h1>
+            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">{tr("Reset Password")}</h1>
             <p className="text-cream/50 text-sm">
               {submitted
                 ? "Check your inbox for a reset link"
@@ -65,15 +67,14 @@ export default function ForgotPasswordPage() {
                     <Mail className="w-6 h-6 text-gold" />
                   </div>
                   <p className="text-cream/70 text-sm text-center leading-relaxed">
-                    If an account with that email exists, a password reset link has been sent. Please
-                    check your inbox and spam folder.
+                    {tr("If an account with that email exists, a password reset link has been sent. Please check your inbox and spam folder.")}
                   </p>
                 </div>
                 <Link
                   href="/auth/login"
                   className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] cursor-pointer"
                 >
-                  Back to Sign In
+                  {tr("Back to Sign In")}
                 </Link>
               </div>
             ) : (
@@ -86,7 +87,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-cream/70 text-sm font-medium">
-                    Email Address
+                    {tr("Email Address")}
                   </label>
                   <input
                     id="email"
@@ -95,7 +96,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    placeholder="you@example.com"
+                    placeholder={tr("you@example.com")}
                     className="w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all"
                   />
                 </div>
@@ -106,7 +107,7 @@ export default function ForgotPasswordPage() {
                   className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2 cursor-pointer"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Send Reset Link
+                  {tr("Send Reset Link")}
                 </button>
               </form>
             )}
@@ -119,7 +120,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-1 text-gold/70 hover:text-gold transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3 h-3" />
-                Back to Sign In
+                {tr("Back to Sign In")}
               </Link>
             </p>
           )}

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Membership } from "@/lib/sanctuaries"
 import { Loader2, Trash2 } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface MembersTableProps {
   members: Membership[]
@@ -18,7 +20,7 @@ export function MembersTable({ members, loading = false, onRevoke, onRefresh }: 
   const [processingId, setProcessingId] = useState<number | null>(null)
 
   const handleRevoke = async (membershipId: number) => {
-    if (!confirm("Are you sure you want to revoke this membership?")) return
+    if (!confirm(tr("Are you sure you want to revoke this membership?"))) return
 
     setProcessingId(membershipId)
     try {
@@ -32,8 +34,8 @@ export function MembersTable({ members, loading = false, onRevoke, onRefresh }: 
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">Active Members</CardTitle>
-        <CardDescription>Manage your sanctuary members</CardDescription>
+        <CardTitle className="text-foreground">{tr("Active Members")}</CardTitle>
+        <CardDescription>{tr("Manage your sanctuary members")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -42,7 +44,7 @@ export function MembersTable({ members, loading = false, onRevoke, onRefresh }: 
           </div>
         ) : members.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No approved members yet</p>
+            <p className="text-sm">{tr("No approved members yet")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -56,12 +58,12 @@ export function MembersTable({ members, loading = false, onRevoke, onRefresh }: 
                       </h4>
                       <p className="text-sm text-muted-foreground">{member.member.email}</p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Joined {new Date(member.acted_at || member.requested_at).toLocaleDateString()}
+                        {trNode("Joined {p0}", { p0: new Date(member.acted_at || member.requested_at).toLocaleDateString(fmtLocale()) })}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        Approved
+                        {tr("Approved")}
                       </Badge>
                       <Button
                         size="sm"

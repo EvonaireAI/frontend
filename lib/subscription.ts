@@ -1,5 +1,6 @@
 import { PLAN_MARKETING_NAMES, PLAN_PRICES, type PlanKey } from "./plans"
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -52,7 +53,7 @@ export async function fetchSubscription(): Promise<SubscriptionDetails> {
   const res = await authedFetch(`${API_BASE_URL}/payments/subscription/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw new Error("Failed to fetch subscription")
+  if (!res.ok) throw new Error(tr("Failed to fetch subscription"))
   return res.json()
 }
 
@@ -60,7 +61,7 @@ export async function fetchInvoices(): Promise<{ invoices: Invoice[] }> {
   const res = await authedFetch(`${API_BASE_URL}/payments/invoices/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw new Error("Failed to fetch invoices")
+  if (!res.ok) throw new Error(tr("Failed to fetch invoices"))
   return res.json()
 }
 
@@ -71,7 +72,7 @@ export async function cancelSubscription(): Promise<{ detail: string }> {
   })
   if (!res.ok) {
     const error = await res.json()
-    throw new Error(error.detail || "Failed to cancel subscription")
+    throw new Error(error.detail || tr("Failed to cancel subscription"))
   }
   return res.json()
 }

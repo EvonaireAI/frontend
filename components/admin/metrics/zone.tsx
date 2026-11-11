@@ -5,6 +5,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { MetricsForbiddenError } from "@/lib/metrics"
 import { RefreshCw } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // Per-zone fetch state so one failed endpoint never blanks the whole
 // dashboard. A 403 means the caller isn't staff — redirect away rather than
@@ -43,10 +45,10 @@ export function ZoneError({ label, onRetry }: { label: string; onRetry: () => vo
   return (
     <Alert variant="destructive">
       <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-        <span>Failed to load {label}.</span>
+        <span>{trNode("Failed to load {p0}.", { p0: label })}</span>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCw className="w-4 h-4 mr-2" />
-          Retry
+          {tr("Retry")}
         </Button>
       </AlertDescription>
     </Alert>

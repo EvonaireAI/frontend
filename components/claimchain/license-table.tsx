@@ -1,7 +1,7 @@
 "use client"
 
 import { Fragment, useState } from "react"
-import { format } from "date-fns"
+
 import { ExternalLink } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,8 @@ import {
   sourceLabel,
   type LicenseRecord,
 } from "@/lib/claimchain"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 // Licenses issued for one ritual. Every row can be sent to a third party: the
 // `verify_url` is the artefact a creator hands to a distribution platform or a
@@ -39,7 +41,7 @@ function StatusCell({ license }: { license: LicenseRecord }) {
   if (license.status !== "revoked") {
     return (
       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">
-        Active
+        {tr("Active")}
       </Badge>
     )
   }
@@ -48,10 +50,10 @@ function StatusCell({ license }: { license: LicenseRecord }) {
   return (
     <div className="space-y-1">
       <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-xs">
-        Withdrawn
+        {tr("Withdrawn")}
       </Badge>
       <p className="text-xs text-muted-foreground">
-        {license.revoked_at ? format(new Date(license.revoked_at), "d MMM yyyy") : "—"}
+        {license.revoked_at ? formatDate(new Date(license.revoked_at), "d MMM yyyy") : "—"}
         {revoker ? ` · by ${revoker}` : ""}
       </p>
     </div>
@@ -75,8 +77,7 @@ export function LicenseTable({
   if (licenses.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No licenses issued for this ritual yet. A license record is created when someone buys or
-        is gifted access through the Commons.
+        {tr("No licenses issued for this ritual yet. A license record is created when someone buys or is gifted access through the Commons.")}
       </p>
     )
   }
@@ -86,11 +87,11 @@ export function LicenseTable({
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>Holder</TableHead>
-            <TableHead>Level</TableHead>
-            <TableHead>Granted</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right whitespace-nowrap">Verification</TableHead>
+            <TableHead>{tr("Holder")}</TableHead>
+            <TableHead>{tr("Level")}</TableHead>
+            <TableHead>{tr("Granted")}</TableHead>
+            <TableHead>{tr("Status")}</TableHead>
+            <TableHead className="text-right whitespace-nowrap">{tr("Verification")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -104,7 +105,7 @@ export function LicenseTable({
                   <LevelBadge level={license.level} />
                 </TableCell>
                 <TableCell className="align-top text-muted-foreground whitespace-nowrap">
-                  {format(new Date(license.granted_at), "d MMM yyyy")}
+                  {formatDate(new Date(license.granted_at), "d MMM yyyy")}
                 </TableCell>
                 <TableCell className="align-top">
                   <StatusCell license={license} />
@@ -117,15 +118,15 @@ export function LicenseTable({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs"
-                        title="Open the public verification page for this license"
+                        title={tr("Open the public verification page for this license")}
                       >
-                        Verify
+                        {tr("Verify")}
                         <ExternalLink className="w-3 h-3 ml-1" aria-hidden />
                       </a>
                     </Button>
                     <CopyButton
                       value={license.verify_url}
-                      label="Copy the verification link for this license"
+                      label={tr("Copy the verification link for this license")}
                     />
                     {license.status === "active" && (
                       <Button
@@ -134,7 +135,7 @@ export function LicenseTable({
                         onClick={() => setTarget(license)}
                         className="h-7 px-2 text-xs bg-transparent border-border text-destructive hover:bg-destructive/10"
                       >
-                        Revoke
+                        {tr("Revoke")}
                       </Button>
                     )}
                   </div>
@@ -148,7 +149,7 @@ export function LicenseTable({
                 <TableCell colSpan={5} className="pt-0 pb-4">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     <span className="text-xs text-muted-foreground">
-                      {sourceLabel(license.source)} · Terms v{license.terms_version}
+                      {trNode("{p0} · Terms v{p1}", { p0: sourceLabel(license.source), p1: license.terms_version })}
                     </span>
                     <AiUseChips aiUse={license.ai_use} />
                   </div>

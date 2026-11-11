@@ -15,6 +15,8 @@ import {
   type MetricsFunnel,
   type MetricsTimeseries,
 } from "@/lib/metrics"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 // Platform Intelligence has no aggregate endpoint of its own — these MVP cards
 // are derived from the existing payments metrics (timeseries + funnel). Noted
@@ -58,7 +60,7 @@ export function IntelligenceTab() {
       setTimeseries(series)
       setFunnel(funnelData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load platform metrics")
+      setError(err instanceof Error ? err.message : tr("Failed to load platform metrics"))
     } finally {
       setLoading(false)
     }
@@ -84,7 +86,7 @@ export function IntelligenceTab() {
           <span>{error}</span>
           <Button variant="outline" size="sm" onClick={load}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {tr("Retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -102,36 +104,36 @@ export function IntelligenceTab() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Growth, retention and conversion, derived from the subscription metrics endpoints.
+          {tr("Growth, retention and conversion, derived from the subscription metrics endpoints.")}
         </p>
         <Button variant="outline" size="sm" onClick={load}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
-          label="Net MRR change"
+          label={tr("Net MRR change")}
           value={centsToDollarString(netChange)}
-          hint={latest ? monthLongLabel(latest.month) : "No data yet"}
+          hint={latest ? monthLongLabel(latest.month) : tr("No data yet")}
           direction={netChange === 0 ? undefined : netChange > 0 ? "up" : "down"}
         />
         <Metric
-          label="Churn rate"
+          label={tr("Churn rate")}
           value={latest ? rateToPercentString(latest.churn_rate) : "—"}
-          hint={previous ? `Was ${rateToPercentString(previous.churn_rate)} the month before` : undefined}
+          hint={previous ? tr("Was {p0} the month before", { p0: rateToPercentString(previous.churn_rate) }) : undefined}
           direction={churnDirection}
         />
         <Metric
-          label="Free → paid conversion"
+          label={tr("Free → paid conversion")}
           value={funnel ? rateToPercentString(funnel.conversion_rate) : "—"}
-          hint={funnel ? `${funnel.conversions_to_paid.toLocaleString()} of ${funnel.registered_users.toLocaleString()} registered` : undefined}
+          hint={funnel ? `${funnel.conversions_to_paid.toLocaleString(fmtLocale())} of ${funnel.registered_users.toLocaleString(fmtLocale())} registered` : undefined}
         />
         <Metric
-          label="Median days to convert"
+          label={tr("Median days to convert")}
           value={funnel?.median_days_to_convert != null ? `${funnel.median_days_to_convert}` : "—"}
-          hint={funnel ? `Across the last ${funnel.months} months` : undefined}
+          hint={funnel ? tr("Across the last {p0} months", { p0: funnel.months }) : undefined}
         />
       </div>
 
@@ -139,15 +141,14 @@ export function IntelligenceTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">What isn&apos;t here yet</CardTitle>
-          <CardDescription>Being explicit beats implying coverage we don&apos;t have.</CardDescription>
+          <CardTitle className="text-base">{tr("What isn't here yet")}</CardTitle>
+          <CardDescription>{tr("Being explicit beats implying coverage we don't have.")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            There is no dedicated platform-intelligence aggregate in the API. These cards are composed from
-            <span className="font-medium text-foreground"> payments/metrics/timeseries</span> and
-            <span className="font-medium text-foreground"> payments/metrics/funnel</span>, which cover the MVP
-            questions but nothing about listening behaviour, ritual performance or cohort retention.
+            {tr("There is no dedicated platform-intelligence aggregate in the API. These cards are composed from")}
+            <span className="font-medium text-foreground">{tr(" payments/metrics/timeseries")}</span>{tr(" and")}
+            <span className="font-medium text-foreground">{tr(" payments/metrics/funnel")}</span>{tr(", which cover the MVP questions but nothing about listening behaviour, ritual performance or cohort retention.")}
           </p>
         </CardContent>
       </Card>

@@ -11,6 +11,8 @@ import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { centsToDollarString } from "@/lib/metrics"
 import { GLOSSARY } from "@/lib/glossary"
 import { Activity, Coins, Users, Upload, ArrowRight, Loader2 } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 /**
  * The compact status strip on the Creator Studio home: what's ready to
@@ -58,21 +60,21 @@ export function StudioStatusStrip({ rituals, ritualsLoading }: { rituals: Ritual
   // The single most useful next step, in order of what actually unblocks them.
   const nextStep =
     rituals.length === 0
-      ? { label: `Upload your first ritual`, href: "/creator/upload" }
+      ? { label: tr("Upload your first ritual"), href: "/creator/upload" }
       : inReview > 0
-      ? { label: `${inReview} awaiting review — check status`, href: "/creator" }
+      ? { label: tr("{p0} awaiting review — check status", { p0: inReview }), href: "/creator" }
       : sanctuaryCount === 0
-      ? { label: "Create a sanctuary for your practice", href: "/creator/sanctuaries/create" }
+      ? { label: tr("Create a sanctuary for your practice"), href: "/creator/sanctuaries/create" }
       : earnings?.payouts_ready
-      ? { label: "You have a payout ready", href: "/creator/payouts" }
-      : { label: `Upload another ritual`, href: "/creator/upload" }
+      ? { label: tr("You have a payout ready"), href: "/creator/payouts" }
+      : { label: tr("Upload another ritual"), href: "/creator/upload" }
 
   return (
     <div className="mb-8">
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Panel
           icon={<Upload className="w-4 h-4" />}
-          label="Ready to publish"
+          label={tr("Ready to publish")}
           value={ritualsLoading ? null : `${approved}`}
           hint={ritualsLoading ? "" : `${inReview} in review · ${draft > 0 ? `${draft} draft` : "no drafts"}`}
           href="/creator"
@@ -81,23 +83,23 @@ export function StudioStatusStrip({ rituals, ritualsLoading }: { rituals: Ritual
           icon={<Activity className="w-4 h-4" />}
           label={GLOSSARY.rtsShort}
           value={loading ? null : rts ? `${rts.current_score}` : "—"}
-          hint={rts ? rtsService.getScoreBand(rts.current_score).replace("_", " ") : "Not yet calculated"}
+          hint={rts ? rtsService.getScoreBand(rts.current_score).replace("_", " ") : tr("Not yet calculated")}
           href="/creator"
         />
         <Panel
           icon={<Coins className="w-4 h-4" />}
-          label="Lifetime earned"
+          label={tr("Lifetime earned")}
           value={loading ? null : earnings ? centsToDollarString(earnings.lifetime_earned_cents) : "—"}
           hint={
             earnings
               ? `${centsToDollarString(earnings.payable_balance_cents)} payable`
-              : "No statements yet"
+              : tr("No statements yet")
           }
           href="/creator/earnings"
         />
         <Panel
           icon={<Users className="w-4 h-4" />}
-          label="In your sanctuaries"
+          label={tr("In your sanctuaries")}
           value={loading ? null : `${members}`}
           hint={sanctuaryCount === 1 ? "1 sanctuary" : `${sanctuaryCount} sanctuaries`}
           href="/creator"
@@ -106,12 +108,12 @@ export function StudioStatusStrip({ rituals, ritualsLoading }: { rituals: Ritual
 
       <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-primary/30 bg-card px-4 py-3">
         <p className="text-sm text-muted-foreground">
-          <span className="text-xs uppercase tracking-widest text-gold-muted mr-2">Next step</span>
+          <span className="text-xs uppercase tracking-widest text-gold-muted mr-2">{tr("Next step")}</span>
           {nextStep.label}
         </p>
         <Button asChild size="sm" variant="ghost" className="text-primary hover:text-gold-muted self-start sm:self-auto">
           <Link href={nextStep.href}>
-            Go
+            {tr("Go")}
             <ArrowRight className="w-3.5 h-3.5 ml-1" />
           </Link>
         </Button>

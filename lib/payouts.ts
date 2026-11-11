@@ -1,4 +1,5 @@
 import { authedFetch } from "./authed-fetch"
+import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -57,7 +58,7 @@ export async function fetchConnectStatus(): Promise<ConnectStatus> {
   const res = await authedFetch(`${API_BASE_URL}/payments/connect/status/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toPayoutsError(res, "Failed to check payout status")
+  if (!res.ok) throw await toPayoutsError(res, tr("Failed to check payout status"))
   return res.json()
 }
 
@@ -69,7 +70,7 @@ export async function createOnboardingLink(): Promise<{ onboarding_url: string }
     method: "POST",
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toPayoutsError(res, "Failed to start Stripe onboarding")
+  if (!res.ok) throw await toPayoutsError(res, tr("Failed to start Stripe onboarding"))
   return res.json()
 }
 
@@ -80,16 +81,16 @@ export async function createDashboardLink(): Promise<{ dashboard_url: string }> 
     method: "POST",
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toPayoutsError(res, "Failed to open the Stripe dashboard")
+  if (!res.ok) throw await toPayoutsError(res, tr("Failed to open the Stripe dashboard"))
   return res.json()
 }
 
 // Human-friendly labels for Stripe requirement field paths
 export function requirementLabel(path: string): string {
-  if (path === "external_account") return "Bank account"
-  if (path.includes("verification.document")) return "Identity document"
+  if (path === "external_account") return tr("Bank account")
+  if (path.includes("verification.document")) return tr("Identity document")
   if (path === "tos_acceptance" || path.startsWith("tos_acceptance.")) {
-    return "Stripe terms of service"
+    return tr("Stripe terms of service")
   }
   const last = path.split(".").pop() || path
   const words = last.replace(/_/g, " ")

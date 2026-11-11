@@ -10,6 +10,8 @@ import { CaseDetail } from "@/components/moderation/case-detail"
 import { TakeCaseButton, type GuardianOption } from "@/components/moderation/case-actions"
 import { useCaseList } from "./use-case-list"
 import type { ModerationCase } from "@/lib/moderation"
+import { tr } from "@/lib/i18n"
+
 
 // Pending Reviews — `?stage=pending_review`: open AND unassigned, newest first
 // (the server orders them). Escalated cases are pinned to the top; everything
@@ -41,11 +43,11 @@ export function PendingTab({ guardians }: { guardians: GuardianOption[] }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Unclaimed care cases. Taking one moves it into your Active Cases.
+          {tr("Unclaimed care cases. Taking one moves it into your Active Cases.")}
         </p>
         <Button variant="outline" size="sm" onClick={reload} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -64,8 +66,8 @@ export function PendingTab({ guardians }: { guardians: GuardianOption[] }) {
       ) : ordered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center">
           <Inbox className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <p className="font-medium text-foreground">Nothing waiting</p>
-          <p className="mt-1 text-sm text-muted-foreground">Every open case has a guardian.</p>
+          <p className="font-medium text-foreground">{tr("Nothing waiting")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tr("Every open case has a guardian.")}</p>
         </div>
       ) : (
         <div className="space-y-3">

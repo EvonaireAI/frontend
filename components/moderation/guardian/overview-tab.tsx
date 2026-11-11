@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, Inbox, RefreshCw, Store } from "lucide-react"
 import { moderationService, violationLabel, type GuardianOverview } from "@/lib/moderation"
 import type { GuardianTab } from "./tabs"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // `GET /api/moderations/overview/` answers this whole tab in one request. Every
 // counter deep-links to the tab that actually shows those rows.
@@ -51,7 +53,7 @@ function CounterCard({
         {icon}
         {label}
       </div>
-      <div className={`mt-2 text-3xl font-bold tabular-nums ${toneClass}`}>{value.toLocaleString()}</div>
+      <div className={`mt-2 text-3xl font-bold tabular-nums ${toneClass}`}>{value.toLocaleString(fmtLocale())}</div>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </button>
   )
@@ -68,7 +70,7 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
     try {
       setData(await moderationService.getOverview())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load the overview")
+      setError(err instanceof Error ? err.message : tr("Failed to load the overview"))
     } finally {
       setLoading(false)
     }
@@ -95,7 +97,7 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
           <span>{error ?? "The overview is unavailable."}</span>
           <Button variant="outline" size="sm" onClick={load}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {tr("Retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -114,32 +116,32 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <CounterCard
-          label="Pending Review"
+          label={tr("Pending Review")}
           value={data.pending_review}
-          hint="Open and unassigned"
+          hint={tr("Open and unassigned")}
           icon={<Inbox className="h-4 w-4" />}
           tone="warn"
           onClick={() => onNavigate("pending")}
         />
         <CounterCard
-          label="Active — yours"
+          label={tr("Active — yours")}
           value={data.active_mine}
-          hint={`${data.active.toLocaleString()} active across all guardians`}
+          hint={tr("{p0} active across all guardians", { p0: data.active.toLocaleString(fmtLocale()) })}
           icon={<ClipboardList className="h-4 w-4" />}
           onClick={() => onNavigate("active")}
         />
         <CounterCard
-          label="Resolved this week"
+          label={tr("Resolved this week")}
           value={data.resolved_this_week}
-          hint={`${data.archived.toLocaleString()} archived all-time`}
+          hint={tr("{p0} archived all-time", { p0: data.archived.toLocaleString(fmtLocale()) })}
           icon={<CheckCircle2 className="h-4 w-4" />}
           tone="good"
           onClick={() => onNavigate("history")}
         />
         <CounterCard
-          label="Open escalations"
+          label={tr("Open escalations")}
           value={data.escalations_open}
-          hint={`${data.escalations_total.toLocaleString()} escalated all-time`}
+          hint={tr("{p0} escalated all-time", { p0: data.escalations_total.toLocaleString(fmtLocale()) })}
           icon={<AlertTriangle className="h-4 w-4" />}
           tone="danger"
           onClick={() => onNavigate("active")}
@@ -149,8 +151,8 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Live cases by severity</CardTitle>
-            <CardDescription>Open and assigned cases only — {liveTotal.toLocaleString()} in total.</CardDescription>
+            <CardTitle className="text-base">{tr("Live cases by severity")}</CardTitle>
+            <CardDescription>{trNode("Open and assigned cases only — {p0} in total.", { p0: liveTotal.toLocaleString(fmtLocale()) })}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {severityEntries.map(([severity, count]) => {
@@ -159,7 +161,7 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
                 <div key={severity} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
                     <span className="capitalize text-foreground">{severity}</span>
-                    <span className="tabular-nums text-muted-foreground">{count.toLocaleString()}</span>
+                    <span className="tabular-nums text-muted-foreground">{count.toLocaleString(fmtLocale())}</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
@@ -175,7 +177,7 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
 
             {violationEntries.length > 0 && (
               <div className="pt-2">
-                <p className="mb-2 text-sm font-medium text-foreground">By violation type</p>
+                <p className="mb-2 text-sm font-medium text-foreground">{tr("By violation type")}</p>
                 <div className="flex flex-wrap gap-2">
                   {violationEntries.map(([type, count]) => (
                     <Badge key={type} variant="outline" className="text-xs">
@@ -190,8 +192,8 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Review backlogs</CardTitle>
-            <CardDescription>Both queues live on the Sacred Library tab.</CardDescription>
+            <CardTitle className="text-base">{tr("Review backlogs")}</CardTitle>
+            <CardDescription>{tr("Both queues live on the Sacred Library tab.")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <button
@@ -201,10 +203,10 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
             >
               <span className="flex items-center gap-2 text-sm text-foreground">
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                Rituals awaiting review
+                {tr("Rituals awaiting review")}
               </span>
               <span className="flex items-center gap-2 font-semibold tabular-nums">
-                {data.rituals_awaiting_review.toLocaleString()}
+                {data.rituals_awaiting_review.toLocaleString(fmtLocale())}
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </span>
             </button>
@@ -215,15 +217,15 @@ export function OverviewTab({ onNavigate }: OverviewTabProps) {
             >
               <span className="flex items-center gap-2 text-sm text-foreground">
                 <Store className="h-4 w-4 text-muted-foreground" />
-                Commons listings awaiting review
+                {tr("Commons listings awaiting review")}
               </span>
               <span className="flex items-center gap-2 font-semibold tabular-nums">
-                {data.listings_awaiting_review.toLocaleString()}
+                {data.listings_awaiting_review.toLocaleString(fmtLocale())}
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </span>
             </button>
             <p className="pt-1 text-xs text-muted-foreground">
-              As of {new Date(data.as_of).toLocaleString()}
+              {trNode("As of {p0}", { p0: new Date(data.as_of).toLocaleString(fmtLocale()) })}
             </p>
           </CardContent>
         </Card>

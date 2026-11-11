@@ -15,6 +15,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { agoraService, FLAG_REASON_LABELS, ThrottledError, type FlagReason } from "@/lib/agora"
 import { Loader2, HandHeart } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 export interface CareFlagTarget {
   type: "post" | "reply"
@@ -52,16 +54,16 @@ export function CareFlagDialog({
       } else {
         await agoraService.flagReply(target.id, payload)
       }
-      toast("Thank you. A guardian will look at this with care.")
+      toast(tr("Thank you. A guardian will look at this with care."))
       onClose()
     } catch (err) {
       if (err instanceof ThrottledError) {
         toast(err.message)
       } else if (err instanceof Error && err.message.includes("already flagged")) {
-        toast("You've already raised a care flag here. Our guardians will review it.")
+        toast(tr("You've already raised a care flag here. Our guardians will review it."))
         onClose()
       } else {
-        toast.error(err instanceof Error ? err.message : "Failed to raise a care flag")
+        toast.error(err instanceof Error ? err.message : tr("Failed to raise a care flag"))
       }
     } finally {
       setSubmitting(false)
@@ -74,10 +76,10 @@ export function CareFlagDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <HandHeart className="w-4 h-4 text-primary" />
-            Raise a care flag
+            {tr("Raise a care flag")}
           </DialogTitle>
           <DialogDescription>
-            A guardian will look at this with care. The author isn&apos;t notified.
+            {tr("A guardian will look at this with care. The author isn't notified.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +96,7 @@ export function CareFlagDialog({
 
         <div className="space-y-2">
           <Label htmlFor="care-flag-note" className="text-muted-foreground">
-            Anything you&apos;d like the guardian to know? (optional)
+            {tr("Anything you'd like the guardian to know? (optional)")}
           </Label>
           <Textarea
             id="care-flag-note"
@@ -112,7 +114,7 @@ export function CareFlagDialog({
             disabled={submitting}
             className="bg-transparent border-border text-muted-foreground hover:bg-secondary"
           >
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -122,7 +124,7 @@ export function CareFlagDialog({
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending…
+                {tr("Sending…")}
               </>
             ) : (
               "Send to a guardian"

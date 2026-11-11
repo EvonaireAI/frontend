@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { RefreshCw, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 import { v1Admin, V1Error, type GatewayApplication, type OpsSummary } from "@/lib/v1"
+import { tr, trNode } from "@/lib/i18n"
+
 
 const ENTRY_STATUSES = [
   "ready_for_review",
@@ -58,16 +60,16 @@ export function GatewayTab() {
   const decide = async (app: GatewayApplication, decision: string) => {
     const reason = (reasons[app.id] ?? "").trim()
     if (reason.length < 20) {
-      toast.error("A written reason of at least 20 characters is required.")
+      toast.error(tr("A written reason of at least 20 characters is required."))
       return
     }
     setBusyId(app.id)
     try {
       await v1Admin.decideApplication(app.id, decision, reason)
-      toast.success(`Application ${decision}`)
+      toast.success(tr("Application {p0}", { p0: tr(decision) }))
       await load()
     } catch (error) {
-      toast.error(error instanceof V1Error ? error.message : "Decision failed")
+      toast.error(error instanceof V1Error ? error.message : tr("Decision failed"))
     } finally {
       setBusyId(null)
     }
@@ -98,10 +100,10 @@ export function GatewayTab() {
             <div>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                Gateway applications
+                {tr("Gateway applications")}
               </CardTitle>
               <CardDescription>
-                Holding Garden entries awaiting a steward decision
+                {tr("Holding Garden entries awaiting a steward decision")}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -134,7 +136,7 @@ export function GatewayTab() {
             <Skeleton className="h-24 w-full" />
           ) : applications.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No applications in this state.
+              {tr("No applications in this state.")}
             </p>
           ) : (
             applications.map((app) => (
@@ -142,10 +144,10 @@ export function GatewayTab() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-sm font-medium text-foreground">
-                      Application #{app.id} · {app.selected_role}
+                      {trNode("Application #{p0} · {p1}", { p0: app.id, p1: app.selected_role })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {app.country} · score {app.entry_score} · {app.entry_status.replace(/_/g, " ")}
+                      {trNode("{p0} · score {p1} · {p2}", { p0: app.country, p1: app.entry_score, p2: app.entry_status.replace(/_/g, " ") })}
                     </p>
                   </div>
                   <Badge variant="secondary" className="text-xs">
@@ -153,7 +155,7 @@ export function GatewayTab() {
                   </Badge>
                 </div>
                 <Input
-                  placeholder="Decision reason (at least 20 characters)"
+                  placeholder={tr("Decision reason (at least 20 characters)")}
                   value={reasons[app.id] ?? ""}
                   onChange={(e) =>
                     setReasons((prev) => ({ ...prev, [app.id]: e.target.value }))
@@ -168,7 +170,7 @@ export function GatewayTab() {
                       onClick={() => void decide(app, d)}
                       disabled={busyId === app.id}
                     >
-                      {d}
+                      {tr(d)}
                     </Button>
                   ))}
                 </div>

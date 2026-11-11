@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { authService } from "@/lib/auth"
 import { CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { tr } from "@/lib/i18n"
+
 
 export default function ActivatePage() {
   return (
@@ -34,7 +36,7 @@ function ActivateContent() {
 
     if (!code) {
       setStatus("error")
-      setMessage("No activation code provided")
+      setMessage(tr("No activation code provided"))
       return
     }
 
@@ -50,7 +52,7 @@ function ActivateContent() {
         }, 3000)
       } catch (err) {
         setStatus("error")
-        setMessage(err instanceof Error ? err.message : "Activation failed")
+        setMessage(err instanceof Error ? err.message : tr("Activation failed"))
       }
     }
 
@@ -61,14 +63,14 @@ function ActivateContent() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md text-center bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-foreground">Account Activation</CardTitle>
-          <CardDescription>Activating your Evonaire account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-foreground">{tr("Account Activation")}</CardTitle>
+          <CardDescription>{tr("Activating your Evonaire account")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {status === "loading" && (
             <div className="flex flex-col items-center space-y-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground">Activating your account...</p>
+              <p className="text-muted-foreground">{tr("Activating your account...")}</p>
             </div>
           )}
 
@@ -78,7 +80,7 @@ function ActivateContent() {
               <Alert>
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
-              <p className="text-sm text-muted-foreground">Redirecting to login page...</p>
+              <p className="text-sm text-muted-foreground">{tr("Redirecting to login page...")}</p>
             </div>
           )}
 
@@ -90,10 +92,10 @@ function ActivateContent() {
               </Alert>
               <div className="space-y-2">
                 <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                  <Link href="/auth/login">Go to Login</Link>
+                  <Link href="/auth/login">{tr("Go to Login")}</Link>
                 </Button>
                 <Button asChild variant="outline" className="bg-transparent border-border text-foreground hover:bg-secondary">
-                  <Link href="/auth/resend-activation">Resend Activation</Link>
+                  <Link href="/auth/resend-activation">{tr("Resend Activation")}</Link>
                 </Button>
               </div>
             </div>

@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { tr } from "@/lib/i18n"
+
 
 export default function PaymentCancelPage() {
   const router = useRouter()
@@ -26,26 +28,26 @@ export default function PaymentCancelPage() {
           <div className="flex justify-center mb-4">
             <AlertCircle className="h-16 w-16 text-gold-muted" />
           </div>
-          <CardTitle className="text-foreground">Payment Cancelled</CardTitle>
-          <CardDescription>Your subscription request was not completed</CardDescription>
+          <CardTitle className="text-foreground">{tr("Payment Cancelled")}</CardTitle>
+          <CardDescription>{tr("Your subscription request was not completed")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-secondary p-4 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              No charges have been made to your account. Feel free to try again whenever you're ready.
+              {tr("No charges have been made to your account. Feel free to try again whenever you're ready.")}
             </p>
           </div>
 
           <div className="flex flex-col gap-3 pt-4">
             <Button asChild variant="default" className="w-full bg-primary text-primary-foreground hover:bg-gold-muted">
-              <Link href="/member">Return to Dashboard</Link>
+              <Link href="/member">{tr("Return to Dashboard")}</Link>
             </Button>
             <Button asChild variant="outline" className="w-full bg-transparent border-border text-foreground hover:bg-secondary">
-              <Link href="/member?retry-premium=true">Try Again</Link>
+              <Link href="/member?retry-premium=true">{tr("Try Again")}</Link>
             </Button>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">Redirecting automatically in 5 seconds...</p>
+          <p className="text-xs text-muted-foreground text-center">{tr("Redirecting automatically in 5 seconds...")}</p>
         </CardContent>
       </Card>
     </div>

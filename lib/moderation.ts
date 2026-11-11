@@ -11,6 +11,8 @@
 // unwritten.
 
 import { authedFetch } from "./authed-fetch"
+import { tr, trDeep } from "./i18n/index.ts"
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -200,7 +202,7 @@ async function buildGuardianOverviewFallback(): Promise<GuardianOverview> {
   const headers = authHeaders()
 
   const casesPromise = authedFetch(`${API_BASE_URL}/moderations/cases/`, { headers }).then(async (res) => {
-    if (!res.ok) throw await toError(res, "Failed to load care cases")
+    if (!res.ok) throw await toError(res, tr("Failed to load care cases"))
     return unwrapList<ModerationCase>(await res.json()).results
   })
 
@@ -291,7 +293,7 @@ export const moderationService = {
     if (response.ok) return response.json()
     // Older backends expose cases + ritual queue but not the Session 11 aggregate
     if (response.status === 404) return buildGuardianOverviewFallback()
-    throw await toError(response, "Failed to load the Guardian overview")
+    throw await toError(response, tr("Failed to load the Guardian overview"))
   },
 
   /** One list serves Pending Reviews, Active Cases and Case History. */
@@ -299,13 +301,13 @@ export const moderationService = {
     const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${buildQuery(filters)}`, {
       headers: authHeaders(),
     })
-    if (!response.ok) throw await toError(response, "Failed to load care cases")
+    if (!response.ok) throw await toError(response, tr("Failed to load care cases"))
     return unwrapList<ModerationCase>(await response.json())
   },
 
   async getCase(caseId: number): Promise<ModerationCase> {
     const response = await authedFetch(`${API_BASE_URL}/moderations/cases/${encodeURIComponent(caseId)}/`, { headers: authHeaders() })
-    if (!response.ok) throw await toError(response, "Failed to load the care case")
+    if (!response.ok) throw await toError(response, tr("Failed to load the care case"))
     return response.json()
   },
 
@@ -313,7 +315,7 @@ export const moderationService = {
     const response = await authedFetch(`${API_BASE_URL}/moderations/care-feed/?limit=${encodeURIComponent(limit)}`, {
       headers: authHeaders(),
     })
-    if (!response.ok) throw await toError(response, "Failed to load the Care Feed")
+    if (!response.ok) throw await toError(response, tr("Failed to load the Care Feed"))
     const data = await response.json()
     return Array.isArray(data) ? data : unwrapList<CareFeedItem>(data).results
   },
@@ -334,7 +336,7 @@ export const moderationService = {
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
-    if (!response.ok) throw await toError(response, "Failed to assign the case")
+    if (!response.ok) throw await toError(response, tr("Failed to assign the case"))
     return response.json()
   },
 
@@ -345,7 +347,7 @@ export const moderationService = {
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ resolution_note: resolutionNote }),
     })
-    if (!response.ok) throw await toError(response, "Failed to resolve the case")
+    if (!response.ok) throw await toError(response, tr("Failed to resolve the case"))
     return response.json()
   },
 
@@ -356,7 +358,7 @@ export const moderationService = {
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(note ? { note } : {}),
     })
-    if (!response.ok) throw await toError(response, "Failed to archive the case")
+    if (!response.ok) throw await toError(response, tr("Failed to archive the case"))
     return response.json()
   },
 
@@ -369,14 +371,14 @@ export const moderationService = {
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ notes }),
     })
-    if (!response.ok) throw await toError(response, "Failed to escalate the case")
+    if (!response.ok) throw await toError(response, tr("Failed to escalate the case"))
     return response.json()
   },
 }
 
 // ── Display helpers ─────────────────────────────────────────────────────────
 
-export const VIOLATION_TYPE_LABELS: Record<string, string> = {
+export const VIOLATION_TYPE_LABELS: Record<string, string> = trDeep({
   cultural_harm: "Cultural Harm",
   safety_risk: "Safety Risk",
   misinformation: "Misinformation",
@@ -384,14 +386,14 @@ export const VIOLATION_TYPE_LABELS: Record<string, string> = {
   spam: "Spam",
   other: "Other",
   unspecified: "Unspecified",
-}
+})
 
 export function violationLabel(type: string | null | undefined): string {
-  if (!type) return "Unspecified"
+  if (!type) return tr("Unspecified")
   return VIOLATION_TYPE_LABELS[type] ?? type.replace(/_/g, " ")
 }
 
-export const SEVERITY_CHIPS: Record<CaseSeverity, { label: string; className: string }> = {
+export const SEVERITY_CHIPS: Record<CaseSeverity, { label: string; className: string }> = trDeep({
   high: { label: "High", className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300" },
   medium: {
     label: "Medium",
@@ -401,7 +403,7 @@ export const SEVERITY_CHIPS: Record<CaseSeverity, { label: string; className: st
     label: "Low",
     className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-300",
   },
-}
+})
 
 export const STAGE_LABELS: Record<CaseStage, string> = {
   pending_review: "Pending Review",

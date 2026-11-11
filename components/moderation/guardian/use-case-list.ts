@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { moderationService, type CaseFilters, type ListPage, type ModerationCase } from "@/lib/moderation"
+import { tr } from "@/lib/i18n"
 
 // Shared list loader for Pending Reviews, Active Cases and Case History.
 //
@@ -36,7 +37,7 @@ export function useCaseList(filters: CaseFilters): CaseListState {
       const result = await moderationService.listCases(stableFilters)
       if (id === requestId.current) setPage(result)
     } catch (err) {
-      if (id === requestId.current) setError(err instanceof Error ? err.message : "Failed to load care cases")
+      if (id === requestId.current) setError(err instanceof Error ? err.message : tr("Failed to load care cases"))
     } finally {
       if (id === requestId.current) setLoading(false)
     }

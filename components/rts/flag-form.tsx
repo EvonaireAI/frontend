@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { rtsService, type RTSFlag } from "@/lib/rts"
 import { Loader2, Flag } from "lucide-react"
 import { toast } from "sonner"
+import { tr } from "@/lib/i18n"
+
 
 interface FlagFormProps {
   userId: number
@@ -32,7 +34,7 @@ export function FlagForm({ userId, ritualId, onSubmitSuccess }: FlagFormProps) {
     e.preventDefault()
 
     if (!flag.description.trim()) {
-      toast.error("Please provide a description")
+      toast.error(tr("Please provide a description"))
       return
     }
 
@@ -40,7 +42,7 @@ export function FlagForm({ userId, ritualId, onSubmitSuccess }: FlagFormProps) {
 
     try {
       await rtsService.createFlag(flag)
-      toast.success("Care flag created successfully")
+      toast.success(tr("Care flag created successfully"))
       setFlag({
         user_id: userId,
         ritual_id: ritualId,
@@ -53,7 +55,7 @@ export function FlagForm({ userId, ritualId, onSubmitSuccess }: FlagFormProps) {
       }
     } catch (error) {
       console.error("Failed to create flag:", error)
-      toast.error("Failed to create care flag")
+      toast.error(tr("Failed to create care flag"))
     } finally {
       setSubmitting(false)
     }
@@ -64,46 +66,46 @@ export function FlagForm({ userId, ritualId, onSubmitSuccess }: FlagFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Flag className="w-5 h-5 text-orange-600" />
-          Create Care Flag
+          {tr("Create Care Flag")}
         </CardTitle>
-        <CardDescription>Flag a concern that may impact the creator's RTS score</CardDescription>
+        <CardDescription>{tr("Flag a concern that may impact the creator's RTS score")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="flag_type">Flag Type</Label>
+            <Label htmlFor="flag_type">{tr("Flag Type")}</Label>
             <Select value={flag.flag_type} onValueChange={(value: any) => setFlag({ ...flag, flag_type: value })}>
               <SelectTrigger id="flag_type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cultural_concern">Cultural Concern</SelectItem>
-                <SelectItem value="emotional_safety">Emotional Safety</SelectItem>
-                <SelectItem value="quality_issue">Quality Issue</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="cultural_concern">{tr("Cultural Concern")}</SelectItem>
+                <SelectItem value="emotional_safety">{tr("Emotional Safety")}</SelectItem>
+                <SelectItem value="quality_issue">{tr("Quality Issue")}</SelectItem>
+                <SelectItem value="other">{tr("Other")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="severity">Severity</Label>
+            <Label htmlFor="severity">{tr("Severity")}</Label>
             <Select value={flag.severity} onValueChange={(value: any) => setFlag({ ...flag, severity: value })}>
               <SelectTrigger id="severity">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="low">{tr("Low")}</SelectItem>
+                <SelectItem value="medium">{tr("Medium")}</SelectItem>
+                <SelectItem value="high">{tr("High")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{tr("Description")}</Label>
             <Textarea
               id="description"
-              placeholder="Describe the concern..."
+              placeholder={tr("Describe the concern...")}
               value={flag.description}
               onChange={(e) => setFlag({ ...flag, description: e.target.value })}
               rows={4}
@@ -114,7 +116,7 @@ export function FlagForm({ userId, ritualId, onSubmitSuccess }: FlagFormProps) {
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating Flag...
+                {tr("Creating Flag...")}
               </>
             ) : (
               "Create Flag"

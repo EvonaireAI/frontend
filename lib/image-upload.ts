@@ -1,4 +1,5 @@
 // Avatar upload gate.
+import { tr } from "./i18n/index.ts"
 //
 // The file input's `accept="image/*"` is a picker hint, not a check: it still
 // offers SVG and every other image type, and its value can be cleared from
@@ -27,7 +28,7 @@ export function avatarFileError(file: { name?: string; type?: string }): string 
   if (ALLOWED_TYPES.has(type)) return null
 
   if (type === "image/svg+xml") {
-    return "SVG images are not accepted. Upload a PNG, JPEG, WebP, or GIF."
+    return tr("SVG images are not accepted. Upload a PNG, JPEG, WebP, or GIF.")
   }
 
   if (!type) {
@@ -35,5 +36,5 @@ export function avatarFileError(file: { name?: string; type?: string }): string 
     if (ALLOWED_EXTENSIONS.some((extension) => name.endsWith(extension))) return null
   }
 
-  return "Choose a PNG, JPEG, WebP, or GIF image."
+  return tr("Choose a PNG, JPEG, WebP, or GIF image.")
 }

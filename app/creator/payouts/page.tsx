@@ -14,7 +14,6 @@ import {
 import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { formatDistanceToNow } from "date-fns"
 import {
   AlertTriangle,
   Banknote,
@@ -23,6 +22,8 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react"
+import { formatRelativeTime, tr, trNode } from "@/lib/i18n"
+
 
 type Phase = "loading" | "reconnecting" | "error" | "loaded"
 
@@ -61,7 +62,7 @@ function PayoutsContent() {
           router.replace("/dashboard")
           return
         }
-        const message = err instanceof Error ? err.message : "Failed to check payout status"
+        const message = err instanceof Error ? err.message : tr("Failed to check payout status")
         if (opts?.background) {
           toast.error(message)
         } else {
@@ -79,7 +80,7 @@ function PayoutsContent() {
     try {
       const { onboarding_url } = await createOnboardingLink()
       if (!isAllowedExternalUrl(onboarding_url)) {
-        throw new Error("Stripe returned an unexpected URL")
+        throw new Error(tr("Stripe returned an unexpected URL"))
       }
       window.location.assign(onboarding_url)
     } catch (err) {
@@ -87,7 +88,7 @@ function PayoutsContent() {
         router.replace("/dashboard")
         return
       }
-      toast.error(err instanceof Error ? err.message : "Failed to reconnect to Stripe")
+      toast.error(err instanceof Error ? err.message : tr("Failed to reconnect to Stripe"))
       window.history.replaceState(null, "", "/creator/payouts")
       loadStatus()
     }
@@ -115,7 +116,7 @@ function PayoutsContent() {
     try {
       const { onboarding_url } = await createOnboardingLink()
       if (!isAllowedExternalUrl(onboarding_url)) {
-        throw new Error("Stripe returned an unexpected URL")
+        throw new Error(tr("Stripe returned an unexpected URL"))
       }
       // Full redirect — Stripe onboarding cannot run in an iframe.
       // Leave the button spinning while the browser navigates.
@@ -125,7 +126,7 @@ function PayoutsContent() {
         router.replace("/dashboard")
         return
       }
-      toast.error(err instanceof Error ? err.message : "Failed to start Stripe onboarding")
+      toast.error(err instanceof Error ? err.message : tr("Failed to start Stripe onboarding"))
       setOnboardingBusy(false)
     }
   }
@@ -135,7 +136,7 @@ function PayoutsContent() {
     try {
       const { dashboard_url } = await createDashboardLink()
       if (!isAllowedExternalUrl(dashboard_url)) {
-        throw new Error("Stripe returned an unexpected URL")
+        throw new Error(tr("Stripe returned an unexpected URL"))
       }
       window.open(dashboard_url, "_blank", "noopener")
     } catch (err) {
@@ -143,7 +144,7 @@ function PayoutsContent() {
         router.replace("/dashboard")
         return
       }
-      toast.error(err instanceof Error ? err.message : "Failed to open the Stripe dashboard")
+      toast.error(err instanceof Error ? err.message : tr("Failed to open the Stripe dashboard"))
       if (err instanceof PayoutsApiError && err.status === 409) {
         // The button was shown from stale status — resync so it hides itself
         loadStatus({ background: true })
@@ -176,9 +177,9 @@ function PayoutsContent() {
               <Loader2 className="w-7 h-7 text-primary animate-spin" />
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Reconnecting to Stripe…</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{tr("Reconnecting to Stripe…")}</h2>
           <p className="text-sm text-muted-foreground">
-            Your setup link expired. We&apos;re creating a fresh one and sending you back.
+            {tr("Your setup link expired. We're creating a fresh one and sending you back.")}
           </p>
         </div>
       </div>
@@ -201,7 +202,7 @@ function PayoutsContent() {
       ) : (
         <ExternalLink className="w-4 h-4" />
       )}
-      Open Stripe dashboard
+      {tr("Open Stripe dashboard")}
     </Button>
   ) : null
 
@@ -212,10 +213,10 @@ function PayoutsContent() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <Banknote className="w-5 h-5 text-primary" />
-            <h1 className="text-2xl font-serif text-foreground tracking-wide">Payouts</h1>
+            <h1 className="text-2xl font-serif text-foreground tracking-wide">{tr("Payouts")}</h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            Get paid for the royalties your rituals generate.
+            {tr("Get paid for the royalties your rituals generate.")}
           </p>
         </div>
 
@@ -231,7 +232,7 @@ function PayoutsContent() {
         {phase === "error" && (
           <div className="bg-card border border-border rounded-2xl p-8 text-center">
             <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-            <p className="text-foreground font-medium mb-1">Couldn&apos;t check your payout setup</p>
+            <p className="text-foreground font-medium mb-1">{tr("Couldn't check your payout setup")}</p>
             <p className="text-sm text-muted-foreground mb-6">{loadError}</p>
             <Button
               variant="outline"
@@ -239,7 +240,7 @@ function PayoutsContent() {
               className="border-border text-foreground hover:bg-secondary bg-transparent"
             >
               <RefreshCw className="w-4 h-4" />
-              Try again
+              {tr("Try again")}
             </Button>
           </div>
         )}
@@ -252,16 +253,14 @@ function PayoutsContent() {
                 <Banknote className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-xl font-semibold text-foreground">Set up payouts</p>
+                <p className="text-xl font-semibold text-foreground">{tr("Set up payouts")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Earn 89% of member-generated royalties
+                  {tr("Earn 89% of member-generated royalties")}
                 </p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-6">
-              Evonaire pays creators 89% of the royalties their rituals generate from members,
-              via Stripe. To receive payouts, complete a quick Stripe onboarding to verify your
-              identity and connect a bank account.
+              {tr("Evonaire pays creators 89% of the royalties their rituals generate from members, via Stripe. To receive payouts, complete a quick Stripe onboarding to verify your identity and connect a bank account.")}
             </p>
             <Button
               onClick={startOnboarding}
@@ -273,7 +272,7 @@ function PayoutsContent() {
               ) : (
                 <ExternalLink className="w-4 h-4" />
               )}
-              Set up payouts
+              {tr("Set up payouts")}
             </Button>
           </div>
         )}
@@ -286,9 +285,9 @@ function PayoutsContent() {
                 <AlertTriangle className="w-5 h-5 text-yellow-400" />
               </div>
               <div>
-                <p className="text-xl font-semibold text-foreground">Payout setup incomplete</p>
+                <p className="text-xl font-semibold text-foreground">{tr("Payout setup incomplete")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Finish your Stripe setup to start receiving payouts.
+                  {tr("Finish your Stripe setup to start receiving payouts.")}
                 </p>
               </div>
             </div>
@@ -296,8 +295,7 @@ function PayoutsContent() {
             {returnedFromStripe && (
               <div className="mb-5 bg-secondary/50 border border-border rounded-xl px-4 py-3">
                 <p className="text-xs text-muted-foreground">
-                  Just finished on Stripe? Verification can take a few minutes — use
-                  &quot;Refresh status&quot; below to check again.
+                  {tr("Just finished on Stripe? Verification can take a few minutes — use \"Refresh status\" below to check again.")}
                 </p>
               </div>
             )}
@@ -306,7 +304,7 @@ function PayoutsContent() {
               <div className="mb-5 flex items-start gap-3 bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-3">
                 <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-red-300">
-                  Stripe has paused this account ({status.disabled_reason})
+                  {trNode("Stripe has paused this account ({p0})", { p0: status.disabled_reason })}
                 </p>
               </div>
             )}
@@ -314,7 +312,7 @@ function PayoutsContent() {
             {requirementsDue.length > 0 && (
               <div className="mb-6">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">
-                  Still needed
+                  {tr("Still needed")}
                 </p>
                 <ul className="space-y-2">
                   {requirementsDue.map((req) => (
@@ -338,7 +336,7 @@ function PayoutsContent() {
                 ) : (
                   <ExternalLink className="w-4 h-4" />
                 )}
-                Continue setup
+                {tr("Continue setup")}
               </Button>
               {dashboardButton}
               <Button
@@ -352,7 +350,7 @@ function PayoutsContent() {
                 ) : (
                   <RefreshCw className="w-4 h-4" />
                 )}
-                Refresh status
+                {tr("Refresh status")}
               </Button>
             </div>
           </div>
@@ -366,17 +364,15 @@ function PayoutsContent() {
                 <CheckCircle className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-xl font-semibold text-foreground">Payouts active</p>
+                <p className="text-xl font-semibold text-foreground">{tr("Payouts active")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Your Stripe account is verified and ready to receive payouts
-                  {status.country ? ` (${status.country})` : ""}.
+                  {trNode("Your Stripe account is verified and ready to receive payouts{p0}.", { p0: status.country ? ` (${status.country})` : "" })}
                 </p>
               </div>
             </div>
             <div className="mb-6 pt-5 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                You earn 89% of the royalties your rituals generate from members. Earnings and
-                royalty figures will appear here in a future release.
+                {tr("You earn 89% of the royalties your rituals generate from members. Earnings and royalty figures will appear here in a future release.")}
               </p>
             </div>
             {dashboardButton && <div className="flex flex-wrap gap-3">{dashboardButton}</div>}
@@ -385,8 +381,7 @@ function PayoutsContent() {
 
         {phase === "loaded" && status?.has_account && status.live === false && status.updated_at && (
           <p className="text-xs text-muted-foreground mt-3">
-            Stripe is momentarily unreachable — last synced{" "}
-            {formatDistanceToNow(new Date(status.updated_at), { addSuffix: true })}.
+            {trNode("Stripe is momentarily unreachable — last synced {p0}.", { p0: formatRelativeTime(status.updated_at) })}
           </p>
         )}
       </div>

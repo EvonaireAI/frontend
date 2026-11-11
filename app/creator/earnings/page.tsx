@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { format } from "date-fns"
+
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,9 +32,11 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react"
+import { formatDate,fmtLocale, tr, trNode  } from "@/lib/i18n"
+
 
 function formatMinutes(minutes: number): string {
-  return minutes.toLocaleString("en-US", { maximumFractionDigits: 1 })
+  return minutes.toLocaleString(fmtLocale(), { maximumFractionDigits: 1 })
 }
 
 // Status chip; failure_reason (when present) surfaces as a tooltip.
@@ -175,11 +177,10 @@ export default function CreatorEarningsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <Coins className="w-5 h-5 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Earnings</h1>
+            <h1 className="text-3xl font-bold text-foreground">{tr("Earnings")}</h1>
           </div>
           <p className="text-muted-foreground">
-            Your share of member subscriptions, based on qualified listening. Members stay
-            anonymous — you only ever see counts.
+            {tr("Your share of member subscriptions, based on qualified listening. Members stay anonymous — you only ever see counts.")}
           </p>
         </div>
 
@@ -198,10 +199,10 @@ export default function CreatorEarningsPage() {
         ) : earningsError ? (
           <Alert variant="destructive" className="mb-8">
             <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-              <span>Failed to load your earnings.</span>
+              <span>{tr("Failed to load your earnings.")}</span>
               <Button variant="outline" size="sm" onClick={loadEarnings}>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
+                {tr("Retry")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -213,9 +214,8 @@ export default function CreatorEarningsPage() {
                   <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-yellow-200">
                     <Link href="/creator/payouts" className="underline underline-offset-2 hover:text-yellow-100">
-                      Finish setting up payouts
-                    </Link>{" "}
-                    to receive transfers.
+                      {tr("Finish setting up payouts")}
+                    </Link>{tr(" to receive transfers.")}
                   </p>
                 </div>
               )}
@@ -225,32 +225,31 @@ export default function CreatorEarningsPage() {
               >
                 <Card className="bg-card border-border">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Available for payout</p>
+                    <p className="text-sm text-muted-foreground">{tr("Available for payout")}</p>
                     <p className="text-4xl font-semibold text-primary mt-1">
                       {centsToDollarString(earnings.payable_balance_cents)}
                     </p>
                     {belowMinimum && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Balances under {centsToDollarString(earnings.minimum_payout_cents)} roll
-                        forward to the next month.
+                        {trNode("Balances under {p0} roll forward to the next month.", { p0: centsToDollarString(earnings.minimum_payout_cents) })}
                       </p>
                     )}
                   </CardContent>
                 </Card>
                 <Card className="bg-card border-border">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Pending review</p>
+                    <p className="text-sm text-muted-foreground">{tr("Pending review")}</p>
                     <p className="text-2xl font-semibold text-foreground mt-1">
                       {centsToDollarString(earnings.pending_balance_cents)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Earned in a month the team hasn&apos;t approved yet
+                      {tr("Earned in a month the team hasn't approved yet")}
                     </p>
                   </CardContent>
                 </Card>
                 <Card className="bg-card border-border">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Lifetime earnings</p>
+                    <p className="text-sm text-muted-foreground">{tr("Lifetime earnings")}</p>
                     <p className="text-2xl font-semibold text-foreground mt-1">
                       {centsToDollarString(earnings.lifetime_earned_cents)}
                     </p>
@@ -261,7 +260,7 @@ export default function CreatorEarningsPage() {
                     <CardContent className="pt-6">
                       <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                         <AlertTriangle className="w-4 h-4 text-destructive" />
-                        On hold
+                        {tr("On hold")}
                       </p>
                       <p className="text-2xl font-semibold text-foreground mt-1">
                         {centsToDollarString(earnings.held_cents)}
@@ -273,8 +272,7 @@ export default function CreatorEarningsPage() {
 
               {earnings.last_payout && (
                 <p className="text-sm text-muted-foreground mt-3">
-                  Last payout {centsToDollarString(earnings.last_payout.amount_cents)} ·{" "}
-                  {format(new Date(earnings.last_payout.sent_at), "MMMM d, yyyy")}
+                  {trNode("Last payout {p0} · {p1}", { p0: centsToDollarString(earnings.last_payout.amount_cents), p1: formatDate(new Date(earnings.last_payout.sent_at), "MMMM d, yyyy") })}
                 </p>
               )}
             </div>
@@ -286,9 +284,9 @@ export default function CreatorEarningsPage() {
           <CardHeader>
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <CardTitle className="text-foreground">Monthly statement</CardTitle>
+                <CardTitle className="text-foreground">{tr("Monthly statement")}</CardTitle>
                 <CardDescription>
-                  Statements appear after the month closes and are computed from qualified minutes.
+                  {tr("Statements appear after the month closes and are computed from qualified minutes.")}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -296,7 +294,7 @@ export default function CreatorEarningsPage() {
                   variant="outline"
                   size="icon"
                   onClick={() => setPeriod((p) => shiftPeriod(p, -1))}
-                  aria-label="Previous month"
+                  aria-label={tr("Previous month")}
                   className="bg-transparent border-border"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -309,7 +307,7 @@ export default function CreatorEarningsPage() {
                   size="icon"
                   onClick={() => setPeriod((p) => shiftPeriod(p, 1))}
                   disabled={atNewestPeriod}
-                  aria-label="Next month"
+                  aria-label={tr("Next month")}
                   className="bg-transparent border-border"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -326,44 +324,41 @@ export default function CreatorEarningsPage() {
             ) : statementError ? (
               <Alert variant="destructive">
                 <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
-                  <span>Failed to load your statement.</span>
+                  <span>{tr("Failed to load your statement.")}</span>
                   <Button variant="outline" size="sm" onClick={loadStatement}>
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Retry
+                    {tr("Retry")}
                   </Button>
                 </AlertDescription>
               </Alert>
             ) : statementMissing ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                No statement yet for this month. Statements appear after the month closes.
+                {tr("No statement yet for this month. Statements appear after the month closes.")}
               </p>
             ) : statement && !statementHasEarnings ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                No qualified listening this month.
+                {tr("No qualified listening this month.")}
               </p>
             ) : (
               statement && (
                 <div className={statementLoading ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <h2 className="text-2xl font-semibold text-foreground">
-                      You earned {centsToDollarString(statement.total_earned_cents)} from{" "}
-                      {statement.member_count.toLocaleString()}{" "}
-                      {statement.member_count === 1 ? "member" : "members"}
+                      {trNode("You earned {p0} from {p1} {p2}", { p0: centsToDollarString(statement.total_earned_cents), p1: statement.member_count.toLocaleString(fmtLocale()), p2: statement.member_count === 1 ? "member" : "members" })}
                     </h2>
                     {statement.period_status === "computed" && (
                       <Badge
                         variant="outline"
                         className="bg-yellow-900/30 text-yellow-400 border-yellow-500/30 text-xs"
                       >
-                        Preliminary — under review
+                        {tr("Preliminary — under review")}
                       </Badge>
                     )}
                   </div>
                   {statement.idle_redistribution_cents > 0 && (
                     <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-primary" />
-                      Includes {centsToDollarString(statement.idle_redistribution_cents)} from the
-                      community pool
+                      {trNode("Includes {p0} from the community pool", { p0: centsToDollarString(statement.idle_redistribution_cents) })}
                     </p>
                   )}
 
@@ -371,10 +366,10 @@ export default function CreatorEarningsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Ritual</TableHead>
-                          <TableHead className="text-right">Earned</TableHead>
-                          <TableHead className="text-right">Listeners</TableHead>
-                          <TableHead className="text-right">Qualified minutes</TableHead>
+                          <TableHead>{tr("Ritual")}</TableHead>
+                          <TableHead className="text-right">{tr("Earned")}</TableHead>
+                          <TableHead className="text-right">{tr("Listeners")}</TableHead>
+                          <TableHead className="text-right">{tr("Qualified minutes")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -387,7 +382,7 @@ export default function CreatorEarningsPage() {
                               {centsToDollarString(r.earned_cents)}
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
-                              {r.unique_members.toLocaleString()}
+                              {r.unique_members.toLocaleString(fmtLocale())}
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
                               {formatMinutes(r.qualified_minutes)}
@@ -400,7 +395,7 @@ export default function CreatorEarningsPage() {
 
                   {statement.payout && (
                     <div className="mt-4 pt-4 border-t border-border flex items-center gap-3 text-sm">
-                      <span className="text-muted-foreground">Payout for this month:</span>
+                      <span className="text-muted-foreground">{tr("Payout for this month:")}</span>
                       <span className="font-medium text-foreground tabular-nums">
                         {centsToDollarString(statement.payout.amount_cents)}
                       </span>
@@ -420,25 +415,24 @@ export default function CreatorEarningsPage() {
         {!earningsLoading && !earningsError && earnings && (
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground">Payout history</CardTitle>
+              <CardTitle className="text-foreground">{tr("Payout history")}</CardTitle>
               <CardDescription>
-                Payouts run monthly once a period is approved. Balances under{" "}
-                {centsToDollarString(earnings.minimum_payout_cents)} roll forward.
+                {trNode("Payouts run monthly once a period is approved. Balances under {p0} roll forward.", { p0: centsToDollarString(earnings.minimum_payout_cents) })}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {earnings.payout_history.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8 text-sm">
-                  No payouts yet. Your first payout will appear here.
+                  {tr("No payouts yet. Your first payout will appear here.")}
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Period</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Date</TableHead>
+                      <TableHead>{tr("Period")}</TableHead>
+                      <TableHead className="text-right">{tr("Amount")}</TableHead>
+                      <TableHead>{tr("Status")}</TableHead>
+                      <TableHead className="text-right">{tr("Date")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -454,7 +448,7 @@ export default function CreatorEarningsPage() {
                           <PayoutStatusChip status={p.status} failureReason={p.failure_reason} />
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {format(new Date(p.created_at), "MMM d, yyyy")}
+                          {formatDate(new Date(p.created_at), "MMM d, yyyy")}
                         </TableCell>
                       </TableRow>
                     ))}

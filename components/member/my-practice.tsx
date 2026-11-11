@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { fetchPracticeSummary, type PracticePeriod, type PracticeSummary } from "@/lib/practice"
 import { Loader2, Sparkles } from "lucide-react"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface FallbackCounts {
   /** Locally derived all-time figures, used until the endpoint answers. */
@@ -50,13 +52,13 @@ export function MyPractice({
   const allTime: PracticePeriod = summary ?? fallback.allTime
   const month: PracticePeriod = summary?.current_month ?? fallback.currentMonth
   const tiles = [
-    { label: "Sessions", value: allTime.sessions_count },
-    { label: "Rituals completed", value: allTime.rituals_completed },
+    { label: tr("Sessions"), value: allTime.sessions_count },
+    { label: tr("Rituals completed"), value: allTime.rituals_completed },
     // Server-side this is already whole minutes — never divide it again.
-    { label: "Minutes listening", value: allTime.listening_minutes },
-    { label: "Blessings given", value: allTime.blessings_given },
+    { label: tr("Minutes listening"), value: allTime.listening_minutes },
+    { label: tr("Blessings given"), value: allTime.blessings_given },
     ...(isCreator && summary !== null
-      ? [{ label: "Blessings received", value: allTime.blessings_received }]
+      ? [{ label: tr("Blessings received"), value: allTime.blessings_received }]
       : []),
   ]
 
@@ -65,7 +67,7 @@ export function MyPractice({
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="w-4 h-4 text-primary" />
         <h2 id="my-practice-heading" className="text-base font-semibold text-foreground">
-          My Practice
+          {tr("My Practice")}
         </h2>
         {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
       </div>
@@ -73,20 +75,17 @@ export function MyPractice({
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {tiles.map((tile) => (
           <div key={tile.label} className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{tile.value.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">{tile.value.toLocaleString(fmtLocale())}</p>
             <p className="text-xs text-muted-foreground uppercase tracking-wide">{tile.label}</p>
           </div>
         ))}
       </div>
 
       <p className="text-sm text-muted-foreground mt-3">
-        <span className="text-foreground">This month:</span> {month.sessions_count.toLocaleString()}{" "}
-        {month.sessions_count === 1 ? "session" : "sessions"} · {month.listening_minutes.toLocaleString()}{" "}
-        {month.listening_minutes === 1 ? "minute" : "minutes"} of listening ·{" "}
-        {month.blessings_given.toLocaleString()} {month.blessings_given === 1 ? "blessing" : "blessings"} given.
+        <span className="text-foreground">{tr("This month:")}</span>{trNode(" {p0} {p1} · {p2} {p3} of listening · {p4} {p5} given.", { p0: month.sessions_count.toLocaleString(fmtLocale()), p1: month.sessions_count === 1 ? "session" : "sessions", p2: month.listening_minutes.toLocaleString(fmtLocale()), p3: month.listening_minutes === 1 ? "minute" : "minutes", p4: month.blessings_given.toLocaleString(fmtLocale()), p5: month.blessings_given === 1 ? "blessing" : "blessings" })}
       </p>
       <p className="text-xs text-muted-foreground/80 mt-1">
-        A record of your own practice — nothing here is compared to anyone else's.
+        {tr("A record of your own practice — nothing here is compared to anyone else's.")}
       </p>
     </section>
   )

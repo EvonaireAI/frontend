@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { MetricsOverview, PlanCount } from "@/lib/metrics"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 // Ordinal ramp of the brand gold, light→dark by tier (validated against the
 // app surface). Unknown future plan keys fall back to the darkest step.
@@ -66,8 +68,8 @@ export function TierDonut({ overview }: { overview: MetricsOverview }) {
       <CardHeader>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <CardTitle>Subscribers by tier</CardTitle>
-            <CardDescription>Active accounts on each plan</CardDescription>
+            <CardTitle>{tr("Subscribers by tier")}</CardTitle>
+            <CardDescription>{tr("Active accounts on each plan")}</CardDescription>
           </div>
           <ToggleGroup
             type="single"
@@ -76,8 +78,8 @@ export function TierDonut({ overview }: { overview: MetricsOverview }) {
             value={view}
             onValueChange={(v) => v && setView(v as "all" | "paid")}
           >
-            <ToggleGroupItem value="paid">Paid only</ToggleGroupItem>
-            <ToggleGroupItem value="all">All tiers</ToggleGroupItem>
+            <ToggleGroupItem value="paid">{tr("Paid only")}</ToggleGroupItem>
+            <ToggleGroupItem value="all">{tr("All tiers")}</ToggleGroupItem>
           </ToggleGroup>
         </div>
       </CardHeader>
@@ -109,7 +111,7 @@ export function TierDonut({ overview }: { overview: MetricsOverview }) {
                       return (
                         <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                           <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-semibold">
-                            {total.toLocaleString()}
+                            {total.toLocaleString(fmtLocale())}
                           </tspan>
                           <tspan x={viewBox.cx} y={(viewBox.cy ?? 0) + 20} className="fill-muted-foreground text-xs">
                             {view === "paid" ? "paid subscribers" : "subscribers"}
@@ -132,7 +134,7 @@ export function TierDonut({ overview }: { overview: MetricsOverview }) {
                     />
                     {p.display_name}
                   </span>
-                  <span className="text-muted-foreground tabular-nums">{p.count.toLocaleString()}</span>
+                  <span className="text-muted-foreground tabular-nums">{p.count.toLocaleString(fmtLocale())}</span>
                 </div>
               ))}
             </div>

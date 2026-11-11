@@ -11,6 +11,8 @@ import { authService } from "@/lib/auth"
 import { ApiError, type FieldErrorMap } from "@/lib/api-errors"
 import { roleShortLabel } from "@/lib/roles"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -51,7 +53,7 @@ export default function RegisterPage() {
       }
       await authService.register(submitData)
       trackFunnelEvent("signup_complete")
-      setSuccess("Registration successful! Please check your email for an activation link.")
+      setSuccess(tr("Registration successful! Please check your email for an activation link."))
       setTimeout(() => router.push("/auth/login"), 3000)
     } catch (err) {
       if (err instanceof ApiError) {
@@ -69,7 +71,7 @@ export default function RegisterPage() {
         const globalMessage = [err.nonFieldMessage, ...rest].filter(Boolean).join(" ")
         setError(globalMessage || (Object.keys(known).length === 0 ? err.message : ""))
       } else {
-        setError(err instanceof Error ? err.message : "Registration failed")
+        setError(err instanceof Error ? err.message : tr("Registration failed"))
       }
     } finally {
       setLoading(false)
@@ -105,13 +107,13 @@ export default function RegisterPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
-            alt="Evonaire"
+            alt={tr("Evonaire")}
             width={44}
             height={44}
             className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)] group-hover:drop-shadow-[0_0_18px_rgba(217,181,116,0.6)] transition-all duration-300"
           />
           <span className="text-cream font-serif text-lg tracking-wide group-hover:text-gold transition-colors duration-300">
-            Evonaire
+            {tr("Evonaire")}
           </span>
         </Link>
       </header>
@@ -121,8 +123,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           {/* Heading */}
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">Join Evonaire</h1>
-            <p className="text-cream/50 text-sm">Create your account to get started</p>
+            <h1 className="text-3xl font-serif text-cream mb-2 tracking-wide">{tr("Join Evonaire")}</h1>
+            <p className="text-cream/50 text-sm">{tr("Create your account to get started")}</p>
           </div>
 
           {/* Card */}
@@ -142,7 +144,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="first_name" className="text-cream/70 text-sm font-medium">
-                    First Name
+                    {tr("First Name")}
                   </label>
                   <input
                     id="first_name"
@@ -150,7 +152,7 @@ export default function RegisterPage() {
                     value={formData.first_name}
                     onChange={(e) => handleInputChange("first_name", e.target.value)}
                     required
-                    placeholder="Jane"
+                    placeholder={tr("Jane")}
                     className={inputClassFor("first_name")}
                     aria-invalid={!!fieldErrors.first_name}
                   />
@@ -158,7 +160,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="last_name" className="text-cream/70 text-sm font-medium">
-                    Last Name
+                    {tr("Last Name")}
                   </label>
                   <input
                     id="last_name"
@@ -166,7 +168,7 @@ export default function RegisterPage() {
                     value={formData.last_name}
                     onChange={(e) => handleInputChange("last_name", e.target.value)}
                     required
-                    placeholder="Doe"
+                    placeholder={tr("Doe")}
                     className={inputClassFor("last_name")}
                     aria-invalid={!!fieldErrors.last_name}
                   />
@@ -176,7 +178,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-cream/70 text-sm font-medium">
-                  Email
+                  {tr("Email")}
                 </label>
                 <input
                   id="email"
@@ -185,7 +187,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
-                  placeholder="you@example.com"
+                  placeholder={tr("you@example.com")}
                   className={inputClassFor("email")}
                   aria-invalid={!!fieldErrors.email}
                 />
@@ -194,7 +196,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-cream/70 text-sm font-medium">
-                  Password
+                  {tr("Password")}
                 </label>
                 <div className="relative">
                   <input
@@ -204,7 +206,7 @@ export default function RegisterPage() {
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     required
-                    placeholder="Choose a strong password"
+                    placeholder={tr("Choose a strong password")}
                     className={`${inputClassFor("password")} pr-12`}
                     aria-invalid={!!fieldErrors.password}
                   />
@@ -212,7 +214,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-cream/40 hover:text-cream/70 transition-colors"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? tr("Hide password") : tr("Show password")}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -222,11 +224,11 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="role" className="text-cream/70 text-sm font-medium">
-                  Role
+                  {tr("Role")}
                 </label>
                 <Select value={formData.role} onValueChange={(v) => handleInputChange("role", v)}>
                   <SelectTrigger className="bg-dark-navy border-gold/20 text-cream rounded-xl h-12 focus:ring-gold/30 focus:border-gold/60 cursor-pointer">
-                    <SelectValue placeholder="Select your role" />
+                    <SelectValue placeholder={tr("Select your role")} />
                   </SelectTrigger>
                   <SelectContent className="bg-[#141f2a] border-gold/20 text-cream">
                     {/* Values stay on the backend role keys; only the labels
@@ -249,14 +251,14 @@ export default function RegisterPage() {
               {(formData.role === "creator" || formData.role === "moderator") && (
                 <div className="space-y-2">
                   <label htmlFor="reason" className="text-cream/70 text-sm font-medium">
-                    Reason for {formData.role} role
+                    {trNode("Reason for {p0} role", { p0: formData.role })}
                   </label>
                   <textarea
                     id="reason"
                     value={formData.reason}
                     onChange={(e) => handleInputChange("reason", e.target.value)}
                     required
-                    placeholder={`Please explain why you want to be a ${formData.role}...`}
+                    placeholder={tr("Please explain why you want to be a {p0}...", { p0: formData.role })}
                     rows={3}
                     className="w-full bg-dark-navy border border-gold/20 rounded-xl px-4 py-3 text-cream placeholder:text-cream/30 text-sm focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all resize-none"
                   />
@@ -270,15 +272,15 @@ export default function RegisterPage() {
                 className="w-full h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.25)] mt-2 cursor-pointer"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Create Account
+                {tr("Create Account")}
               </button>
             </form>
           </div>
 
           <p className="text-center text-cream/40 text-sm mt-6">
-            Already have an account?{" "}
+            {tr("Already have an account? ")}
             <Link href="/auth/login" className="text-gold hover:text-gold-muted transition-colors">
-              Sign in
+              {tr("Sign in")}
             </Link>
           </p>
         </div>

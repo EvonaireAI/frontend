@@ -7,6 +7,8 @@ import { useEntitlements } from "@/lib/entitlements-context"
 import { PLAN_PRICES, PRICING_PLANS, planDisplayName, type PlanKey } from "@/lib/plans"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, CheckCircle, CreditCard, Loader2, Sparkles, XCircle } from "lucide-react"
+import { tr, trNode } from "@/lib/i18n"
+
 
 const STATUS_DISPLAY: Record<string, string> = {
   active: "Active",
@@ -64,9 +66,9 @@ export default function SubscriptionPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <CreditCard className="w-5 h-5 text-primary" />
-            <h1 className="text-2xl font-serif text-foreground tracking-wide">Subscription</h1>
+            <h1 className="text-2xl font-serif text-foreground tracking-wide">{tr("Subscription")}</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Manage your Evonaire plan and billing.</p>
+          <p className="text-muted-foreground text-sm">{tr("Manage your Evonaire plan and billing.")}</p>
         </div>
 
         {/* Past-due banner */}
@@ -74,9 +76,9 @@ export default function SubscriptionPage() {
           <div className="mb-6 flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 rounded-xl px-5 py-4">
             <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-yellow-300 text-sm font-medium">Payment required</p>
+              <p className="text-yellow-300 text-sm font-medium">{tr("Payment required")}</p>
               <p className="text-yellow-300/70 text-xs mt-0.5">
-                Your last payment failed. Please update your payment method to keep premium access.
+                {tr("Your last payment failed. Please update your payment method to keep premium access.")}
               </p>
             </div>
           </div>
@@ -84,7 +86,7 @@ export default function SubscriptionPage() {
 
         {/* Current plan card */}
         <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">Current Plan</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">{tr("Current Plan")}</p>
 
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -97,7 +99,7 @@ export default function SubscriptionPage() {
                   <StatusBadge status={status} />
                   {plan !== "free" && (
                     <span className="text-xs text-muted-foreground">
-                      ${PLAN_PRICES[plan as PlanKey] ?? PLAN_PRICES.evocore}/mo
+                      {trNode("${p0}/mo", { p0: PLAN_PRICES[plan as PlanKey] ?? PLAN_PRICES.evocore })}
                     </span>
                   )}
                 </div>
@@ -109,7 +111,7 @@ export default function SubscriptionPage() {
                 variant="outline"
                 className="bg-primary/10 text-primary border-primary/30 text-xs px-3 py-1"
               >
-                Premium
+                {tr("Premium")}
               </Badge>
             )}
           </div>
@@ -118,21 +120,19 @@ export default function SubscriptionPage() {
           <div className="mt-5 pt-5 border-t border-border">
             {isFree ? (
               <p className="text-sm text-muted-foreground">
-                You&apos;re on the free plan. Upgrade to access Level 2 &amp; Level 3 rituals and
-                premium sanctuary features.
+                {tr("You're on the free plan. Upgrade to access Level 2 & Level 3 rituals and premium sanctuary features.")}
               </p>
             ) : isPaidActive ? (
               <p className="text-sm text-muted-foreground">
-                You have full access to all premium rituals and sanctuary features included in your
-                plan.
+                {tr("You have full access to all premium rituals and sanctuary features included in your plan.")}
               </p>
             ) : isPastDue ? (
               <p className="text-sm text-muted-foreground">
-                Premium access is paused until your payment is resolved.
+                {tr("Premium access is paused until your payment is resolved.")}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Your subscription has ended. Upgrade again to restore premium access.
+                {tr("Your subscription has ended. Upgrade again to restore premium access.")}
               </p>
             )}
           </div>
@@ -146,7 +146,7 @@ export default function SubscriptionPage() {
               className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
             >
               <Sparkles className="w-4 h-4" />
-              Upgrade Plan
+              {tr("Upgrade Plan")}
             </Link>
           ) : (
             <>
@@ -156,12 +156,11 @@ export default function SubscriptionPage() {
                   className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-gold-muted transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,181,116,0.2)]"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Reactivate Plan
+                  {tr("Reactivate Plan")}
                 </Link>
               )}
               <p className="text-xs text-muted-foreground text-center pt-1">
-                To update your payment method or cancel, please contact support or manage your
-                subscription through Stripe.
+                {tr("To update your payment method or cancel, please contact support or manage your subscription through Stripe.")}
               </p>
             </>
           )}

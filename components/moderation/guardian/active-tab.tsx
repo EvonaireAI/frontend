@@ -15,6 +15,8 @@ import {
 } from "@/components/moderation/case-actions"
 import { useCaseList } from "./use-case-list"
 import type { ModerationCase } from "@/lib/moderation"
+import { tr } from "@/lib/i18n"
+
 
 // Active Cases — the caller's queue by default (`?stage=active&assigned=me`),
 // with a toggle for every guardian's (`?stage=active`).
@@ -55,7 +57,7 @@ export function ActiveTab({ guardians }: { guardians: GuardianOption[] }) {
               scope === "me" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            My queue
+            {tr("My queue")}
           </button>
           <button
             type="button"
@@ -64,12 +66,12 @@ export function ActiveTab({ guardians }: { guardians: GuardianOption[] }) {
               scope === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            All guardians
+            {tr("All guardians")}
           </button>
         </div>
         <Button variant="outline" size="sm" onClick={reload} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
@@ -106,14 +108,14 @@ export function ActiveTab({ guardians }: { guardians: GuardianOption[] }) {
               actions={
                 <>
                   <Button size="sm" onClick={() => setResolveFor(moderationCase)}>
-                    Resolve
+                    {tr("Resolve")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setReleaseFor(moderationCase)}>
-                    Release
+                    {tr("Release")}
                   </Button>
                   {!moderationCase.crisis_escalated && (
                     <Button variant="outline" size="sm" onClick={() => setEscalateFor(moderationCase)}>
-                      Escalate
+                      {tr("Escalate")}
                     </Button>
                   )}
                 </>

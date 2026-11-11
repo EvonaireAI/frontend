@@ -13,6 +13,8 @@ import {
   isGatewayModalOpen,
   type GatewayQuizQuestion,
 } from "@/lib/gateway-quiz"
+import { tr, trNode } from "@/lib/i18n"
+
 
 // One prompt per this window at most; persisted so it survives reloads.
 const CADENCE_MS = 10 * 60 * 1000
@@ -118,10 +120,10 @@ export function GatewayNudge() {
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-sm font-medium text-foreground">A gentle question</p>
+              <p className="text-sm font-medium text-foreground">{tr("A gentle question")}</p>
               {typeof answered === "number" && typeof total === "number" && total > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Gateway · {answered} / {total}
+                  {trNode("Gateway · {p0} / {p1}", { p0: answered, p1: total })}
                 </p>
               )}
             </div>
@@ -129,7 +131,7 @@ export function GatewayNudge() {
           <button
             type="button"
             onClick={dismiss}
-            aria-label="Dismiss"
+            aria-label={tr("Dismiss")}
             className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <X className="h-4 w-4" />

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { adminService, type PlatformOverview } from "@/lib/admin"
+import { tr } from "@/lib/i18n"
 
 // `GET /api/admin/overview/` is fetched once for the whole console: the
 // Platform Overview tab renders all five card groups from it, and the
@@ -26,7 +27,7 @@ export function usePlatformOverview(): PlatformOverviewState {
     try {
       setOverview(await adminService.getPlatformOverview())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load the platform overview")
+      setError(err instanceof Error ? err.message : tr("Failed to load the platform overview"))
     } finally {
       setLoading(false)
     }

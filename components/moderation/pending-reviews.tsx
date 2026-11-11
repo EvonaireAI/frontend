@@ -18,6 +18,8 @@ import { authService, type PendingRitual } from "@/lib/auth"
 import { ProtectedAudioPreview } from "@/components/player/protected-audio-preview"
 import { Clock, User, Tag, AlertTriangle, CheckCircle, XCircle, Play, Pause } from "lucide-react"
 import { toast } from "sonner"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 interface PendingReviewsProps {
   onReviewComplete?: () => void
@@ -42,7 +44,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
       setPendingRituals(rituals)
     } catch (error) {
       console.error("Failed to load pending rituals:", error)
-      toast.error("Failed to load pending rituals")
+      toast.error(tr("Failed to load pending rituals"))
     } finally {
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
     try {
       await authService.reviewRitual(selectedRitual.id, decision, reviewNotes || undefined)
 
-      toast.success(`Ritual ${decision === "approve" ? "approved" : "rejected"} successfully`)
+      toast.success(tr(decision === "approve" ? "Ritual approved successfully" : "Ritual rejected successfully"))
 
       // Remove the reviewed ritual from the list
       setPendingRituals((prev) => prev.filter((r) => r.id !== selectedRitual.id))
@@ -69,7 +71,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
       onReviewComplete?.()
     } catch (error) {
       console.error("Failed to review ritual:", error)
-      toast.error("Failed to submit review")
+      toast.error(tr("Failed to submit review"))
     } finally {
       setSubmitting(false)
     }
@@ -85,11 +87,11 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
   const getCareLevel = (level: string) => {
     switch (level) {
       case "level1":
-        return { label: "Level 1", color: "bg-green-100 text-green-800" }
+        return { label: tr("Level 1"), color: "bg-green-100 text-green-800" }
       case "level2":
-        return { label: "Level 2", color: "bg-yellow-100 text-yellow-800" }
+        return { label: tr("Level 2"), color: "bg-yellow-100 text-yellow-800" }
       case "level3":
-        return { label: "Level 3", color: "bg-red-100 text-red-800" }
+        return { label: tr("Level 3"), color: "bg-red-100 text-red-800" }
       default:
         return { label: level, color: "bg-gray-100 text-gray-800" }
     }
@@ -109,12 +111,12 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            Pending Reviews
+            {tr("Pending Reviews")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6">
-            <div className="animate-pulse">Loading pending reviews...</div>
+            <div className="animate-pulse">{tr("Loading pending reviews...")}</div>
           </div>
         </CardContent>
       </Card>
@@ -127,16 +129,16 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            Pending Reviews ({pendingRituals.length})
+            {trNode("Pending Reviews ({p0})", { p0: pendingRituals.length })}
           </CardTitle>
-          <CardDescription>Rituals awaiting cultural and emotional safety review</CardDescription>
+          <CardDescription>{tr("Rituals awaiting cultural and emotional safety review")}</CardDescription>
         </CardHeader>
         <CardContent>
           {pendingRituals.length === 0 ? (
             <div className="text-center py-8">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">All caught up!</p>
-              <p className="text-muted-foreground">No rituals pending review at this time.</p>
+              <p className="text-lg font-medium mb-2">{tr("All caught up!")}</p>
+              <p className="text-muted-foreground">{tr("No rituals pending review at this time.")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -174,7 +176,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                             </div>
                             <div className="flex items-center gap-1">
                               <AlertTriangle className="w-4 h-4" />
-                              Submitted {new Date(ritual.created_at).toLocaleDateString()}
+                              {trNode("Submitted {p0}", { p0: new Date(ritual.created_at).toLocaleDateString(fmtLocale()) })}
                             </div>
                           </div>
                         </div>
@@ -193,27 +195,27 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="default" size="sm" onClick={() => setSelectedRitual(ritual)}>
-                                Review
+                                {tr("Review")}
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
-                                <DialogTitle>Review Ritual: {ritual.title}</DialogTitle>
+                                <DialogTitle>{trNode("Review Ritual: {p0}", { p0: ritual.title })}</DialogTitle>
                                 <DialogDescription>
-                                  Carefully review this ritual for cultural sensitivity and emotional safety
+                                  {tr("Carefully review this ritual for cultural sensitivity and emotional safety")}
                                 </DialogDescription>
                               </DialogHeader>
 
                               <div className="space-y-6">
                                 <div>
-                                  <h4 className="font-medium mb-2">Description</h4>
+                                  <h4 className="font-medium mb-2">{tr("Description")}</h4>
                                   <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
                                     {ritual.description}
                                   </p>
                                 </div>
 
                                 <div>
-                                  <h4 className="font-medium mb-2">Cultural Declaration</h4>
+                                  <h4 className="font-medium mb-2">{tr("Cultural Declaration")}</h4>
                                   <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
                                     {ritual.cultural_declaration}
                                   </p>
@@ -221,20 +223,20 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <Label htmlFor="review-notes">Internal Notes (Optional)</Label>
+                                    <Label htmlFor="review-notes">{tr("Internal Notes (Optional)")}</Label>
                                     <Textarea
                                       id="review-notes"
-                                      placeholder="Add internal notes about your review decision..."
+                                      placeholder={tr("Add internal notes about your review decision...")}
                                       value={reviewNotes}
                                       onChange={(e) => setReviewNotes(e.target.value)}
                                       className="mt-1"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor="creator-feedback">Feedback to Creator (Optional)</Label>
+                                    <Label htmlFor="creator-feedback">{tr("Feedback to Creator (Optional)")}</Label>
                                     <Textarea
                                       id="creator-feedback"
-                                      placeholder="Provide constructive feedback to the creator..."
+                                      placeholder={tr("Provide constructive feedback to the creator...")}
                                       value={creatorFeedback}
                                       onChange={(e) => setCreatorFeedback(e.target.value)}
                                       className="mt-1"
@@ -249,7 +251,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                                     className="flex-1 bg-green-600 hover:bg-green-700"
                                   >
                                     <CheckCircle className="w-4 h-4 mr-2" />
-                                    Approve Ritual
+                                    {tr("Approve Ritual")}
                                   </Button>
                                   <Button
                                     onClick={() => handleReview("reject")}
@@ -258,7 +260,7 @@ export function PendingReviews({ onReviewComplete }: PendingReviewsProps) {
                                     className="flex-1"
                                   >
                                     <XCircle className="w-4 h-4 mr-2" />
-                                    Reject Ritual
+                                    {tr("Reject Ritual")}
                                   </Button>
                                 </div>
                               </div>

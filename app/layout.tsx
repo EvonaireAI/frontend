@@ -6,6 +6,7 @@ import { GeistMono } from "geist/font/mono"
 import { AppShell } from "@/components/app-shell"
 import "./globals.css"
 
+
 const lexend = Lexend({
   subsets: ["latin"],
   variable: "--font-dyslexia-friendly",
@@ -34,6 +35,9 @@ html {
   return (
     <html lang="en" className={lexend.variable}>
       <head>
+        {/* Chrome 69 (Android 8.0) has no globalThis, and Next's runtime
+            assigns to it before any polyfill chunk loads. Define it first. */}
+        <script dangerouslySetInnerHTML={{ __html: "if(typeof globalThis==='undefined'){window.globalThis=window}" }} />
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: fontStyle }} />
       </head>
       <body>

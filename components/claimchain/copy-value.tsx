@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Check, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { tr } from "@/lib/i18n"
+
 
 // Copying a hash or a verification URL is the point of showing it: the creator
 // pastes it into a takedown form, an email to a platform, or a hashing tool.
@@ -72,7 +74,7 @@ export function CopyButton({
       {copied ? (
         <>
           <Check className="w-3.5 h-3.5 text-primary" aria-hidden />
-          <span className="ml-1 text-xs text-primary">Copied</span>
+          <span className="ml-1 text-xs text-primary">{tr("Copied")}</span>
         </>
       ) : (
         <Copy className="w-3.5 h-3.5" aria-hidden />
@@ -112,7 +114,7 @@ export function HashValue({
       >
         {shown}
       </code>
-      <CopyButton value={value} label={`Copy full ${label}`} />
+      <CopyButton value={value} label={tr("Copy full {p0}", { p0: label })} />
     </span>
   )
 }

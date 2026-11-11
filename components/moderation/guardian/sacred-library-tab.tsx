@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ClipboardCheck, Store } from "lucide-react"
 import { PendingReviews } from "@/components/moderation/pending-reviews"
 import { ReviewQueuePanel } from "@/components/commons/review-queue-panel"
+import { tr } from "@/lib/i18n"
+
 
 // Two review queues, one tab: rituals awaiting cultural/emotional safety review
 // and Commons listings awaiting publication review. Both existed already —
@@ -15,7 +17,7 @@ export function SacredLibraryTab({ onReviewComplete }: { onReviewComplete?: () =
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Ritual review</h3>
+          <h3 className="text-lg font-semibold text-foreground">{tr("Ritual review")}</h3>
         </div>
         <PendingReviews onReviewComplete={onReviewComplete} />
       </section>
@@ -23,13 +25,13 @@ export function SacredLibraryTab({ onReviewComplete }: { onReviewComplete?: () =
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Store className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Commons listings</h3>
+          <h3 className="text-lg font-semibold text-foreground">{tr("Commons listings")}</h3>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Listing review queue</CardTitle>
+            <CardTitle className="text-base">{tr("Listing review queue")}</CardTitle>
             <CardDescription>
-              Marketplace listings can&apos;t publish until a guardian approves them.
+              {tr("Marketplace listings can't publish until a guardian approves them.")}
             </CardDescription>
           </CardHeader>
           <CardContent>

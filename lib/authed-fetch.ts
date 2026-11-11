@@ -1,3 +1,4 @@
+import { tr } from "./i18n/index.ts"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
 // Access tokens expire mid-session. Refresh once and retry on 401 so a
@@ -11,13 +12,13 @@ function refreshAccessToken(): Promise<unknown> {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       const refreshToken = localStorage.getItem("refresh_token")
-      if (!refreshToken) throw new Error("No refresh token available")
+      if (!refreshToken) throw new Error(tr("No refresh token available"))
       const response = await fetch(`${API_BASE_URL}/auth/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh: refreshToken }),
       })
-      if (!response.ok) throw new Error("Token refresh failed")
+      if (!response.ok) throw new Error(tr("Token refresh failed"))
       const data = await response.json()
       localStorage.setItem("access_token", data.access)
       if (data.refresh) localStorage.setItem("refresh_token", data.refresh)

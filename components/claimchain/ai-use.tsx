@@ -1,6 +1,10 @@
+"use client"
+
 import { Ban, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { AI_USE_ROWS, type AiUse } from "@/lib/claimchain"
+import { tr } from "@/lib/i18n"
+
 
 // All four flags are false today. Rendering them as *explicitly denied* rather
 // than omitting them is the entire reason they are stored: for an AI company
@@ -12,8 +16,8 @@ import { AI_USE_ROWS, type AiUse } from "@/lib/claimchain"
 
 function state(granted: boolean) {
   return granted
-    ? { label: "Permitted", className: "bg-primary/10 text-primary border-primary/30" }
-    : { label: "Not permitted", className: "bg-secondary text-muted-foreground border-border" }
+    ? { label: tr("Permitted"), className: "bg-primary/10 text-primary border-primary/30" }
+    : { label: tr("Not permitted"), className: "bg-secondary text-muted-foreground border-border" }
 }
 
 /**

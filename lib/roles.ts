@@ -1,4 +1,5 @@
 // Platform role → dashboard label mapping.
+import { tr } from "./i18n/index.ts"
 //
 // There are TWO distinct naming axes in Evonaire — do not conflate them:
 //   1. Role / dashboard label (this file) — derived from the account `role`.
@@ -25,16 +26,29 @@ const ROLE_DASHBOARD_LABELS: Record<string, string> = {
   superadmin: "Steward (D4)",
 }
 
+// Short forms can't be derived by stripping "(D\d)" from a translation, so
+// they get their own keys.
+const ROLE_SHORT_LABELS: Record<string, string> = {
+  member: "Seeker",
+  creator: "Creator",
+  moderator: "Guardian",
+  admin: "Steward",
+  superadmin: "Steward",
+}
+
 /** Full dashboard label for a role, e.g. "Seeker (D1)". Falls back to a
  *  capitalized version of any unknown role so the UI never shows an empty
  *  badge. */
 export function roleDashboardLabel(role: string | null | undefined): string {
-  if (!role) return "Seeker (D1)"
-  return ROLE_DASHBOARD_LABELS[role] ?? role.charAt(0).toUpperCase() + role.slice(1)
+  if (!role) return tr("Seeker (D1)")
+  const label = ROLE_DASHBOARD_LABELS[role]
+  return label ? tr(label) : role.charAt(0).toUpperCase() + role.slice(1)
 }
 
 /** Short label without the tier code, e.g. "Seeker" — for compact contexts. */
 export function roleShortLabel(role: string | null | undefined): string {
+  const short = role ? ROLE_SHORT_LABELS[role] : undefined
+  if (short) return tr(short)
   return roleDashboardLabel(role).replace(/\s*\(D\d\)\s*$/, "")
 }
 

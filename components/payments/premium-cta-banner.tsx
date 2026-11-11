@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { isPaidActive } from "@/lib/subscription"
+import { tr } from "@/lib/i18n"
+
 
 export function PremiumCTABanner() {
   const { user } = useAuth()
@@ -24,9 +26,9 @@ export function PremiumCTABanner() {
           <div className="flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-primary flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-foreground">Unlock Premium Features</h3>
+              <h3 className="font-semibold text-foreground">{tr("Unlock Premium Features")}</h3>
               <p className="text-sm text-muted-foreground">
-                Get exclusive access to advanced rituals, personalized insights, and community features
+                {tr("Get exclusive access to advanced rituals, personalized insights, and community features")}
               </p>
             </div>
           </div>
@@ -34,7 +36,7 @@ export function PremiumCTABanner() {
             href="/member/upgrade"
             className="flex-shrink-0 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-gold-muted transition-all duration-200"
           >
-            Get Premium
+            {tr("Get Premium")}
           </Link>
         </div>
       </CardContent>

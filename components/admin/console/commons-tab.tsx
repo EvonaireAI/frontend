@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, Store } from "lucide-react"
 import { ReviewQueuePanel } from "@/components/commons/review-queue-panel"
 import { fetchListings, formatPrice, licenseLabel, type Listing } from "@/lib/commons"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 // The Commons — the Session 07 marketplace surfaces: the listing review queue
 // (shared with the Guardian Sacred Library tab) plus what's currently published.
@@ -43,19 +45,19 @@ export function CommonsTab() {
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Published listings</p>
+          <p className="text-xs text-muted-foreground">{tr("Published listings")}</p>
           <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
-            {loading ? "—" : listings.length.toLocaleString()}
+            {loading ? "—" : listings.length.toLocaleString(fmtLocale())}
           </p>
         </div>
         <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Awaiting review</p>
+          <p className="text-xs text-muted-foreground">{tr("Awaiting review")}</p>
           <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
-            {pendingCount === null ? "—" : pendingCount.toLocaleString()}
+            {pendingCount === null ? "—" : pendingCount.toLocaleString(fmtLocale())}
           </p>
         </div>
         <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Average price</p>
+          <p className="text-xs text-muted-foreground">{tr("Average price")}</p>
           <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
             {loading ? "—" : formatPrice(averagePrice)}
           </p>
@@ -64,8 +66,8 @@ export function CommonsTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Listing review queue</CardTitle>
-          <CardDescription>The same queue guardians work from the Sacred Library.</CardDescription>
+          <CardTitle className="text-base">{tr("Listing review queue")}</CardTitle>
+          <CardDescription>{tr("The same queue guardians work from the Sacred Library.")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ReviewQueuePanel onCountChange={setPendingCount} />
@@ -78,13 +80,13 @@ export function CommonsTab() {
             <div>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Store className="h-5 w-5 text-primary" />
-                Published listings
+                {tr("Published listings")}
               </CardTitle>
-              <CardDescription>What members can buy right now.</CardDescription>
+              <CardDescription>{tr("What members can buy right now.")}</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
               <Link href="/commons">
-                Browse The Commons
+                {tr("Browse The Commons")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -98,7 +100,7 @@ export function CommonsTab() {
               ))}
             </div>
           ) : listings.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nothing is published yet.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">{tr("Nothing is published yet.")}</p>
           ) : (
             <div className="space-y-2">
               {listings.slice(0, 10).map((listing) => (
@@ -127,7 +129,7 @@ export function CommonsTab() {
               ))}
               {listings.length > 10 && (
                 <p className="pt-1 text-xs text-muted-foreground">
-                  Showing 10 of {listings.length.toLocaleString()} — browse The Commons for the rest.
+                  {trNode("Showing 10 of {p0} — browse The Commons for the rest.", { p0: listings.length.toLocaleString(fmtLocale()) })}
                 </p>
               )}
             </div>

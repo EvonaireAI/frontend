@@ -33,6 +33,8 @@ import Link from "next/link"
 import { GLOSSARY } from "@/lib/glossary"
 import { StudioStatusStrip } from "@/components/creator/studio-status-strip"
 import { V1StudioPanel } from "@/components/creator/v1-studio-panel"
+import { fmtLocale, tr, trNode } from "@/lib/i18n"
+
 
 export default function CreatorDashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -160,7 +162,7 @@ export default function CreatorDashboard() {
   }
 
   const handleDeleteRitual = async (id: number) => {
-    if (!confirm("Are you sure you want to archive this ritual?")) return
+    if (!confirm(tr("Are you sure you want to archive this ritual?"))) return
 
     try {
       await authService.deleteRitual(id)
@@ -209,19 +211,19 @@ export default function CreatorDashboard() {
         {/* Hero header section */}
         <div className="text-center mb-10">
           <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">
-            {user ? `Welcome back, ${user.first_name}` : "Welcome To Your Sanctuary"}
+            {user ? trNode("Welcome back, {p0}", { p0: user.first_name }) : "Welcome To Your Sanctuary"}
           </p>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance">
             {GLOSSARY.creatorStudio}
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
-            This is a protected space for your voice, rituals, and creative offerings.
+            {tr("This is a protected space for your voice, rituals, and creative offerings.")}
           </p>
           <div className="flex gap-3 justify-center mt-6">
             <Button asChild variant="outline" className="border-border bg-transparent text-foreground hover:bg-secondary hover:text-secondary-foreground">
               <Link href="/dashboard">
                 <Eye className="w-4 h-4 mr-2" />
-                Dashboard
+                {tr("Dashboard")}
               </Link>
             </Button>
             <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
@@ -252,7 +254,7 @@ export default function CreatorDashboard() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Analytics</span>
+              <span className="hidden sm:inline">{tr("Analytics")}</span>
             </TabsTrigger>
             <TabsTrigger value="rts" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Activity className="w-4 h-4" />
@@ -260,15 +262,15 @@ export default function CreatorDashboard() {
             </TabsTrigger>
             <TabsTrigger value="sanctuaries" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Sanctuaries</span>
+              <span className="hidden sm:inline">{tr("Sanctuaries")}</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="rituals" className="space-y-6">
             <div className="text-center mb-2">
-              <h2 className="text-xl font-semibold text-foreground">Your Sacred Offerings</h2>
+              <h2 className="text-xl font-semibold text-foreground">{tr("Your Sacred Offerings")}</h2>
               <p className="text-sm text-muted-foreground">
-                Manage your uploaded rituals and track their journey through the community
+                {tr("Manage your uploaded rituals and track their journey through the community")}
               </p>
               {/* Provenance is a full section of its own, not a tab: it has a
                   detail view per ritual and reads as a record rather than a
@@ -281,7 +283,7 @@ export default function CreatorDashboard() {
               >
                 <Link href="/creator/provenance">
                   <ScrollText className="w-4 h-4 mr-2" />
-                  Provenance &amp; Licenses
+                  {tr("Provenance & Licenses")}
                 </Link>
               </Button>
             </div>
@@ -292,10 +294,10 @@ export default function CreatorDashboard() {
             ) : rituals.length === 0 ? (
               <div className="text-center py-12">
                 <Music className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2 text-foreground">No rituals yet</h3>
-                <p className="text-muted-foreground mb-4">Start sharing your sacred practices with the community</p>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No rituals yet")}</h3>
+                <p className="text-muted-foreground mb-4">{tr("Start sharing your sacred practices with the community")}</p>
                 <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                  <Link href="/creator/upload">Upload Your First Ritual</Link>
+                  <Link href="/creator/upload">{tr("Upload Your First Ritual")}</Link>
                 </Button>
               </div>
             ) : (
@@ -317,15 +319,15 @@ export default function CreatorDashboard() {
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground mb-3">
-                        {new Date(ritual.created_at).toLocaleDateString()}
+                        {new Date(ritual.created_at).toLocaleDateString(fmtLocale())}
                       </p>
                       <div className="flex gap-2">
-                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" title="Analytics">
+                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" title={tr("Analytics")}>
                           <Link href={`/creator/analytics/${ritual.id}`}>
                             <BarChart3 className="w-3.5 h-3.5" />
                           </Link>
                         </Button>
-                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" title="Edit">
+                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary hover:text-secondary-foreground" title={tr("Edit")}>
                           <Link href={`/creator/rituals/${ritual.id}/edit`}>
                             <Edit className="w-3.5 h-3.5" />
                           </Link>
@@ -335,7 +337,7 @@ export default function CreatorDashboard() {
                           size="sm"
                           onClick={() => handleDeleteRitual(ritual.id)}
                           className="flex-1 bg-transparent border-border text-destructive hover:bg-destructive/10"
-                          title="Delete"
+                          title={tr("Delete")}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
@@ -354,10 +356,10 @@ export default function CreatorDashboard() {
                   <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
                     <Upload className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2 text-foreground">Ready to share your practice?</h3>
-                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">Upload audio files or record directly in your browser</p>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("Ready to share your practice?")}</h3>
+                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">{tr("Upload audio files or record directly in your browser")}</p>
                   <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                    <Link href="/creator/upload">Start Upload Process</Link>
+                    <Link href="/creator/upload">{tr("Start Upload Process")}</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -370,9 +372,9 @@ export default function CreatorDashboard() {
                 <CardContent className="py-12">
                   <div className="text-center">
                     <BarChart3 className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-foreground">No approved rituals yet</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No approved rituals yet")}</h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                      Analytics will appear here once your rituals are approved and being experienced by the community
+                      {tr("Analytics will appear here once your rituals are approved and being experienced by the community")}
                     </p>
                   </div>
                 </CardContent>
@@ -382,64 +384,64 @@ export default function CreatorDashboard() {
                 <div className="grid gap-4 md:grid-cols-4">
                   <Card className="bg-card border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Total Experiences</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Total Experiences")}</CardTitle>
                       <Play className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-primary">
                         {analyticsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : dashboardMetrics?.total_plays || 0}
                       </div>
-                      <p className="text-xs text-muted-foreground">Times your rituals were played</p>
+                      <p className="text-xs text-muted-foreground">{tr("Times your rituals were played")}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-card border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Completions</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Completions")}</CardTitle>
                       <Users className="h-4 w-4 text-gold-light" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-gold-light">
                         {analyticsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : dashboardMetrics?.total_completions || 0}
                       </div>
-                      <p className="text-xs text-muted-foreground">Full ritual experiences</p>
+                      <p className="text-xs text-muted-foreground">{tr("Full ritual experiences")}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-card border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Completion Rate")}</CardTitle>
                       <BarChart3 className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-primary">
                         {analyticsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${dashboardMetrics?.completion_rate?.toFixed(1) || 0}%`}
                       </div>
-                      <p className="text-xs text-muted-foreground">Percentage of plays completed</p>
+                      <p className="text-xs text-muted-foreground">{tr("Percentage of plays completed")}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-card border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Blessings</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Blessings")}</CardTitle>
                       <Heart className="h-4 w-4 text-gold-muted" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-gold-muted">
                         {analyticsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : dashboardMetrics?.total_blessings || 0}
                       </div>
-                      <p className="text-xs text-muted-foreground">Hearts received from community</p>
+                      <p className="text-xs text-muted-foreground">{tr("Hearts received from community")}</p>
                     </CardContent>
                   </Card>
                 </div>
 
                 <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Community Feedback</CardTitle>
-                    <CardDescription>Recent reflections from members experiencing your rituals</CardDescription>
+                    <CardTitle className="text-foreground">{tr("Community Feedback")}</CardTitle>
+                    <CardDescription>{tr("Recent reflections from members experiencing your rituals")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {analyticsLoading ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                        <span>Loading community feedback...</span>
+                        <span>{tr("Loading community feedback...")}</span>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -451,7 +453,7 @@ export default function CreatorDashboard() {
                                   <div className="flex justify-between items-start mb-2">
                                     <h4 className="font-medium text-sm text-primary">{item.ritual.title}</h4>
                                     <span className="text-xs text-muted-foreground">
-                                      {new Date(item.created_at).toLocaleDateString()}
+                                      {new Date(item.created_at).toLocaleDateString(fmtLocale())}
                                     </span>
                                   </div>
                                   <p className="text-sm mb-2">{item.feedback_text}</p>
@@ -467,8 +469,8 @@ export default function CreatorDashboard() {
                         ) : (
                           <div className="text-center py-8 text-muted-foreground">
                             <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No community reflections yet</p>
-                            <p className="text-xs mt-1">Feedback will appear here as members experience your rituals</p>
+                            <p className="text-sm">{tr("No community reflections yet")}</p>
+                            <p className="text-xs mt-1">{tr("Feedback will appear here as members experience your rituals")}</p>
                           </div>
                         )}
                       </div>
@@ -483,15 +485,15 @@ export default function CreatorDashboard() {
             {rtsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                <span>Loading RTS data...</span>
+                <span>{tr("Loading RTS data...")}</span>
               </div>
             ) : (
               <>
                 <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Your Resonance Trust Synthesis</CardTitle>
+                    <CardTitle className="text-foreground">{tr("Your Resonance Trust Synthesis")}</CardTitle>
                     <CardDescription>
-                      A real-time measure of your holistic health and readiness to expand your reach
+                      {tr("A real-time measure of your holistic health and readiness to expand your reach")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -503,20 +505,19 @@ export default function CreatorDashboard() {
                           size="lg"
                         />
                         <p className="text-sm text-muted-foreground mt-4">
-                          Last updated:{" "}
-                          {rtsScore.last_calculated_at
-                            ? new Date(rtsScore.last_calculated_at).toLocaleString()
-                            : "Not yet calculated"}
+                          {trNode("Last updated: {p0}", { p0: rtsScore.last_calculated_at
+                            ? new Date(rtsScore.last_calculated_at).toLocaleString(fmtLocale())
+                            : "Not yet calculated" })}
                         </p>
                         {rtsService.getScoreBand(rtsScore.current_score) === "expand" && (
                           <Badge variant="outline" className="mt-4 text-primary bg-primary/10 border-primary/20">
-                            You can expand your member reach!
+                            {tr("You can expand your member reach!")}
                           </Badge>
                         )}
                       </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p className="text-sm">No RTS score available yet</p>
+                        <p className="text-sm">{tr("No RTS score available yet")}</p>
                       </div>
                     )}
                   </CardContent>
@@ -532,13 +533,13 @@ export default function CreatorDashboard() {
           <TabsContent value="sanctuaries" className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
               <div>
-                <h2 className="text-xl font-semibold text-foreground">Your Sanctuaries</h2>
-                <p className="text-sm text-muted-foreground">Manage your creator-owned communities</p>
+                <h2 className="text-xl font-semibold text-foreground">{tr("Your Sanctuaries")}</h2>
+                <p className="text-sm text-muted-foreground">{tr("Manage your creator-owned communities")}</p>
               </div>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
                 <Link href="/creator/sanctuaries/create">
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Sanctuary
+                  {tr("Create Sanctuary")}
                 </Link>
               </Button>
             </div>
@@ -549,10 +550,10 @@ export default function CreatorDashboard() {
             ) : sanctuaries.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2 text-foreground">No sanctuaries yet</h3>
-                <p className="text-muted-foreground mb-4">Create your first sanctuary to build a community</p>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No sanctuaries yet")}</h3>
+                <p className="text-muted-foreground mb-4">{tr("Create your first sanctuary to build a community")}</p>
                 <Button asChild className="bg-primary text-primary-foreground hover:bg-gold-muted">
-                  <Link href="/creator/sanctuaries/create">Create Your First Sanctuary</Link>
+                  <Link href="/creator/sanctuaries/create">{tr("Create Your First Sanctuary")}</Link>
                 </Button>
               </div>
             ) : (

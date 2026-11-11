@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { authService, type User, type Ritual, type RitualAnalytics, type RitualFeedback } from "@/lib/auth"
 import { Loader2, ArrowLeft, Play, Heart, Users, MessageSquare, BarChart3 } from "lucide-react"
 import Link from "next/link"
+import { fmtLocale, tr } from "@/lib/i18n"
+
 
 export default function RitualAnalyticsPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -40,7 +42,7 @@ export default function RitualAnalyticsPage() {
         const found = rituals.find((r) => r.id === ritualId)
 
         if (!found) {
-          setError("Ritual not found or you do not have permission to view its analytics.")
+          setError(tr("Ritual not found or you do not have permission to view its analytics."))
           setLoading(false)
           return
         }
@@ -56,7 +58,7 @@ export default function RitualAnalyticsPage() {
         setFeedback(feedbackData)
       } catch (err) {
         console.error("Failed to load analytics:", err)
-        setError("Failed to load analytics data.")
+        setError(tr("Failed to load analytics data."))
       } finally {
         setLoading(false)
       }
@@ -80,7 +82,7 @@ export default function RitualAnalyticsPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent border-border text-foreground hover:bg-secondary">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Creator Studio
+              {tr("Back to Creator Studio")}
             </Link>
           </Button>
           <Card className="bg-card border-border">
@@ -106,12 +108,12 @@ export default function RitualAnalyticsPage() {
           <Button asChild variant="outline" className="bg-transparent border-border text-foreground hover:bg-secondary">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Creator Studio
+              {tr("Back to Creator Studio")}
             </Link>
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">{ritual.title}</h1>
-            <p className="text-muted-foreground">Detailed analytics for this ritual</p>
+            <p className="text-muted-foreground">{tr("Detailed analytics for this ritual")}</p>
           </div>
         </div>
 
@@ -132,7 +134,7 @@ export default function RitualAnalyticsPage() {
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Plays</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Total Plays")}</CardTitle>
               <Play className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -141,7 +143,7 @@ export default function RitualAnalyticsPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completions</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Completions")}</CardTitle>
               <Users className="h-4 w-4 text-gold-light" />
             </CardHeader>
             <CardContent>
@@ -150,7 +152,7 @@ export default function RitualAnalyticsPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Completion Rate")}</CardTitle>
               <BarChart3 className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -159,7 +161,7 @@ export default function RitualAnalyticsPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Blessings</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{tr("Blessings")}</CardTitle>
               <Heart className="h-4 w-4 text-gold-muted" />
             </CardHeader>
             <CardContent>
@@ -172,15 +174,15 @@ export default function RitualAnalyticsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <MessageSquare className="w-5 h-5" />
-              Community Feedback
+              {tr("Community Feedback")}
             </CardTitle>
-            <CardDescription>Reflections from members who experienced this ritual</CardDescription>
+            <CardDescription>{tr("Reflections from members who experienced this ritual")}</CardDescription>
           </CardHeader>
           <CardContent>
             {feedback.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No feedback received yet</p>
+                <p className="text-sm">{tr("No feedback received yet")}</p>
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -189,7 +191,7 @@ export default function RitualAnalyticsPage() {
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-xs text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString()}
+                          {new Date(item.created_at).toLocaleDateString(fmtLocale())}
                         </span>
                       </div>
                       <p className="text-sm mb-2">{item.content}</p>

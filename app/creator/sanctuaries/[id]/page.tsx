@@ -20,6 +20,8 @@ import { RitualAssignments } from "@/components/sanctuaries/ritual-assignments"
 import { AuditLog } from "@/components/sanctuaries/audit-log"
 import { Loader2, ArrowLeft, Edit, Users } from "lucide-react"
 import Link from "next/link"
+import { tr } from "@/lib/i18n"
+
 
 export default function SanctuaryDetailPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -133,9 +135,9 @@ export default function SanctuaryDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Sanctuary not found</p>
+            <p className="text-muted-foreground mb-4">{tr("Sanctuary not found")}</p>
             <Button asChild>
-              <Link href="/creator">Back to Creator Studio</Link>
+              <Link href="/creator">{tr("Back to Creator Studio")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -150,7 +152,7 @@ export default function SanctuaryDetailPage() {
           <Button asChild variant="outline" className="mb-4 bg-transparent">
             <Link href="/creator">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Creator Studio
+              {tr("Back to Creator Studio")}
             </Link>
           </Button>
           <div className="flex justify-between items-start">
@@ -161,7 +163,7 @@ export default function SanctuaryDetailPage() {
             <Button asChild>
               <Link href={`/creator/sanctuaries/${sanctuary.id}/edit`}>
                 <Edit className="w-4 h-4 mr-2" />
-                Settings
+                {tr("Settings")}
               </Link>
             </Button>
           </div>
@@ -170,7 +172,7 @@ export default function SanctuaryDetailPage() {
         <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Status</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Status")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge variant="outline" className="capitalize border-primary/30 text-primary">
@@ -182,7 +184,7 @@ export default function SanctuaryDetailPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Members
+                {tr("Members")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -193,7 +195,7 @@ export default function SanctuaryDetailPage() {
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Pending Requests</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{tr("Pending Requests")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-primary">{pendingRequests.length}</p>
@@ -204,12 +206,12 @@ export default function SanctuaryDetailPage() {
         <Tabs defaultValue="requests" className="space-y-6">
           <TabsList className="flex h-auto w-full flex-wrap gap-1 bg-secondary border border-border sm:grid sm:grid-cols-4">
             <TabsTrigger value="requests" className="flex-1 whitespace-nowrap text-xs sm:text-sm">
-              <span className="sm:hidden">Requests</span>
-              <span className="hidden sm:inline">Pending Requests</span>
+              <span className="sm:hidden">{tr("Requests")}</span>
+              <span className="hidden sm:inline">{tr("Pending Requests")}</span>
             </TabsTrigger>
-            <TabsTrigger value="members" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Members</TabsTrigger>
-            <TabsTrigger value="rituals" className="flex-1 whitespace-nowrap text-xs sm:text-sm">Rituals</TabsTrigger>
-            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">The Archive</TabsTrigger>
+            <TabsTrigger value="members" className="flex-1 whitespace-nowrap text-xs sm:text-sm">{tr("Members")}</TabsTrigger>
+            <TabsTrigger value="rituals" className="flex-1 whitespace-nowrap text-xs sm:text-sm">{tr("Rituals")}</TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 whitespace-nowrap text-xs sm:text-sm">{tr("The Archive")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="requests">

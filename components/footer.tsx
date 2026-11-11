@@ -2,6 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { tr, trNode } from "@/lib/i18n"
+
 
 export function Footer() {
   const pathname = usePathname()
@@ -22,26 +25,27 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>&copy; {new Date().getFullYear()} Evonaire. All rights reserved.</span>
+            <span>{trNode("© {p0} Evonaire. All rights reserved.", { p0: new Date().getFullYear() })}</span>
           </div>
           <div className="flex items-center gap-6">
+            <LanguageSwitcher />
             <Link
               href="/privacy"
               className="text-sm text-muted-foreground hover:text-gold transition-colors"
             >
-              Privacy Policy
+              {tr("Privacy Policy")}
             </Link>
             <Link
               href="/terms"
               className="text-sm text-muted-foreground hover:text-gold transition-colors"
             >
-              Terms of Service
+              {tr("Terms of Service")}
             </Link>
             <a
               href="mailto:support@evonaire.ai"
               className="text-sm text-muted-foreground hover:text-gold transition-colors"
             >
-              Contact
+              {tr("Contact")}
             </a>
           </div>
         </div>

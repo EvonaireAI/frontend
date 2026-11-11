@@ -9,6 +9,8 @@ import { ConversionFunnel } from "@/components/admin/metrics/conversion-funnel"
 import { RefreshCw } from "lucide-react"
 import { normalizeMetricsOverview } from "@/lib/metrics"
 import type { PlatformOverviewState } from "./use-platform-overview"
+import { tr } from "@/lib/i18n"
+
 
 // Revenue, tier mix, churn and free-to-paid conversion — the Session 02
 // dashboard, moved under this tab.
@@ -26,18 +28,18 @@ export function MembershipsTab({ overview, loading, error, reload }: PlatformOve
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Revenue, tier mix, churn and free-to-paid conversion.
+          {tr("Revenue, tier mix, churn and free-to-paid conversion.")}
         </p>
         <Button variant="outline" size="sm" onClick={reload} disabled={loading}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {tr("Refresh")}
         </Button>
       </div>
 
       {loading ? (
         <OverviewCardsSkeleton />
       ) : error || !metrics ? (
-        <ZoneError label="the subscription overview" onRetry={reload} />
+        <ZoneError label={tr("the subscription overview")} onRetry={reload} />
       ) : (
         <OverviewCards overview={metrics} />
       )}
@@ -47,7 +49,7 @@ export function MembershipsTab({ overview, loading, error, reload }: PlatformOve
           {loading ? (
             <TierDonutSkeleton />
           ) : error || !metrics ? (
-            <ZoneError label="the tier breakdown" onRetry={reload} />
+            <ZoneError label={tr("the tier breakdown")} onRetry={reload} />
           ) : (
             <TierDonut overview={metrics} />
           )}

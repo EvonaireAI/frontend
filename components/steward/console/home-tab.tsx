@@ -5,24 +5,26 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, UserCheck, Activity, ArrowRight, ClipboardCheck } from "lucide-react"
 import { GLOSSARY } from "@/lib/glossary"
+import { tr } from "@/lib/i18n"
+
 
 export function StewardHomeTab() {
   const destinations = [
     {
       title: GLOSSARY.stewardRequests,
-      description: "Review and approve or reject requests for elevated roles.",
+      description: tr("Review and approve or reject requests for elevated roles."),
       href: "/steward/requests",
       icon: UserCheck,
     },
     {
-      title: "RTS Monitoring",
-      description: "View creator scores, alerts, and open a creator's full RTS detail.",
+      title: tr("RTS Monitoring"),
+      description: tr("View creator scores, alerts, and open a creator's full RTS detail."),
       href: "/steward?tab=trust-care",
       icon: Activity,
     },
     {
-      title: "Resonance Configuration",
-      description: "Edit RTS signal weights and thresholds.",
+      title: tr("Resonance Configuration"),
+      description: tr("Edit RTS signal weights and thresholds."),
       href: "/steward?tab=resonance",
       icon: Settings,
     },
@@ -43,7 +45,7 @@ export function StewardHomeTab() {
             <CardContent>
               <Button asChild variant="outline" size="sm">
                 <Link href={href}>
-                  Open
+                  {tr("Open")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

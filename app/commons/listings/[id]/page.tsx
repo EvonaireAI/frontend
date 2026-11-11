@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { format } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,11 +22,24 @@ import {
   checkoutListing,
   fetchListing,
   formatPrice,
+  defaultRegion,
+  regionName,
+  REGION_CODES,
   CommonsApiError,
   type Listing,
 } from "@/lib/commons"
 import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { LicenseChip, EarlyAccessBadge } from "@/components/commons/listing-chips"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { formatDate,tr, trNode  } from "@/lib/i18n"
+
 
 function DetailContent() {
   const params = useParams()
@@ -40,6 +53,8 @@ function DetailContent() {
   const [notFound, setNotFound] = useState(false)
   const [earlyAccessLocked, setEarlyAccessLocked] = useState(false)
   const [buying, setBuying] = useState(false)
+  const [region, setRegion] = useState("US")
+  const [consent, setConsent] = useState(false)
 
   const load = useCallback(async () => {
     if (!Number.isFinite(id)) {
@@ -70,30 +85,41 @@ function DetailContent() {
     load()
   }, [load])
 
+  // Region-restricted listings only offer their allowed codes; unrestricted
+  // listings get the full ISO list. The default follows the browser locale.
+  const regionOptions =
+    listing?.regions && listing.regions.length > 0 ? listing.regions : REGION_CODES
+
+  useEffect(() => {
+    if (!listing) return
+    const preferred = defaultRegion()
+    setRegion(regionOptions.includes(preferred) ? preferred : regionOptions[0] ?? "US")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.id])
+
   const handleBuy = async () => {
     if (!listing) return
     setBuying(true)
     try {
-      const origin = window.location.origin
       const result = await checkoutListing(listing.id, {
-        success_url: `${origin}/commons/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/commons/listings/${listing.id}?checkout=cancelled`,
+        region,
+        consent_checked: consent,
       })
       if (result.free) {
         // Granted instantly, no redirect — flip to the owned state.
-        toast.success("Added to your library")
+        toast.success(tr("Added to your library"))
         setListing({ ...listing, has_access: true })
       } else if (isAllowedExternalUrl(result.session_url)) {
         // Same redirect pattern as the subscription checkout.
         window.location.href = result.session_url
       } else {
-        throw new Error("Checkout returned an unexpected URL")
+        throw new Error(tr("Checkout returned an unexpected URL"))
       }
     } catch (err) {
       if (err instanceof CommonsApiError && err.isEarlyAccess) {
         setEarlyAccessLocked(true)
       } else {
-        toast.error(err instanceof Error ? err.message : "Checkout failed")
+        toast.error(err instanceof Error ? err.message : tr("Checkout failed"))
       }
       setBuying(false)
     }
@@ -128,14 +154,13 @@ function DetailContent() {
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <h1 className="text-2xl font-semibold text-foreground mb-2">
-              Early access for Scholars
+              {tr("Early access for Scholars")}
             </h1>
             <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-              This offering is available to Scholars first. It opens to everyone else soon —
-              upgrade to Scholar to experience it now.
+              {tr("This offering is available to Scholars first. It opens to everyone else soon — upgrade to Scholar to experience it now.")}
             </p>
             <Button asChild size="lg">
-              <Link href="/member/upgrade">Upgrade to Scholar</Link>
+              <Link href="/member/upgrade">{tr("Upgrade to Scholar")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -149,12 +174,12 @@ function DetailContent() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <BackLink />
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
-          <p className="text-foreground font-medium">Offering not found</p>
+          <p className="text-foreground font-medium">{tr("Offering not found")}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            This listing isn&apos;t available, or hasn&apos;t been published.
+            {tr("This listing isn't available, or hasn't been published.")}
           </p>
           <Button asChild variant="outline" className="mt-5">
-            <Link href="/commons">Back to the Symposium</Link>
+            <Link href="/commons">{tr("Back to the Symposium")}</Link>
           </Button>
         </div>
       </div>
@@ -167,7 +192,7 @@ function DetailContent() {
 
       {cancelled && (
         <Alert className="mb-6">
-          <AlertDescription>Checkout cancelled — no charge was made.</AlertDescription>
+          <AlertDescription>{tr("Checkout cancelled — no charge was made.")}</AlertDescription>
         </Alert>
       )}
 
@@ -181,7 +206,7 @@ function DetailContent() {
           <div>
             <h1 className="text-3xl font-bold text-foreground leading-tight">{listing.title}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              by {listing.creator.display_name}
+              {trNode("by {p0}", { p0: listing.creator.display_name })}
             </p>
           </div>
 
@@ -190,7 +215,40 @@ function DetailContent() {
           {listing.ritual && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2 w-fit">
               <Music className="w-4 h-4" />
-              <span>Includes ritual: {listing.ritual.title}</span>
+              <span>{trNode("Includes ritual: {p0}", { p0: listing.ritual.title })}</span>
+            </div>
+          )}
+
+          {!listing.has_access && (
+            <div className="space-y-4 border-t border-border pt-5">
+              <p className="text-xs text-muted-foreground">
+                {tr("Personal, non-transferable. No AI training.")}
+              </p>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">{tr("Region")}</span>
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regionOptions.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {regionName(code)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <label className="flex items-start gap-2.5 text-sm text-foreground/90 cursor-pointer w-fit">
+                <Checkbox
+                  checked={consent}
+                  onCheckedChange={(v) => setConsent(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  {tr("I agree to the license terms for this offering.")}
+                </span>
+              </label>
             </div>
           )}
 
@@ -203,23 +261,23 @@ function DetailContent() {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-sm text-primary font-medium">
                   <Check className="w-4 h-4" />
-                  In your library
+                  {tr("In your library")}
                 </span>
                 {listing.ritual && (
                   <Button asChild>
                     <Link href={`/member/ritual/${listing.ritual.id}`} className="flex items-center gap-2">
                       <Play className="w-4 h-4" />
-                      Play ritual
+                      {tr("Play ritual")}
                     </Link>
                   </Button>
                 )}
               </div>
             ) : (
-              <Button size="lg" onClick={handleBuy} disabled={buying}>
+              <Button size="lg" onClick={handleBuy} disabled={buying || !consent}>
                 {buying ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Starting checkout…
+                    {tr("Starting checkout…")}
                   </>
                 ) : (
                   <>
@@ -233,8 +291,7 @@ function DetailContent() {
 
           {listing.early_access?.active && (
             <p className="text-xs text-muted-foreground">
-              Scholars have early access. Everyone else on{" "}
-              {format(new Date(listing.early_access.until), "MMMM d, yyyy")}.
+              {trNode("Scholars have early access. Everyone else on {p0}.", { p0: formatDate(new Date(listing.early_access.until), "MMMM d, yyyy") })}
             </p>
           )}
         </CardContent>
@@ -250,7 +307,7 @@ function BackLink() {
       className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors cursor-pointer"
     >
       <ArrowLeft className="w-4 h-4" />
-      The Symposium
+      {tr("The Symposium")}
     </Link>
   )
 }

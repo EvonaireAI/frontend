@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { VerificationCard } from "@/components/claimchain/verification-card"
 
+
 // Public license verification. Unauthenticated by design: a verification page
 // that requires an account verifies nothing.
 //

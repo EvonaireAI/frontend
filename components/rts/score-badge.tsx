@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { rtsService } from "@/lib/rts"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"

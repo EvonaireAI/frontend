@@ -20,15 +20,17 @@ import {
   type SocialPlatformKey,
 } from "@/lib/marketing"
 import { useMetricsZone, ZoneError, ZoneRefetchDim } from "@/components/admin/metrics/zone"
+import { fmtLocale, tr, trDeep, trNode } from "@/lib/i18n"
+
 
 const WINDOW_OPTIONS = [7, 30, 90] as const
 
-const FUNNEL_STAGES = [
+const FUNNEL_STAGES = trDeep([
   { key: "page_view", label: "Site visits", color: "var(--chart-3)" },
   { key: "signup_click", label: "Sign-up clicks", color: "var(--chart-1)" },
   { key: "signup_view", label: "Form opened", color: "var(--chart-2)" },
   { key: "signup_complete", label: "Registered", color: "var(--chart-4)" },
-] as const
+] as const)
 
 const PLATFORM_HINTS: Record<SocialPlatformKey, string> = {
   instagram:
@@ -44,7 +46,7 @@ function rate(value: number | null | undefined): string {
 
 function metricCount(value: number | null | undefined, supported = true): string {
   if (!supported) return "UTM only"
-  return value === null || value === undefined ? "—" : value.toLocaleString()
+  return value === null || value === undefined ? "—" : value.toLocaleString(fmtLocale())
 }
 
 function StatChip({ label, value }: { label: string; value: string }) {
@@ -67,7 +69,7 @@ function Funnel({ data }: { data: MarketingDashboard }) {
           <div key={stage.key}>
             <div className="flex items-baseline justify-between text-sm mb-1">
               <span className="text-foreground">{stage.label}</span>
-              <span className="text-muted-foreground tabular-nums">{count.toLocaleString()} sessions</span>
+              <span className="text-muted-foreground tabular-nums">{trNode("{p0} sessions", { p0: count.toLocaleString(fmtLocale()) })}</span>
             </div>
             <div className="h-6">
               <div className="h-full rounded-r" style={{ width: `${widthPct}%`, backgroundColor: stage.color }} />
@@ -116,7 +118,7 @@ function PlatformConnectionCard({
       setEditing(false)
       onChanged()
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to save platform credentials")
+      setActionError(err instanceof Error ? err.message : tr("Failed to save platform credentials"))
     } finally {
       setBusy(false)
     }
@@ -129,7 +131,7 @@ function PlatformConnectionCard({
       await syncMarketingPlatform(platform.platform)
       onChanged()
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to sync platform")
+      setActionError(err instanceof Error ? err.message : tr("Failed to sync platform"))
     } finally {
       setBusy(false)
     }
@@ -143,7 +145,7 @@ function PlatformConnectionCard({
       setEditing(false)
       onChanged()
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to disconnect platform")
+      setActionError(err instanceof Error ? err.message : tr("Failed to disconnect platform"))
     } finally {
       setBusy(false)
     }
@@ -171,7 +173,7 @@ function PlatformConnectionCard({
         <div className="flex items-center gap-2">
           {platform.connected && (
             <Button variant="outline" size="sm" disabled={busy} onClick={handleSync}>
-              Sync now
+              {tr("Sync now")}
             </Button>
           )}
           <Button variant="outline" size="sm" disabled={busy} onClick={editing ? () => setEditing(false) : openEditor}>
@@ -179,7 +181,7 @@ function PlatformConnectionCard({
           </Button>
           {platform.connected && (
             <Button variant="ghost" size="sm" disabled={busy} onClick={handleDisconnect}>
-              Disconnect
+              {tr("Disconnect")}
             </Button>
           )}
         </div>
@@ -187,33 +189,33 @@ function PlatformConnectionCard({
 
       <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">Impressions</p>
+          <p className="text-muted-foreground">{tr("Impressions")}</p>
           <p className="font-semibold text-foreground tabular-nums">
             {metricCount(platform.impressions, platform.supports_impressions)}
           </p>
         </div>
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">Platform clicks</p>
+          <p className="text-muted-foreground">{tr("Platform clicks")}</p>
           <p className="font-semibold text-foreground tabular-nums">
             {metricCount(platform.platform_clicks, platform.supports_clicks)}
           </p>
         </div>
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">Engagements</p>
+          <p className="text-muted-foreground">{tr("Engagements")}</p>
           <p className="font-semibold text-foreground tabular-nums">{metricCount(platform.engagements)}</p>
         </div>
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">Followers</p>
+          <p className="text-muted-foreground">{tr("Followers")}</p>
           <p className="font-semibold text-foreground tabular-nums">{metricCount(platform.followers)}</p>
         </div>
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">UTM site visits</p>
-          <p className="font-semibold text-foreground tabular-nums">{platform.utm_visits.toLocaleString()}</p>
+          <p className="text-muted-foreground">{tr("UTM site visits")}</p>
+          <p className="font-semibold text-foreground tabular-nums">{platform.utm_visits.toLocaleString(fmtLocale())}</p>
         </div>
         <div className="rounded bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-muted-foreground">UTM signups</p>
+          <p className="text-muted-foreground">{tr("UTM signups")}</p>
           <p className="font-semibold text-foreground tabular-nums">
-            {platform.utm_signups.toLocaleString()} ({rate(platform.utm_conversion_rate)})
+            {platform.utm_signups.toLocaleString(fmtLocale())} ({rate(platform.utm_conversion_rate)})
           </p>
         </div>
       </div>
@@ -228,7 +230,7 @@ function PlatformConnectionCard({
       {editing && (
         <form onSubmit={handleSave} className="grid gap-3 pt-2 border-t border-border sm:grid-cols-3">
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Account handle</label>
+            <label className="text-xs text-muted-foreground block mb-1">{tr("Account handle")}</label>
             <Input
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
@@ -244,17 +246,17 @@ function PlatformConnectionCard({
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder={platform.has_token ? "Leave blank to keep current token" : "Paste token"}
+              placeholder={platform.has_token ? tr("Leave blank to keep current token") : tr("Paste token")}
               required={platform.requires_token && !platform.has_token}
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Account / Page ID (optional)</label>
+            <label className="text-xs text-muted-foreground block mb-1">{tr("Account / Page ID (optional)")}</label>
             <div className="flex gap-2">
               <Input
                 value={externalId}
                 onChange={(e) => setExternalId(e.target.value)}
-                placeholder="IG user ID or DID"
+                placeholder={tr("IG user ID or DID")}
               />
               <Button type="submit" size="sm" disabled={busy}>
                 {busy ? "Saving…" : "Save & sync"}
@@ -279,10 +281,9 @@ function SocialPlatformsSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Social platform connections</CardTitle>
+        <CardTitle className="text-base">{tr("Social platform connections")}</CardTitle>
         <CardDescription>
-          Sign in with your Instagram, X, and Bluesky tokens to pull top-of-funnel post metrics alongside UTM site
-          conversions.
+          {tr("Sign in with your Instagram, X, and Bluesky tokens to pull top-of-funnel post metrics alongside UTM site conversions.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -321,9 +322,9 @@ function UtmLinkBuilder() {
     <div className="rounded-lg border border-border bg-secondary/20 p-4 space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <p className="text-sm font-medium text-foreground">Campaign link builder</p>
+          <p className="text-sm font-medium text-foreground">{tr("Campaign link builder")}</p>
           <p className="text-xs text-muted-foreground">
-            Tag every social or group post so visits, drop-off, and signups attribute back to the exact post.
+            {tr("Tag every social or group post so visits, drop-off, and signups attribute back to the exact post.")}
           </p>
         </div>
         <ToggleGroup
@@ -333,21 +334,21 @@ function UtmLinkBuilder() {
           variant="outline"
           size="sm"
         >
-          <ToggleGroupItem value="instagram">Instagram</ToggleGroupItem>
-          <ToggleGroupItem value="x">X</ToggleGroupItem>
-          <ToggleGroupItem value="bluesky">Bluesky</ToggleGroupItem>
+          <ToggleGroupItem value="instagram">{tr("Instagram")}</ToggleGroupItem>
+          <ToggleGroupItem value="x">{tr("X")}</ToggleGroupItem>
+          <ToggleGroupItem value="bluesky">{tr("Bluesky")}</ToggleGroupItem>
         </ToggleGroup>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
         <Input
           value={medium}
           onChange={(e) => setMedium(e.target.value)}
-          placeholder="utm_medium (e.g. social, group)"
+          placeholder={tr("utm_medium (e.g. social, group)")}
         />
         <Input
           value={campaign}
           onChange={(e) => setCampaign(e.target.value)}
-          placeholder="utm_campaign (e.g. yoga_creators)"
+          placeholder={tr("utm_campaign (e.g. yoga_creators)")}
         />
         <div className="flex gap-2">
           <Input value={taggedUrl} readOnly className="font-mono text-xs" />
@@ -365,29 +366,29 @@ function SourcesTable({ data }: { data: MarketingDashboard }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Traffic sources</CardTitle>
-        <CardDescription>Unique sessions by utm_source; blank tags land under direct.</CardDescription>
+        <CardTitle className="text-base">{tr("Traffic sources")}</CardTitle>
+        <CardDescription>{tr("Unique sessions by utm_source; blank tags land under direct.")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Source</TableHead>
-              <TableHead className="text-right">Visits</TableHead>
-              <TableHead className="text-right">Clicks</TableHead>
-              <TableHead className="text-right">Form opens</TableHead>
-              <TableHead className="text-right">Signups</TableHead>
-              <TableHead className="text-right">Conversion</TableHead>
+              <TableHead>{tr("Source")}</TableHead>
+              <TableHead className="text-right">{tr("Visits")}</TableHead>
+              <TableHead className="text-right">{tr("Clicks")}</TableHead>
+              <TableHead className="text-right">{tr("Form opens")}</TableHead>
+              <TableHead className="text-right">{tr("Signups")}</TableHead>
+              <TableHead className="text-right">{tr("Conversion")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.sources.map((s) => (
               <TableRow key={s.utm_source}>
                 <TableCell className="font-medium">{s.utm_source}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.visits.toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.clicks.toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.form_views.toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.signups.toLocaleString()}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.visits.toLocaleString(fmtLocale())}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.clicks.toLocaleString(fmtLocale())}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.form_views.toLocaleString(fmtLocale())}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.signups.toLocaleString(fmtLocale())}</TableCell>
                 <TableCell className="text-right tabular-nums">{rate(s.conversion_rate)}</TableCell>
               </TableRow>
             ))}
@@ -403,9 +404,9 @@ function CampaignsSection({ data }: { data: MarketingDashboard }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Post and campaign attribution</CardTitle>
+        <CardTitle className="text-base">{tr("Post and campaign attribution")}</CardTitle>
         <CardDescription>
-          Conversion and form drop-off per tagged post or group share (utm_campaign).
+          {tr("Conversion and form drop-off per tagged post or group share (utm_campaign).")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -414,15 +415,15 @@ function CampaignsSection({ data }: { data: MarketingDashboard }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign / Post</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Medium</TableHead>
-                <TableHead className="text-right">Visits</TableHead>
-                <TableHead className="text-right">Clicks</TableHead>
-                <TableHead className="text-right">Form opens</TableHead>
-                <TableHead className="text-right">Signups</TableHead>
-                <TableHead className="text-right">Drop-off</TableHead>
-                <TableHead className="text-right">Conversion</TableHead>
+                <TableHead>{tr("Campaign / Post")}</TableHead>
+                <TableHead>{tr("Source")}</TableHead>
+                <TableHead>{tr("Medium")}</TableHead>
+                <TableHead className="text-right">{tr("Visits")}</TableHead>
+                <TableHead className="text-right">{tr("Clicks")}</TableHead>
+                <TableHead className="text-right">{tr("Form opens")}</TableHead>
+                <TableHead className="text-right">{tr("Signups")}</TableHead>
+                <TableHead className="text-right">{tr("Drop-off")}</TableHead>
+                <TableHead className="text-right">{tr("Conversion")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -431,10 +432,10 @@ function CampaignsSection({ data }: { data: MarketingDashboard }) {
                   <TableCell className="font-medium">{c.utm_campaign}</TableCell>
                   <TableCell>{c.utm_source}</TableCell>
                   <TableCell className="text-muted-foreground">{c.utm_medium || "—"}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.visits.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.clicks.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.form_views.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.signups.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{c.visits.toLocaleString(fmtLocale())}</TableCell>
+                  <TableCell className="text-right tabular-nums">{c.clicks.toLocaleString(fmtLocale())}</TableCell>
+                  <TableCell className="text-right tabular-nums">{c.form_views.toLocaleString(fmtLocale())}</TableCell>
+                  <TableCell className="text-right tabular-nums">{c.signups.toLocaleString(fmtLocale())}</TableCell>
                   <TableCell className="text-right tabular-nums">{rate(c.drop_off_rate)}</TableCell>
                   <TableCell className="text-right tabular-nums">{rate(c.conversion_rate)}</TableCell>
                 </TableRow>
@@ -443,7 +444,7 @@ function CampaignsSection({ data }: { data: MarketingDashboard }) {
           </Table>
         ) : (
           <p className="text-xs text-muted-foreground">
-            No campaign-tagged visits in this window yet. Copy a link above when posting to Instagram, X, or Bluesky.
+            {tr("No campaign-tagged visits in this window yet. Copy a link above when posting to Instagram, X, or Bluesky.")}
           </p>
         )}
       </CardContent>
@@ -461,9 +462,9 @@ export function MarketingTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Marketing funnel</h2>
+          <h2 className="text-lg font-semibold text-foreground">{tr("Marketing funnel")}</h2>
           <p className="text-sm text-muted-foreground">
-            Anonymous visit sessions through registration, social platform token sync, and post attribution.
+            {tr("Anonymous visit sessions through registration, social platform token sync, and post attribution.")}
           </p>
         </div>
         <ToggleGroup
@@ -475,13 +476,13 @@ export function MarketingTab() {
         >
           {WINDOW_OPTIONS.map((d) => (
             <ToggleGroupItem key={d} value={String(d)}>
-              {d}d
+              {trNode("{p0}d", { p0: d })}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
       </div>
 
-      {error && <ZoneError label="the marketing funnel" onRetry={retry} />}
+      {error && <ZoneError label={tr("the marketing funnel")} onRetry={retry} />}
 
       {loading && !data && (
         <div className="space-y-4">
@@ -494,17 +495,17 @@ export function MarketingTab() {
         <ZoneRefetchDim dimmed={loading}>
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <StatChip label="Visits" value={data.sessions.page_view.toLocaleString()} />
-              <StatChip label="Click-through" value={rate(data.rates.click_through)} />
-              <StatChip label="Form completion" value={rate(data.rates.form_completion)} />
-              <StatChip label="Form drop-off" value={rate(data.rates.form_drop_off)} />
-              <StatChip label="Visit to signup" value={rate(data.rates.visit_to_signup)} />
+              <StatChip label={tr("Visits")} value={data.sessions.page_view.toLocaleString(fmtLocale())} />
+              <StatChip label={tr("Click-through")} value={rate(data.rates.click_through)} />
+              <StatChip label={tr("Form completion")} value={rate(data.rates.form_completion)} />
+              <StatChip label={tr("Form drop-off")} value={rate(data.rates.form_drop_off)} />
+              <StatChip label={tr("Visit to signup")} value={rate(data.rates.visit_to_signup)} />
             </div>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Acquisition funnel</CardTitle>
+                <CardTitle className="text-base">{tr("Acquisition funnel")}</CardTitle>
                 <CardDescription>
-                  Unique sessions per stage over the last {data.window_days} days.
+                  {trNode("Unique sessions per stage over the last {p0} days.", { p0: data.window_days })}
                 </CardDescription>
               </CardHeader>
               <CardContent>

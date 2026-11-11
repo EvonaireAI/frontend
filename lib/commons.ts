@@ -5,6 +5,7 @@
 // a Bearer access token.
 
 import { authedFetch } from "./authed-fetch"
+import { fmtLocale, tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -54,6 +55,7 @@ export interface Listing {
   license_level: LicenseLevel
   price_cents: number
   currency: string
+  regions: string[]
   status: ListingStatus
   early_access: EarlyAccess | null
   has_access: boolean
@@ -105,8 +107,8 @@ export interface ListingsPage {
 }
 
 export type CheckoutResult =
-  | { free: false; order_id: number; session_id: string; session_url: string }
-  | { free: true; order_id: number; entitlement_id: number }
+  | { free: false; order_id: string; session_id: string; session_url: string }
+  | { free: true; order_id: string; entitlement_id: string }
 
 // ── Errors ─────────────────────────────────────────────────────────────────────
 
@@ -150,7 +152,7 @@ function isEarlyAccessDenial(body: unknown): body is EarlyAccessDenial {
 async function toCommonsError(res: Response, fallback: string): Promise<CommonsApiError> {
   // Mutations are throttled 10/min — surface a gentle nudge on 429.
   if (res.status === 429) {
-    return new CommonsApiError(429, "One moment — try again shortly.")
+    return new CommonsApiError(429, tr("One moment — try again shortly."))
   }
   let body: any = null
   try {
@@ -159,7 +161,7 @@ async function toCommonsError(res: Response, fallback: string): Promise<CommonsA
     // non-JSON body — keep the fallback
   }
   if (res.status === 403 && isEarlyAccessDenial(body)) {
-    return new CommonsApiError(403, "Early access for Scholars", { earlyAccess: body })
+    return new CommonsApiError(403, tr("Early access for Scholars"), { earlyAccess: body })
   }
   const detail =
     (body && typeof body.detail === "string" && body.detail) ||
@@ -184,8 +186,8 @@ function firstFieldError(body: any): string | undefined {
 
 // price_cents=1900 → "$19.00"; price_cents=0 → "Free" (never "$0.00").
 export function formatPrice(cents: number, currency = "usd"): string {
-  if (cents === 0) return "Free"
-  return (cents / 100).toLocaleString("en-US", {
+  if (cents === 0) return tr("Free")
+  return (cents / 100).toLocaleString(fmtLocale(), {
     style: "currency",
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
@@ -195,7 +197,30 @@ export function formatPrice(cents: number, currency = "usd"): string {
 
 // Neutral informational chips — never tier-lock badges.
 export function licenseLabel(level: LicenseLevel): string {
-  return level === "L2_guided" ? "L2 · Guided" : "L1 · Open"
+  return level === "L2_guided" ? tr("L2 · Guided") : tr("L1 · Open")
+}
+
+// ISO 3166-1 alpha-2 codes for the checkout region picker.
+export const REGION_CODES =
+  "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" ")
+
+const regionNames =
+  typeof Intl !== "undefined" && "DisplayNames" in Intl
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null
+
+export function regionName(code: string): string {
+  try {
+    return regionNames?.of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+export function defaultRegion(): string {
+  if (typeof navigator === "undefined") return "US"
+  const code = navigator.language.match(/-([A-Za-z]{2})\b/)?.[1]?.toUpperCase()
+  return code && REGION_CODES.includes(code) ? code : "US"
 }
 
 // ── Browse (public) ──────────────────────────────────────────────────────────
@@ -224,7 +249,7 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Listi
     // the caller; the endpoint also works logged-out.
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to load the Commons")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to load the Commons"))
   return res.json()
 }
 
@@ -232,22 +257,28 @@ export async function fetchListing(id: number): Promise<Listing> {
   const res = await authedFetch(`${API_BASE_URL}/commons/listings/${encodeURIComponent(id)}/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to load this listing")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to load this listing"))
   return res.json()
 }
 
 // ── Checkout ─────────────────────────────────────────────────────────────────
 
-export async function checkoutListing(
-  id: number,
-  urls: { success_url: string; cancel_url: string },
-): Promise<CheckoutResult> {
+export interface CheckoutInput {
+  region: string
+  consent_checked: boolean
+}
+
+export async function checkoutListing(id: number, input: CheckoutInput): Promise<CheckoutResult> {
   const res = await authedFetch(`${API_BASE_URL}/commons/listings/${encodeURIComponent(id)}/checkout/`, {
     method: "POST",
-    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify(urls),
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+      "Idempotency-Key": crypto.randomUUID(),
+    },
+    body: JSON.stringify(input),
   })
-  if (!res.ok) throw await toCommonsError(res, "Checkout is temporarily unavailable")
+  if (!res.ok) throw await toCommonsError(res, tr("Checkout is temporarily unavailable"))
   return res.json()
 }
 
@@ -257,7 +288,7 @@ export async function fetchPurchases(): Promise<Purchase[]> {
   const res = await authedFetch(`${API_BASE_URL}/commons/purchases/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to load your library")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to load your library"))
   const data = await res.json()
   return data.purchases ?? []
 }
@@ -268,7 +299,7 @@ export async function fetchMyListings(): Promise<MyListing[]> {
   const res = await authedFetch(`${API_BASE_URL}/commons/my-listings/`, {
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to load your listings")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to load your listings"))
   const data = await res.json()
   return data.listings ?? []
 }
@@ -288,7 +319,7 @@ export async function createListing(input: ListingDraftInput): Promise<MyListing
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to create the listing")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to create the listing"))
   return res.json()
 }
 
@@ -301,7 +332,7 @@ export async function updateListing(
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(patch),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to update the listing")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to update the listing"))
   return res.json()
 }
 
@@ -310,7 +341,7 @@ export async function submitForReview(id: number): Promise<MyListing> {
     method: "POST",
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to submit for review")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to submit for review"))
   return res.json()
 }
 
@@ -319,7 +350,7 @@ export async function pauseListing(id: number): Promise<MyListing> {
     method: "POST",
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to pause the listing")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to pause the listing"))
   return res.json()
 }
 
@@ -328,7 +359,7 @@ export async function resumeListing(id: number): Promise<MyListing> {
     method: "POST",
     headers: getAuthHeaders(),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to resume the listing")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to resume the listing"))
   return res.json()
 }
 
@@ -345,7 +376,7 @@ export async function giftListing(id: number, input: GiftInput): Promise<Gift> {
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to send the gift")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to send the gift"))
   return res.json()
 }
 
@@ -356,7 +387,7 @@ export async function fetchReviewQueue(): Promise<MyListing[]> {
     headers: getAuthHeaders(),
   })
   if (res.status === 404) return []
-  if (!res.ok) throw await toCommonsError(res, "Failed to load the review queue")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to load the review queue"))
   const data = await res.json()
   return data.queue ?? []
 }
@@ -371,6 +402,6 @@ export async function submitReviewDecision(id: number, body: ReviewDecision): Pr
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw await toCommonsError(res, "Failed to submit the decision")
+  if (!res.ok) throw await toCommonsError(res, tr("Failed to submit the decision"))
   return res.json()
 }
