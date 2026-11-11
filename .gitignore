@@ -16,3 +16,4 @@ node_modules/
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo
+__pycache__/
