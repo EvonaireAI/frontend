@@ -126,7 +126,7 @@ function StewardWorkspace() {
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {tr("Platform health, trust, and the record of what happened.")}
+              {tr("Nurturing the sacred system")}
             </p>
           </div>
         </div>

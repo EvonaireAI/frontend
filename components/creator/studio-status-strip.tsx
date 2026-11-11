@@ -9,7 +9,6 @@ import { rtsService, type RTSScore } from "@/lib/rts"
 import { royaltiesService, type CreatorEarnings } from "@/lib/royalties"
 import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { centsToDollarString } from "@/lib/metrics"
-import { GLOSSARY } from "@/lib/glossary"
 import { Activity, Coins, Users, Upload, ArrowRight, Loader2 } from "lucide-react"
 import { tr } from "@/lib/i18n"
 
@@ -74,21 +73,21 @@ export function StudioStatusStrip({ rituals, ritualsLoading }: { rituals: Ritual
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Panel
           icon={<Upload className="w-4 h-4" />}
-          label={tr("Ready to publish")}
+          label={tr("My Rituals")}
           value={ritualsLoading ? null : `${approved}`}
           hint={ritualsLoading ? "" : `${inReview} in review · ${draft > 0 ? `${draft} draft` : "no drafts"}`}
           href="/creator"
         />
         <Panel
           icon={<Activity className="w-4 h-4" />}
-          label={GLOSSARY.rtsShort}
+          label={tr("My RTS")}
           value={loading ? null : rts ? `${rts.current_score}` : "—"}
           hint={rts ? rtsService.getScoreBand(rts.current_score).replace("_", " ") : tr("Not yet calculated")}
           href="/creator"
         />
         <Panel
           icon={<Coins className="w-4 h-4" />}
-          label={tr("Lifetime earned")}
+          label={tr("Earnings")}
           value={loading ? null : earnings ? centsToDollarString(earnings.lifetime_earned_cents) : "—"}
           hint={
             earnings
@@ -99,7 +98,7 @@ export function StudioStatusStrip({ rituals, ritualsLoading }: { rituals: Ritual
         />
         <Panel
           icon={<Users className="w-4 h-4" />}
-          label={tr("In your sanctuaries")}
+          label={tr("My Sanctuaries")}
           value={loading ? null : `${members}`}
           hint={sanctuaryCount === 1 ? "1 sanctuary" : `${sanctuaryCount} sanctuaries`}
           href="/creator"

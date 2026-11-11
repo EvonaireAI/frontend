@@ -60,6 +60,12 @@ export default function LandingPage() {
 
       {/* Top navigation */}
       <nav className="relative z-20 flex justify-end items-center gap-6 p-6">
+        <Link
+          href="/enter"
+          className="text-cream/80 hover:text-cream transition-colors text-sm underline underline-offset-4"
+        >
+          {tr("Enter")}
+        </Link>
         <a
           href="#pricing"
           onClick={(e) => scrollToSection(e, "pricing")}

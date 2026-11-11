@@ -17,14 +17,13 @@ import { sanctuariesService, type Sanctuary } from "@/lib/sanctuaries"
 import { SanctuaryCard } from "@/components/sanctuaries/sanctuary-card"
 import { SanctuaryLimitBanner } from "@/components/sanctuaries/sanctuary-limit-banner"
 import { JoinRequestForm } from "@/components/sanctuaries/join-request-form"
-import { Loader2, Search, Heart, Play, Filter, Eye, Users, AlertTriangle, Lock } from "lucide-react"
+import { Loader2, Search, Heart, Play, Filter, Users, AlertTriangle, Lock } from "lucide-react"
 import { ReportModal } from "@/components/report-modal"
 import Link from "next/link"
 import { PremiumCTABanner } from "@/components/payments/premium-cta-banner"
 import { QuotaMeter } from "@/components/payments/quota-meter"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
-import { GLOSSARY } from "@/lib/glossary"
 import { BeginHere } from "@/components/member/begin-here"
 import { AccountAccessCard } from "@/components/member/account-access-card"
 import { isPaidActive } from "@/lib/subscription"
@@ -87,8 +86,6 @@ export default function MemberDashboard() {
   const [loading, setLoading] = useState(true)
   const [ritualsLoading, setRitualsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [allTags, setAllTags] = useState<string[]>([])
   const [sanctuaries, setSanctuaries] = useState<Sanctuary[]>([])
   const [filteredSanctuaries, setFilteredSanctuaries] = useState<Sanctuary[]>([])
   const [sanctuariesLoading, setSanctuariesLoading] = useState(false)
@@ -96,6 +93,8 @@ export default function MemberDashboard() {
   const [selectedSanctuary, setSelectedSanctuary] = useState<Sanctuary | null>(null)
   const [joinFormOpen, setJoinFormOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("sanctuaries")
+  const [selectedTone, setSelectedTone] = useState<string | null>(null)
+  const [showAllRituals, setShowAllRituals] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -127,11 +126,6 @@ export default function MemberDashboard() {
       setRituals(approvedRituals)
       setFilteredRituals(approvedRituals)
 
-      const tags = new Set<string>()
-      approvedRituals.forEach((ritual) => {
-        ritual.tags.forEach((tag) => tags.add(typeof tag === "string" ? tag : tag.name))
-      })
-      setAllTags(Array.from(tags))
     } catch (err) {
       console.error("Failed to load rituals:", err)
     } finally {
@@ -165,16 +159,15 @@ export default function MemberDashboard() {
       )
     }
 
-    if (selectedTags.length > 0) {
+    if (selectedTone) {
+      const tone = selectedTone.toLowerCase()
       filtered = filtered.filter((ritual) =>
-        selectedTags.some((selectedTag) =>
-          ritual.tags.some((tag) => (typeof tag === "string" ? tag : tag.name) === selectedTag)
-        )
+        ritual.tags.some((tag) => (typeof tag === "string" ? tag : tag.name).toLowerCase() === tone)
       )
     }
 
     setFilteredRituals(filtered)
-  }, [searchTerm, selectedTags, rituals])
+  }, [searchTerm, selectedTone, rituals])
 
   useEffect(() => {
     let filtered = sanctuaries
@@ -192,9 +185,14 @@ export default function MemberDashboard() {
     setFilteredSanctuaries(filtered)
   }, [sanctuarySearchTerm, sanctuaries])
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-  }
+  // Emotional-tone filters from the prototype: only tones that at least one
+  // ritual is actually tagged with are offered, so a chip never dead-ends.
+  const EMOTIONAL_TONES = ["Grounding", "Expansive", "Reflective", "Comforting", "Awakening"]
+  const availableTones = EMOTIONAL_TONES.filter((tone) =>
+    rituals.some((ritual) =>
+      ritual.tags.some((tag) => (typeof tag === "string" ? tag : tag.name).toLowerCase() === tone.toLowerCase())
+    )
+  )
 
   const getCareLevel = (level: string) => {
     switch (level) {
@@ -276,9 +274,8 @@ export default function MemberDashboard() {
           <p className="text-sm uppercase tracking-widest text-gold-muted mb-3">
             {user ? trNode("Welcome back, {p0}", { p0: user.first_name }) : "Welcome Back"}
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance inline-flex items-center gap-2 justify-center flex-wrap">
-            <span>{GLOSSARY.sacredLibrary}</span>
-            <GaiaInfoTip infoKey="member.library" ariaLabel={tr("About the Sacred Library")} side="bottom" />
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-balance">
+            {tr("Your Sanctuary Awaits")}
           </h1>
           {/* Subscription badge */}
           {user && (
@@ -290,24 +287,8 @@ export default function MemberDashboard() {
             </div>
           )}
           <p className="text-muted-foreground max-w-md mx-auto">
-            {tr("Discover and experience transformative rituals and sanctuaries")}
+            {tr("Choose what calls to you. There is no rush.")}
           </p>
-          <div className="flex gap-3 justify-center mt-6">
-            <Button asChild variant="outline" className="border-border bg-transparent text-foreground hover:bg-secondary hover:text-secondary-foreground">
-              <Link href="/dashboard">
-                <Eye className="w-4 h-4 mr-2" />
-                {tr("Dashboard")}
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <BeginHere rituals={rituals} />
-
-        <PremiumCTABanner />
-
-        <div className="mx-auto max-w-md">
-          <AccountAccessCard />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -391,15 +372,7 @@ export default function MemberDashboard() {
           <TabsContent value="rituals" className="space-y-6">
             <QuotaMeter />
             <Card className="mb-8 bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Search className="w-5 h-5 text-primary" />
-                  {tr("Find Your Practice")}
-                  <GaiaInfoTip infoKey="ritual.search" ariaLabel={tr("About searching rituals")} />
-                </CardTitle>
-                <CardDescription>{tr("Search rituals and filter by practice type")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-6 space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <Input
@@ -409,27 +382,30 @@ export default function MemberDashboard() {
                       className="w-full bg-input border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
-                  <Button variant="outline" className="flex items-center gap-2 bg-transparent border-border text-foreground hover:bg-secondary">
-                    <Filter className="w-4 h-4" />
-                    {tr("Filter")}
-                  </Button>
                 </div>
 
-                {allTags.length > 0 && (
+                {availableTones.length > 0 && (
                   <div>
                     <p className="text-sm font-medium mb-2 text-foreground inline-flex items-center gap-1.5">
-                      {tr("Filter by practice type:")}
+                      {tr("Filter by emotional tone")}
                       <GaiaInfoTip infoKey="ritual.tags" ariaLabel={tr("About tag filters")} />
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {allTags.map((tag) => (
+                      <Badge
+                        variant={selectedTone === null ? "default" : "outline"}
+                        className={`cursor-pointer ${selectedTone === null ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"}`}
+                        onClick={() => setSelectedTone(null)}
+                      >
+                        {tr("All")}
+                      </Badge>
+                      {availableTones.map((tone) => (
                         <Badge
-                          key={tag}
-                          variant={selectedTags.includes(tag) ? "default" : "outline"}
-                          className={`cursor-pointer ${selectedTags.includes(tag) ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"}`}
-                          onClick={() => toggleTag(tag)}
+                          key={tone}
+                          variant={selectedTone === tone ? "default" : "outline"}
+                          className={`cursor-pointer ${selectedTone === tone ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"}`}
+                          onClick={() => setSelectedTone(selectedTone === tone ? null : tone)}
                         >
-                          {tag}
+                          {tone}
                         </Badge>
                       ))}
                     </div>
@@ -455,15 +431,15 @@ export default function MemberDashboard() {
                     <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2 text-foreground">{tr("No rituals found")}</h3>
                     <p className="text-muted-foreground">
-                      {searchTerm || selectedTags.length > 0
+                      {searchTerm || selectedTone
                         ? "Try adjusting your search or filters"
                         : "Check back soon for new sacred practices"}
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredRituals.map((ritual) => (
+                <div className="space-y-4">
+                  {(showAllRituals ? filteredRituals : filteredRituals.slice(0, 6)).map((ritual) => (
                     <Card
                       key={ritual.id}
                       className={`bg-card border transition-all duration-300 group ${
@@ -472,99 +448,115 @@ export default function MemberDashboard() {
                           : "border-border hover:border-primary/40"
                       }`}
                     >
-                      <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
-                              {getCareLevel(ritual.care_level)}
-                            </Badge>
-                            {ritual.locked && (
-                              <Badge variant="outline" className="border-primary/40 text-primary bg-primary/10 flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                {tr("Locked")}
+                      <CardContent className="py-5">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0 flex-1 space-y-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className={getCareLevelColor(ritual.care_level)}>
+                                {getCareLevel(ritual.care_level)}
                               </Badge>
+                              {ritual.locked && (
+                                <Badge variant="outline" className="border-primary/40 text-primary bg-primary/10 flex items-center gap-1">
+                                  <Lock className="w-3 h-3" />
+                                  {tr("Locked")}
+                                </Badge>
+                              )}
+                            </div>
+                            <h3 className="text-lg font-semibold group-hover:text-primary transition-colors text-foreground">
+                              {ritual.title}
+                            </h3>
+                            {ritual.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {ritual.tags.slice(0, 2).map((tag) => {
+                                  const tagName = typeof tag === "string" ? tag : tag.name
+                                  const tagKey = typeof tag === "string" ? tag : tag.id
+                                  return (
+                                    <Badge key={tagKey} className="bg-secondary text-secondary-foreground text-xs border-0">
+                                      {tagName}
+                                    </Badge>
+                                  )
+                                })}
+                              </div>
                             )}
+                            <p className="text-sm text-muted-foreground">
+                              {trNode("Created by {p0} {p1}", { p0: ritual.creator.first_name, p1: ritual.creator.last_name })}
+                              {ritual.duration_seconds ? trNode(" · {p0} min", { p0: Math.round(ritual.duration_seconds / 60) }) : ""}
+                            </p>
+                            <CardDescription className="line-clamp-2">{ritual.description}</CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
                             <ReportModal
                               contentType="ritual"
                               contentId={ritual.id}
                               contentTitle={ritual.title}
                             />
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(ritual.created_at).toLocaleDateString(fmtLocale())}
-                            </span>
-                          </div>
-                        </div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors text-foreground">
-                          {ritual.title}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2">{ritual.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-1">
-                          {ritual.tags.slice(0, 3).map((tag) => {
-                            const tagName = typeof tag === "string" ? tag : tag.name
-                            const tagKey = typeof tag === "string" ? tag : tag.id
-                            return (
-                              <Badge key={tagKey} className="bg-secondary text-secondary-foreground text-xs border-0">
-                                {tagName}
-                              </Badge>
-                            )
-                          })}
-                          {ritual.tags.length > 3 && (
-                            <Badge className="bg-secondary text-secondary-foreground text-xs border-0">
-                              +{ritual.tags.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground">
-                            {trNode("by {p0} {p1}", { p0: ritual.creator.first_name, p1: ritual.creator.last_name })}
-                          </div>
-                          {ritual.locked ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-primary/40 text-primary bg-transparent hover:bg-primary/10"
-                              onClick={() =>
-                                openUpgradeModal({
-                                  reason: "care_level",
-                                  current_plan: plan,
-                                  required_plan: ritual.required_plan ?? "evocore",
-                                })
-                              }
-                            >
-                              <Lock className="w-4 h-4 mr-2" />
-                              {tr("Experience")}
-                            </Button>
-                          ) : (
-                            <Button
-                              asChild
-                              size="sm"
-                              className="bg-primary text-primary-foreground hover:bg-gold-muted"
-                            >
-                              <Link href={`/member/ritual/${ritual.id}`}>
-                                <Play className="w-4 h-4 mr-2" />
+                            {ritual.locked ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-primary/40 text-primary bg-transparent hover:bg-primary/10"
+                                onClick={() =>
+                                  openUpgradeModal({
+                                    reason: "care_level",
+                                    current_plan: plan,
+                                    required_plan: ritual.required_plan ?? "evocore",
+                                  })
+                                }
+                              >
+                                <Lock className="w-4 h-4 mr-2" />
                                 {tr("Experience")}
-                              </Link>
-                            </Button>
-                          )}
+                              </Button>
+                            ) : (
+                              <Button
+                                asChild
+                                size="sm"
+                                className="bg-primary text-primary-foreground hover:bg-gold-muted"
+                              >
+                                <Link href={`/member/ritual/${ritual.id}`}>
+                                  <Play className="w-4 h-4 mr-2" />
+                                  {tr("Experience")}
+                                </Link>
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         {ritual.locked && (
-                          <p className="text-xs text-primary/90">
+                          <p className="mt-3 text-xs text-primary/90">
                             {trNode("Unlocks with {p0}", { p0: planDisplayName(ritual.required_plan ?? "evocore") })}
                           </p>
                         )}
                       </CardContent>
                     </Card>
                   ))}
+                  {filteredRituals.length > 6 && (
+                    <div className="space-y-2 pt-2 text-center">
+                      <Button
+                        variant="outline"
+                        className="border-border bg-transparent text-foreground hover:bg-secondary"
+                        onClick={() => setShowAllRituals((v) => !v)}
+                      >
+                        {showAllRituals ? tr("Show less") : tr("Show more rituals")}
+                      </Button>
+                      {!showAllRituals && (
+                        <p className="text-sm text-muted-foreground">
+                          {tr("Take your time exploring. More will appear when you need them.")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </TabsContent>
         </Tabs>
+
+        <BeginHere rituals={rituals} />
+
+        <PremiumCTABanner />
+
+        <div className="mx-auto max-w-md">
+          <AccountAccessCard />
+        </div>
 
         {selectedSanctuary && (
           <Dialog open={joinFormOpen} onOpenChange={setJoinFormOpen}>

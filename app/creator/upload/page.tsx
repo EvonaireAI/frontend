@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { authService, type User } from "@/lib/auth"
 import { audioFileError, extensionForAudioType, preferredRecordingType } from "@/lib/audio-upload"
 import { RitualRecorder } from "@/lib/ritual-recorder"
-import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, Loader2 } from "lucide-react"
+import { Upload, Mic, MicOff, Play, Pause, Trash2, ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from "lucide-react"
 import { GaiaInfoTip } from "@/components/gaia/info-tip"
 import { tr, trNode } from "@/lib/i18n"
 
@@ -31,6 +31,9 @@ export default function RitualUpload() {
   const [mediaError, setMediaError] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
+  const [step, setStep] = useState(0)
+  const [consented, setConsented] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -247,7 +250,7 @@ export default function RitualUpload() {
       }
 
       await authService.uploadRitual(submitData)
-      router.push("/creator")
+      setSubmitted(true)
     } catch (err) {
       console.error("Failed to upload ritual:", err)
       setMediaError(tr("The upload failed. Your audio is still here — try again."))
@@ -274,9 +277,9 @@ export default function RitualUpload() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 lg:py-12 max-w-2xl">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => router.back()} className="bg-transparent border-border text-foreground hover:bg-secondary">
+          <Button variant="outline" onClick={() => (step > 0 ? setStep(step - 1) : router.back())} className="bg-transparent border-border text-foreground hover:bg-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {tr("Back")}
+            {step > 0 ? tr("Back") : tr("Exit")}
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">{tr("Upload Ritual")}</h1>
@@ -284,7 +287,66 @@ export default function RitualUpload() {
           </div>
         </div>
 
+        {submitted ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 text-center space-y-4">
+              <CheckCircle2 className="w-14 h-14 text-primary mx-auto" />
+              <h2 className="text-2xl font-bold text-foreground">{tr("Your ritual is on its way")}</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                {tr("Thank you for sharing your practice. It will appear in the Sacred Library once a guardian has reviewed it.")}
+              </p>
+              <div className="flex justify-center gap-3 pt-2">
+                <Button variant="outline" onClick={() => router.push("/creator")} className="bg-transparent border-border text-foreground hover:bg-secondary">
+                  {tr("Back to Studio")}
+                </Button>
+                <Button onClick={() => { setSubmitted(false); setStep(0); setConsented(false); setFormData({ title: "", description: "", care_level: "level1", cultural_declaration: "" }); setTags([]); setRecordedBlob(null); setUploadedFile(null); setRecordingTime(0); }} className="bg-primary text-primary-foreground hover:bg-gold-muted">
+                  {tr("Upload Another")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+        <>
+        <ol className="mb-8 flex items-center gap-2 text-xs text-muted-foreground">
+          {[tr("Consent"), tr("Audio"), tr("Details"), tr("Declaration"), tr("Review")].map((label, i) => (
+            <li key={label} className="flex items-center gap-2">
+              {i > 0 && <span className="h-px w-6 bg-border" aria-hidden="true" />}
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full border text-[11px] ${i === step ? "border-primary bg-primary/10 text-primary" : i < step ? "border-primary/50 text-primary" : "border-border"}`}>
+                {i < step ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+              </span>
+              <span className={i === step ? "text-foreground font-medium" : ""}>{label}</span>
+            </li>
+          ))}
+        </ol>
+
         <form onSubmit={handleSubmit} className="space-y-6">
+          {step === 0 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground">{tr("Before you share this")}</CardTitle>
+              <CardDescription>{tr("A few things to know before your ritual joins the community")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <ul className="list-disc space-y-2 pl-5">
+                <li>{tr("Your ritual will be reviewed by a guardian before it appears in the Sacred Library.")}</li>
+                <li>{tr("You keep ownership of your practice. Sharing here does not transfer your rights.")}</li>
+                <li>{tr("Cultural traditions referenced in your declaration are protected under Evonaire's cultural safety policy.")}</li>
+                <li>{tr("You can remove your ritual from the library at any time from your studio.")}</li>
+              </ul>
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4">
+                <input
+                  type="checkbox"
+                  checked={consented}
+                  onChange={(e) => setConsented(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-primary"
+                />
+                <span className="text-foreground">{tr("I'm ready to share this")}</span>
+              </label>
+            </CardContent>
+          </Card>
+          )}
+
+          {step === 1 && (
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground">{tr("Audio Source")}</CardTitle>
@@ -350,7 +412,9 @@ export default function RitualUpload() {
               )}
             </CardContent>
           </Card>
+          )}
 
+          {step === 2 && (
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground">{tr("Ritual Details")}</CardTitle>
@@ -428,6 +492,17 @@ export default function RitualUpload() {
                 </div>
               </div>
 
+            </CardContent>
+          </Card>
+          )}
+
+          {step === 3 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground">{tr("Cultural Declaration")}</CardTitle>
+              <CardDescription>{tr("Acknowledge the traditions and practices this ritual draws from")}</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div>
                 <Label htmlFor="cultural_declaration" className="inline-flex items-center gap-1.5">
                   {tr("Cultural Declaration")}
@@ -438,35 +513,108 @@ export default function RitualUpload() {
                   value={formData.cultural_declaration}
                   onChange={(e) => setFormData({ ...formData, cultural_declaration: e.target.value })}
                   placeholder={tr("Acknowledge any cultural traditions or practices this ritual draws from...")}
-                  rows={3}
+                  rows={6}
                 />
               </div>
             </CardContent>
           </Card>
+          )}
+
+          {step === 4 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground">{tr("Review & Share")}</CardTitle>
+              <CardDescription>{tr("Confirm everything looks right before your ritual enters review")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Title")}</p>
+                  <p className="mt-1 font-medium text-foreground">{formData.title || "—"}</p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Care Level")}</p>
+                  <p className="mt-1 font-medium text-foreground">
+                    {formData.care_level === "level1"
+                      ? tr("Level 1 - Gentle")
+                      : formData.care_level === "level2"
+                        ? tr("Level 2 - Moderate")
+                        : tr("Level 3 - Intensive")}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Audio")}</p>
+                  <p className="mt-1 font-medium text-foreground">
+                    {recordedBlob ? trNode("Recording ({p0})", { p0: formatTime(recordingTime) }) : uploadedFile ? uploadedFile.name : "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Tags")}</p>
+                  <p className="mt-1 font-medium text-foreground">{tags.length ? tags.join(", ") : "—"}</p>
+                </div>
+              </div>
+              {formData.description && (
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Description")}</p>
+                  <p className="mt-1 text-foreground whitespace-pre-wrap">{formData.description}</p>
+                </div>
+              )}
+              {formData.cultural_declaration && (
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{tr("Cultural Declaration")}</p>
+                  <p className="mt-1 text-foreground whitespace-pre-wrap">{formData.cultural_declaration}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          )}
 
           <div className="flex gap-4 items-center">
-            <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary">
-              {tr("Cancel")}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => (step === 0 ? router.back() : setStep(step - 1))}
+              className="flex-1 bg-transparent border-border text-foreground hover:bg-secondary"
+            >
+              {step === 0 ? tr("Cancel") : tr("Back")}
             </Button>
-            <div className="flex-1 flex items-center gap-2">
+            {step < 4 ? (
               <Button
-                type="submit"
-                disabled={uploading || !formData.title || !formData.description || (!recordedBlob && !uploadedFile)}
+                type="button"
+                onClick={() => setStep(step + 1)}
+                disabled={
+                  (step === 0 && !consented) ||
+                  (step === 1 && !recordedBlob && !uploadedFile) ||
+                  (step === 2 && (!formData.title || !formData.description))
+                }
                 className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted"
               >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {tr("Uploading...")}
-                  </>
-                ) : (
-                  "Upload Ritual"
-                )}
+                {tr("Continue")}
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <GaiaInfoTip infoKey="creator.upload" ariaLabel={tr("About uploading a ritual")} />
-            </div>
+            ) : (
+              <div className="flex-1 flex items-center gap-2">
+                <Button
+                  type="submit"
+                  disabled={uploading || !formData.title || !formData.description || (!recordedBlob && !uploadedFile)}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-gold-muted"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {tr("Uploading...")}
+                    </>
+                  ) : (
+                    tr("Share Ritual")
+                  )}
+                </Button>
+                <GaiaInfoTip infoKey="creator.upload" ariaLabel={tr("About uploading a ritual")} />
+              </div>
+            )}
           </div>
         </form>
+        </>
+        )}
       </div>
     </div>
   )

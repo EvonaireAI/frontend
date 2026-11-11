@@ -109,6 +109,15 @@ export function PlatformOverviewTab({
 
   return (
     <div className="space-y-6">
+      {/* Prototype KPI row: Active Members / Monthly Energy / Guardian SLA /
+          Platform Health — mapped onto the real overview payload. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label={tr("Active Members")} value={health.members_total} hint={`${health.members_active.toLocaleString(fmtLocale())} active`} />
+        <Stat label={tr("Monthly Energy")} value={centsToDollarString(memberships.mrr_cents ?? 0)} hint={tr("MRR")} />
+        <Stat label={tr("Guardian SLA")} value={pending.care_cases} hint={tr("Open care cases")} />
+        <Stat label={tr("Platform Health")} value={health.rts_interventions_open} hint={tr("Open RTS interventions")} />
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{trNode("As of {p0}", { p0: new Date(data.as_of).toLocaleString(fmtLocale()) })}</p>
         <Button variant="outline" size="sm" onClick={load}>
@@ -121,7 +130,7 @@ export function PlatformOverviewTab({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 text-primary" />
-            {tr("Platform health")}
+            {tr("Platform Health")}
           </CardTitle>
         </CardHeader>
         <CardContent>

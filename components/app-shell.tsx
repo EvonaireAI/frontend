@@ -12,6 +12,7 @@ import { GatewayNudge } from "@/components/gateway/gateway-nudge"
 import { GatewayCompletionModalHost } from "@/components/gateway/gateway-completion-modal"
 import { Footer } from "@/components/footer"
 import { GaiaChatWidget } from "@/components/gaia/chat-widget"
+import { RoleTabBar } from "@/components/role-tab-bar"
 import { AccessibilityProvider } from "@/lib/accessibility-context"
 import { AccessibilityWidget } from "@/components/accessibility/accessibility-widget"
 import { I18nProvider } from "@/lib/i18n/provider"
@@ -79,8 +80,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <ConsentGuard>
                   <div className="min-h-screen flex flex-col">
                     <Navigation />
-                    <div className="flex-1">{children}</div>
+                    <div className="flex-1 pb-16 md:pb-0">{children}</div>
                     <Footer />
+                    <RoleTabBar />
                   </div>
                   <GaiaChatWidget />
                   <AccessibilityWidget />
