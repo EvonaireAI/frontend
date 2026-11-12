@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Lexend } from "next/font/google"
+import { Inter, Lexend, Playfair_Display } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { AppShell } from "@/components/app-shell"
@@ -10,6 +10,18 @@ import "./globals.css"
 const lexend = Lexend({
   subsets: ["latin"],
   variable: "--font-dyslexia-friendly",
+  display: "swap",
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
   display: "swap",
 })
 
@@ -33,7 +45,7 @@ html {
   `
 
   return (
-    <html lang="en" className={lexend.variable}>
+    <html lang="en" className={`${lexend.variable} ${inter.variable} ${playfair.variable}`}>
       <head>
         {/* Chrome 69 (Android 8.0) has no globalThis, and Next's runtime
             assigns to it before any polyfill chunk loads. Define it first. */}

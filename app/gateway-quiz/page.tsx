@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Loader2, Sparkles, Compass, Feather, ArrowRight } from "lucide-react"
+import { Loader2, Sparkles, Feather, ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/lib/auth-context"
@@ -185,61 +185,67 @@ export default function GatewayQuizPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-navy flex flex-col">
-      <header className="p-6 border-b border-gold/10">
-        <Link href="/" className="inline-flex items-center gap-3 group">
+    <div className="gateway-quiz-root flex min-h-screen flex-col">
+      <header className="border-b border-white/[0.08] p-6">
+        <Link href="/" className="group inline-flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
             alt={tr("Evonaire")}
             width={44}
             height={44}
-            className="drop-shadow-[0_0_12px_rgba(217,181,116,0.4)]"
+            className="opacity-90"
           />
-          <span className="text-cream font-serif text-lg tracking-wide">{tr("Evonaire")}</span>
+          <span className="gateway-quiz-brand">{tr("Evonaire")}</span>
         </Link>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-10 max-w-3xl">
+      <main className="relative z-[1] flex flex-1 flex-col items-center">
         {stage === "intro" && (
-          <IntroPanel
-            title={content.quiz_title}
-            message={cleanNarration(content.opening_message)}
-            totalQuestions={totalQuestions}
-            onBegin={handleBegin}
-            starting={starting}
-            error={error}
-          />
+          <div className="gateway-quiz-hero w-full">
+            <IntroPanel
+              title={content.quiz_title}
+              message={cleanNarration(content.opening_message)}
+              totalQuestions={totalQuestions}
+              onBegin={handleBegin}
+              starting={starting}
+              error={error}
+            />
+          </div>
         )}
 
-        {stage === "question" && currentQuestion && (
-          <QuestionPanel
-            question={currentQuestion}
-            sectionTitle={currentSection?.title ?? ""}
-            sectionTheme={currentSection?.theme ?? ""}
-            totalQuestions={totalQuestions}
-            selectedOption={selectedOption}
-            onSelect={setSelectedOption}
-            onSubmit={handleSubmitAnswer}
-            submitting={submitting}
-            error={error}
-          />
-        )}
+        {stage !== "intro" && (
+          <div className="w-full max-w-3xl px-4 py-10">
+            {stage === "question" && currentQuestion && (
+              <QuestionPanel
+                question={currentQuestion}
+                sectionTitle={currentSection?.title ?? ""}
+                sectionTheme={currentSection?.theme ?? ""}
+                totalQuestions={totalQuestions}
+                selectedOption={selectedOption}
+                onSelect={setSelectedOption}
+                onSubmit={handleSubmitAnswer}
+                submitting={submitting}
+                error={error}
+              />
+            )}
 
-        {stage === "guidance" && currentQuestion && lastResult && (
-          <GuidancePanel
-            question={currentQuestion}
-            result={lastResult}
-            totalQuestions={totalQuestions}
-            onContinue={handleContinue}
-          />
-        )}
+            {stage === "guidance" && currentQuestion && lastResult && (
+              <GuidancePanel
+                question={currentQuestion}
+                result={lastResult}
+                totalQuestions={totalQuestions}
+                onContinue={handleContinue}
+              />
+            )}
 
-        {stage === "complete" && (
-          <CompletionPanel
-            message={cleanNarration(completionMessage || content.completion_message)}
-            onEnter={handleEnterPlatform}
-          />
+            {stage === "complete" && (
+              <CompletionPanel
+                message={cleanNarration(completionMessage || content.completion_message)}
+                onEnter={handleEnterPlatform}
+              />
+            )}
+          </div>
         )}
       </main>
     </div>
@@ -257,45 +263,43 @@ interface IntroPanelProps {
 
 function IntroPanel({ title, message, totalQuestions, starting, error, onBegin }: IntroPanelProps) {
   return (
-    <div className="bg-[#141f2a] border border-gold/20 rounded-2xl p-10 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 mb-5">
-          <Compass className="w-8 h-8 text-gold" />
-        </div>
-        <h1 className="text-3xl font-serif text-cream mb-3 tracking-wide">{title}</h1>
-        <p className="text-cream/50 text-sm">
-          {trNode("{p0} reflections · take your time, there is no rush here", { p0: totalQuestions })}
-        </p>
+    <>
+      <div className="gateway-quiz-glyph flex items-center justify-center overflow-hidden">
+        <span aria-hidden="true">❧</span>
       </div>
+      <div className="gateway-quiz-gap-20" aria-hidden />
 
-      <blockquote className="border-l-2 border-gold/40 pl-5 my-8 text-cream/80 leading-relaxed font-serif text-lg whitespace-pre-line">
-        {message}
-      </blockquote>
+      <h1 className="gateway-quiz-title">{title}</h1>
+      <div className="gateway-quiz-gap-16" aria-hidden />
 
-      {error && (
-        <p className="text-red-300/90 text-sm text-center mb-4">{error}</p>
-      )}
+      <p className="gateway-quiz-subtitle">
+        {trNode("{p0} reflections · take your time, there is no rush here", { p0: totalQuestions })}
+      </p>
+      <div className="gateway-quiz-gap-30" aria-hidden />
 
-      <div className="flex justify-center">
-        <button
-          onClick={onBegin}
-          disabled={starting}
-          className="inline-flex items-center justify-center gap-2 min-w-[200px] h-12 rounded-xl bg-gold text-dark-navy font-semibold text-sm hover:bg-gold-muted transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(217,181,116,0.25)]"
-        >
+      <div className="gateway-quiz-voice-banner">
+        <div className="gateway-quiz-voice-dot">
+          <span className="gateway-quiz-voice-dot-core" aria-hidden />
+        </div>
+        <p className="gateway-quiz-voice-message whitespace-pre-line">{message}</p>
+      </div>
+      <div className="gateway-quiz-gap-22" aria-hidden />
+
+      {error && <p className="order-7 w-full max-w-[540px] text-center text-sm text-red-300/90">{error}</p>}
+
+      <div className="gateway-quiz-button-row">
+        <button type="button" onClick={onBegin} disabled={starting} className="gateway-quiz-btn-primary">
           {starting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
               {tr("Opening the gateway…")}
             </>
           ) : (
-            <>
-              {tr("Begin the Gateway")}
-              <ArrowRight className="w-4 h-4" />
-            </>
+            tr("Choose how you wish to enter")
           )}
         </button>
       </div>
-    </div>
+    </>
   )
 }
 
