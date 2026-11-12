@@ -16,6 +16,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "pretest": "node -e \"try{require.resolve('react')}catch(e){process.exit(1)}\" || npm ci --legacy-peer-deps",
     "test": "node --test"
   },
   "dependencies": {
