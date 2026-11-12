@@ -185,7 +185,7 @@ export default function GatewayQuizPage() {
   }
 
   return (
-    <div className="gateway-quiz-root flex min-h-screen flex-col bg-[#0D0F14]">
+    <div className="gateway-quiz-root flex min-h-screen flex-col">
       <header className="border-b border-white/[0.08] p-6">
         <Link href="/" className="group inline-flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -201,48 +201,52 @@ export default function GatewayQuizPage() {
       </header>
 
       <main className="relative z-[1] flex flex-1 flex-col items-center">
-        <div className="gateway-quiz-hero w-full">
         {stage === "intro" && (
-          <IntroPanel
-            title={content.quiz_title}
-            message={cleanNarration(content.opening_message)}
-            totalQuestions={totalQuestions}
-            onBegin={handleBegin}
-            starting={starting}
-            error={error}
-          />
+          <div className="gateway-quiz-hero w-full">
+            <IntroPanel
+              title={content.quiz_title}
+              message={cleanNarration(content.opening_message)}
+              totalQuestions={totalQuestions}
+              onBegin={handleBegin}
+              starting={starting}
+              error={error}
+            />
+          </div>
         )}
 
-        {stage === "question" && currentQuestion && (
-          <QuestionPanel
-            question={currentQuestion}
-            sectionTitle={currentSection?.title ?? ""}
-            sectionTheme={currentSection?.theme ?? ""}
-            totalQuestions={totalQuestions}
-            selectedOption={selectedOption}
-            onSelect={setSelectedOption}
-            onSubmit={handleSubmitAnswer}
-            submitting={submitting}
-            error={error}
-          />
-        )}
+        {stage !== "intro" && (
+          <div className="w-full max-w-3xl px-4 py-10">
+            {stage === "question" && currentQuestion && (
+              <QuestionPanel
+                question={currentQuestion}
+                sectionTitle={currentSection?.title ?? ""}
+                sectionTheme={currentSection?.theme ?? ""}
+                totalQuestions={totalQuestions}
+                selectedOption={selectedOption}
+                onSelect={setSelectedOption}
+                onSubmit={handleSubmitAnswer}
+                submitting={submitting}
+                error={error}
+              />
+            )}
 
-        {stage === "guidance" && currentQuestion && lastResult && (
-          <GuidancePanel
-            question={currentQuestion}
-            result={lastResult}
-            totalQuestions={totalQuestions}
-            onContinue={handleContinue}
-          />
-        )}
+            {stage === "guidance" && currentQuestion && lastResult && (
+              <GuidancePanel
+                question={currentQuestion}
+                result={lastResult}
+                totalQuestions={totalQuestions}
+                onContinue={handleContinue}
+              />
+            )}
 
-        {stage === "complete" && (
-          <CompletionPanel
-            message={cleanNarration(completionMessage || content.completion_message)}
-            onEnter={handleEnterPlatform}
-          />
+            {stage === "complete" && (
+              <CompletionPanel
+                message={cleanNarration(completionMessage || content.completion_message)}
+                onEnter={handleEnterPlatform}
+              />
+            )}
+          </div>
         )}
-        </div>
       </main>
     </div>
   )
