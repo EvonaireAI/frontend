@@ -1,0 +1,116 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to droplet
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHA: ${{ github.sha }}
+    steps:
+      # Push is already limited to main. workflow_dispatch can select any
+      # ref, so refuse anything else before a branch reaches the droplet.
+      - name: Require main branch
+        run: |
+          if [ "${{ github.ref_type }}" != "branch" ] \
+            || [ "${{ github.ref_name }}" != "main" ]
+          then
+            echo "::error::Deploys run from the main branch only, got ${{ github.ref }}"
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Node 22 matches the droplet runtime. The check workflows use 24.
+      # Bump both together if the server moves.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      # NEXT_PUBLIC_* values inline into the client bundle at build time.
+      # They live in repo variables because browsers download them. The API
+      # base must be an absolute URL ending in Django's /api mount. Bad
+      # values ship broken request paths.
+      - name: Verify public build variables
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+        run: |
+          if [ -z "${NEXT_PUBLIC_API_BASE_URL}" ]
+          then
+            echo "::error::vars.NEXT_PUBLIC_API_BASE_URL is unset"
+            exit 1
+          fi
+          if [[ ! "${NEXT_PUBLIC_API_BASE_URL}" =~ ^https?://[^/[:space:]]+/api$ ]]
+          then
+            echo "::error::vars.NEXT_PUBLIC_API_BASE_URL must be an absolute http(s) URL ending in /api"
+            exit 1
+          fi
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_STRIPE_PRICE_EVOCORE: ${{ vars.NEXT_PUBLIC_STRIPE_PRICE_EVOCORE }}
+          NEXT_PUBLIC_STRIPE_PRICE_EVOBLOOM: ${{ vars.NEXT_PUBLIC_STRIPE_PRICE_EVOBLOOM }}
+          NEXT_PUBLIC_STRIPE_PRICE_EVOLUXE: ${{ vars.NEXT_PUBLIC_STRIPE_PRICE_EVOLUXE }}
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build
+
+      - name: Prune dev dependencies
+        run: npm prune --omit=dev --legacy-peer-deps
+
+      - name: Pack release tarball
+        run: |
+          tar -czf "$RUNNER_TEMP/evonaire-web-$SHA.tar.gz" \
+            --exclude='./.git' \
+            --exclude='./.next/cache' \
+            --exclude='./node_modules/.cache' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            .
+
+      - name: Configure SSH
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DROPLET_HOST" >> ~/.ssh/known_hosts
+          {
+            printf 'Host droplet\n'
+            printf '  HostName %s\n' "$DROPLET_HOST"
+            printf '  HostKeyAlias %s\n' "$DROPLET_HOST"
+            printf '  User %s\n' "$DROPLET_USER"
+            printf '  IdentityFile ~/.ssh/deploy_key\n'
+            printf '  IdentitiesOnly yes\n'
+            printf '  BatchMode yes\n'
+            printf '  StrictHostKeyChecking yes\n'
+            printf '  ConnectTimeout 10\n'
+          } > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Upload release tarball
+        run: scp "$RUNNER_TEMP/evonaire-web-$SHA.tar.gz" "droplet:/opt/evonaire-web/incoming/$SHA.tar.gz"
+
+      - name: Deploy on droplet
+        run: ssh droplet "SHA=$SHA bash -s" < scripts/deploy-droplet.sh

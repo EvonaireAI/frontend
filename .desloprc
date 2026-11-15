@@ -1,0 +1,16 @@
+{
+  "disable": {
+    "*.yml": [
+      "prose-colon",
+      "rhetorical-colon"
+    ],
+    "*.yaml": [
+      "prose-colon",
+      "rhetorical-colon"
+    ],
+    "*.sh": [
+      "semicolon",
+      "magic-number"
+    ]
+  }
+}
