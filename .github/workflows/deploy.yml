@@ -32,7 +32,7 @@ jobs:
           fi
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Node 22 matches the droplet runtime. The check workflows use 24.
       # Bump both together if the server moves.
