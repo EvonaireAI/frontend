@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # The suites import repo source and node builtins only, so there is no
       # install step. Type stripping needs Node 22.18+, which is why this is
