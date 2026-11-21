@@ -101,7 +101,8 @@ jobs:
           {
             printf 'Host droplet\n'
             printf '  HostName %s\n' "$DROPLET_HOST"
-            printf '  HostKeyAlias %s\n' "$DROPLET_HOST"
+            # No HostKeyAlias: ssh then looks up [host]:port in
+            # known_hosts, matching what ssh-keyscan -p writes.
             printf '  Port %s\n' "$DROPLET_PORT"
             printf '  User %s\n' "$DROPLET_USER"
             printf '  IdentityFile ~/.ssh/deploy_key\n'
