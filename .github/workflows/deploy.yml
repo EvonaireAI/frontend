@@ -91,15 +91,18 @@ jobs:
           DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
           DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          # sshd on the droplet listens on 2222; port 22 is filtered.
+          DROPLET_PORT: ${{ vars.DROPLET_PORT || '2222' }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$DROPLET_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -H -p "$DROPLET_PORT" "$DROPLET_HOST" >> ~/.ssh/known_hosts
           {
             printf 'Host droplet\n'
             printf '  HostName %s\n' "$DROPLET_HOST"
             printf '  HostKeyAlias %s\n' "$DROPLET_HOST"
+            printf '  Port %s\n' "$DROPLET_PORT"
             printf '  User %s\n' "$DROPLET_USER"
             printf '  IdentityFile ~/.ssh/deploy_key\n'
             printf '  IdentitiesOnly yes\n'
