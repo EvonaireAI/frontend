@@ -12,8 +12,10 @@ const TIER_PRICE_MAP: Record<string, string> = {
 }
 
 export interface PaymentConfig {
-  publishable_key: string
-  default_price_id: string
+  publishable_key: string | null
+  default_price_id: string | null
+  provider?: string
+  billing_available?: boolean
 }
 
 export interface CheckoutSession {
@@ -43,6 +45,9 @@ class PaymentService {
   async createCheckoutSession(tierId: string): Promise<CheckoutSession> {
     const priceId = TIER_PRICE_MAP[tierId]
     const config = await this.getPaymentConfig()
+    if (config.billing_available === false) {
+      throw new Error(tr("Billing is temporarily unavailable. Please try again later."))
+    }
     const finalPriceId = priceId || config.default_price_id
 
     const response = await authedFetch(`${API_BASE_URL}/payments/checkout-session/`, {

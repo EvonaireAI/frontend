@@ -27,6 +27,7 @@ import {
   watchSurfaceVisibility,
 } from "@/lib/screen-protection"
 import { derivePseudonym, shortSessionLabel } from "@/lib/watermark"
+import { ReconnectBudget } from "@/lib/playback-reconnect"
 import { DynamicWatermark } from "@/components/player/dynamic-watermark"
 import {
   PlaybackLockedCard,
@@ -79,7 +80,7 @@ export default function RitualPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const surfaceRef = useRef<HTMLDivElement | null>(null)
   const hasSourceRef = useRef(false)
-  const reconnectsRef = useRef(0)
+  const reconnectBudgetRef = useRef(new ReconnectBudget(MAX_RECONNECT_ATTEMPTS))
   // Set while the surface-obscured handler paused audio, so returning to the
   // tab resumes exactly what it interrupted — and nothing else.
   const autoPausedRef = useRef(false)
@@ -322,6 +323,7 @@ export default function RitualPlayer() {
     try {
       await audio.play()
       setIsPlaying(true)
+      setAudioError(null)
       meter.onPlaying()
       if (resuming) {
         meter.rotateFor("RESUME")
@@ -368,7 +370,7 @@ export default function RitualPlayer() {
     }
 
     if (!hasSourceRef.current) {
-      reconnectsRef.current = 0
+      reconnectBudgetRef.current.reset()
       if (!(await loadStreamIntoElement())) return
     }
 
@@ -417,11 +419,11 @@ export default function RitualPlayer() {
     const audio = audioRef.current
     if (!audio || locked || restricted || moved) return
     if (!meter.listening) return
-    if (reconnectsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+    if (reconnectBudgetRef.current.exhausted) {
       setAudioError(tr("Audio is unavailable right now. Please try again."))
       return
     }
-    reconnectsRef.current += 1
+    reconnectBudgetRef.current.fail()
 
     const resumeAt = audio.currentTime
     const wasPlaying = isPlaying
@@ -431,6 +433,12 @@ export default function RitualPlayer() {
 
     const restore = () => {
       audio.removeEventListener("loadedmetadata", restore)
+      // A reconnect that reaches loadedmetadata is healthy again, so the
+      // failure budget restarts here. Without this reset the count only
+      // clears on a fresh page load, and two dead-token 403s (guaranteed
+      // once rotation kills the URL embedded in src) would end audio for
+      // the rest of the ritual.
+      reconnectBudgetRef.current.reset()
       if (Number.isFinite(resumeAt) && resumeAt > 0) audio.currentTime = resumeAt
       if (wasPlaying) void startAudio(false)
     }
