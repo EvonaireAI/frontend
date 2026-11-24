@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+jobs:
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      # NEXT_PUBLIC_* values inline at build time. The dummy API base only
+      # needs to satisfy the URL shape; nothing calls it during the build.
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build
