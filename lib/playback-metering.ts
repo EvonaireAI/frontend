@@ -22,6 +22,7 @@
 import { authService } from "./auth"
 import { throwIfEntitlementDenied } from "./entitlements"
 import { getDeviceId } from "./device-identity"
+import { trackAnalyticsEvent } from "./analytics"
 import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
@@ -351,9 +352,15 @@ export class PlaybackMeter {
     this.stopTimer()
     this.stopRotation()
     const sessionId = this.sessionId
+    const ritualId = this.ritualId
     const position = Math.floor(this.getPosition())
     this.reset()
     if (sessionId === null) return
+    trackAnalyticsEvent("playback_session_ended", {
+      session_id: sessionId,
+      ritual_id: ritualId,
+      position_seconds: position,
+    })
     post("/analytics/playback/end/", { session_id: sessionId, position_seconds: position }).catch((err) => {
       console.error("Playback metering: end failed:", err)
     })
@@ -655,6 +662,10 @@ export class PlaybackMeter {
       const data: PlaybackStartResponse = await response.json()
       if (op !== this.op) return
       this.setSession(data.session_id)
+      trackAnalyticsEvent("playback_session_started", {
+        session_id: data.session_id,
+        ritual_id: this.ritualId,
+      })
       // A new session invalidates any grant held for the old one
       this.clearGrant()
       // Server accepts a 20–30s cadence; clamp whatever it advertises

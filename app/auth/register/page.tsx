@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { trackFunnelEvent } from "@/lib/funnel"
+import { trackAnalyticsEvent } from "@/lib/analytics"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { authService } from "@/lib/auth"
@@ -53,6 +54,7 @@ export default function RegisterPage() {
       }
       await authService.register(submitData)
       trackFunnelEvent("signup_complete")
+      trackAnalyticsEvent("signup_completed", { role: formData.role })
       setSuccess(tr("Registration successful! Please check your email for an activation link."))
       setTimeout(() => router.push("/auth/login"), 3000)
     } catch (err) {

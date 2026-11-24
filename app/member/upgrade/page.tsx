@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { paymentService } from "@/lib/payments"
+import { trackAnalyticsEvent } from "@/lib/analytics"
 import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { useEntitlements } from "@/lib/entitlements-context"
@@ -48,6 +49,7 @@ export default function UpgradePage() {
     try {
       // gateway_incomplete finishes the Gateway inline, then retries checkout.
       const session = await runGatedAction(() => paymentService.createCheckoutSession(planKey))
+      trackAnalyticsEvent("checkout_started", { plan: planKey, source: "upgrade_page" })
       if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {

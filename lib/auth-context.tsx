@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { authService, type User, type LoginResponse } from "@/lib/auth"
 import { AuthSession } from "@/lib/auth-session"
 import { isAuthStorageKey } from "@/lib/auth-storage"
+import { trackAnalyticsEvent } from "@/lib/analytics"
 
 interface AuthContextType {
   user: User | null
@@ -76,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string): Promise<LoginResponse> => {
     const generation = session.begin()
     const data = await authService.login(email, password)
+    trackAnalyticsEvent("login_succeeded", { role: data.role })
     const userData = await authService.getProfile()
     // A login superseded by a newer attempt or a logout still returns its
     // response to the caller, but must not commit the old account's state.

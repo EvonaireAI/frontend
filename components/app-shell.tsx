@@ -17,6 +17,7 @@ import { AccessibilityProvider } from "@/lib/accessibility-context"
 import { AccessibilityWidget } from "@/components/accessibility/accessibility-widget"
 import { I18nProvider } from "@/lib/i18n/provider"
 import { Toaster } from "@/components/ui/sonner"
+import { AnalyticsIdentity } from "@/components/analytics-identity"
 
 /**
  * Routes that render on their own, outside the signed-in application shell.
@@ -73,6 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <AccessibilityProvider>
       <AuthProvider>
+        <AnalyticsIdentity />
         <AccountScoped>
           <EntitlementsProvider>
             <GatewayProvider>
