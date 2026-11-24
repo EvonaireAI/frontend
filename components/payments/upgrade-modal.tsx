@@ -16,6 +16,7 @@ import {
   type PlanKey,
 } from "@/lib/plans"
 import { paymentService } from "@/lib/payments"
+import { trackAnalyticsEvent } from "@/lib/analytics"
 import { isAllowedExternalUrl } from "@/lib/external-navigation"
 import { runGatedAction, GatewayCancelledError } from "@/lib/gateway-quiz"
 import { Loader2, Lock, Sparkles } from "lucide-react"
@@ -118,6 +119,7 @@ export function UpgradeModalHost() {
     try {
       // gateway_incomplete finishes the Gateway inline, then retries checkout.
       const session = await runGatedAction(() => paymentService.createCheckoutSession(requiredPlan))
+      trackAnalyticsEvent("checkout_started", { plan: requiredPlan, source: "upgrade_modal" })
       if (isAllowedExternalUrl(session.session_url)) {
         window.location.href = session.session_url
       } else {
