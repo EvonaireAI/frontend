@@ -10,6 +10,10 @@ const ALLOWED = [
   'https://connect.stripe.com/setup/e/acct_123/XYZ',
   'https://dashboard.stripe.com/express/acct_123',
   'https://billing.stripe.com/p/session/test',
+  // Paddle hosted checkout and customer portal hosts.
+  'https://checkout.paddle.com/transaction/txn_01h',
+  'https://sandbox-checkout.paddle.com/transaction/txn_01h',
+  'https://customer-portal.paddle.com/cpl_123',
 ]
 
 const DENIED = [
@@ -30,6 +34,11 @@ const DENIED = [
   'https://notstripe.com',
   'https://stripexcom',
   'https://strike.com',
+  // Paddle lookalikes.
+  'https://paddle.com.evil.com/phish',
+  'https://checkout-paddle.com/transaction/txn_01h',
+  'https://notpaddle.com',
+  'http://checkout.paddle.com/transaction/txn_01h',
   // Userinfo tricks — the real host sits after the @.
   'https://checkout.stripe.com@evil.com/',
   'https://user:pass@evil.com/',
@@ -53,7 +62,7 @@ test('stripe-hosted https URLs are allowed', () => {
   }
 })
 
-test('non-stripe, non-https, malformed, and lookalike URLs are denied', () => {
+test('non-stripe/non-paddle, non-https, malformed, and lookalike URLs are denied', () => {
   for (const url of DENIED) {
     assert.equal(isAllowedExternalUrl(url), false, String(url))
   }

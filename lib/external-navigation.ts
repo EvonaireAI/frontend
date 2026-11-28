@@ -2,9 +2,13 @@
 // sink. React strips javascript: hrefs in JSX but not window.location,
 // location.assign, or window.open, so a hostile or malformed response value
 // would otherwise be followed verbatim. Every flow that uses this guard
-// produces a Stripe-hosted destination (checkout or connect).
+// produces a processor-hosted destination (checkout, invoices, or the
+// billing portal).
 
-const STRIPE_HOST = /^([a-z0-9-]+\.)*stripe\.com$/i
+const ALLOWED_HOSTS = [
+  /^([a-z0-9-]+\.)*stripe\.com$/i,
+  /^([a-z0-9-]+\.)*paddle\.com$/i,
+]
 
 export function isAllowedExternalUrl(raw: unknown): raw is string {
   if (typeof raw !== "string") return false
@@ -14,5 +18,5 @@ export function isAllowedExternalUrl(raw: unknown): raw is string {
   } catch {
     return false
   }
-  return url.protocol === "https:" && STRIPE_HOST.test(url.hostname)
+  return url.protocol === "https:" && ALLOWED_HOSTS.some((re) => re.test(url.hostname))
 }

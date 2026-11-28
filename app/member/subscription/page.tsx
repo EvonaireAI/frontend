@@ -160,7 +160,7 @@ export default function SubscriptionPage() {
                 </Link>
               )}
               <p className="text-xs text-muted-foreground text-center pt-1">
-                {tr("To update your payment method or cancel, please contact support or manage your subscription through Stripe.")}
+                {tr("To update your payment method or cancel, use your billing portal or contact support.")}
               </p>
             </>
           )}

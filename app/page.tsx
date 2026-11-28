@@ -329,6 +329,12 @@ export default function LandingPage() {
             >
               {tr("Terms of Service")}
             </Link>
+            <Link
+              href="/refund"
+              className="text-cream/50 hover:text-gold text-xs transition-colors"
+            >
+              {tr("Refund Policy")}
+            </Link>
           </div>
           <p className="text-cream/40 text-xs text-center break-words">{tr("A sanctuary for rituals and reflections.")}</p>
         </div>

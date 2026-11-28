@@ -5,15 +5,12 @@ import { tr } from "./i18n/index.ts"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
-const TIER_PRICE_MAP: Record<string, string> = {
-  evocore:  process.env.NEXT_PUBLIC_STRIPE_PRICE_EVOCORE  || "price_1SOkvQPQ0i07tXXWqL2ucrSf",
-  evobloom: process.env.NEXT_PUBLIC_STRIPE_PRICE_EVOBLOOM || "price_1SOkguPQ0i07tXXW85W3BCmJ",
-  evoluxe:  process.env.NEXT_PUBLIC_STRIPE_PRICE_EVOLUXE  || "price_1SOkvQPQ0i07tXXWFISgGgtr",
-}
-
 export interface PaymentConfig {
-  publishable_key: string
-  default_price_id: string
+  publishable_key: string | null
+  default_price_id: string | null
+  provider?: string
+  billing_available?: boolean
+  mode?: string
 }
 
 export interface CheckoutSession {
@@ -41,9 +38,12 @@ class PaymentService {
   }
 
   async createCheckoutSession(tierId: string): Promise<CheckoutSession> {
-    const priceId = TIER_PRICE_MAP[tierId]
+    // The plan code is the provider-neutral selector: the backend resolves
+    // it to the configured price for whichever processor is active.
     const config = await this.getPaymentConfig()
-    const finalPriceId = priceId || config.default_price_id
+    if (config.billing_available === false) {
+      throw new Error(tr("Billing is temporarily unavailable. Please try again later."))
+    }
 
     const response = await authedFetch(`${API_BASE_URL}/payments/checkout-session/`, {
       method: "POST",
@@ -52,7 +52,7 @@ class PaymentService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        price_id: finalPriceId,
+        plan: tierId,
       }),
     })
 

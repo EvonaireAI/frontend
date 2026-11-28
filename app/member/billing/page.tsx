@@ -337,7 +337,9 @@ export default function BillingPage() {
                           {formatDate(new Date(inv.created * 1000), "MMM d, yyyy")}
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
-                          {trNode("until {p0}", { p0: formatDate(new Date(inv.period_end * 1000), "MMM d") })}
+                          {inv.period_end
+                            ? trNode("until {p0}", { p0: formatDate(new Date(inv.period_end * 1000), "MMM d") })
+                            : "—"}
                         </td>
                         <td className="px-5 py-3.5 text-foreground font-medium whitespace-nowrap">
                           ${(inv.amount_paid / 100).toFixed(2)}
@@ -350,25 +352,32 @@ export default function BillingPage() {
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="inline-flex items-center gap-2">
-                            <a
-                              href={inv.hosted_invoice_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-primary hover:text-gold-muted transition-colors"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              {tr("View")}
-                            </a>
-                            <a
-                              href={inv.invoice_pdf}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title={tr("Download PDF")}
-                              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <FileDown className="w-3.5 h-3.5" />
-                              {tr("PDF")}
-                            </a>
+                            {inv.hosted_invoice_url && (
+                              <a
+                                href={inv.hosted_invoice_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:text-gold-muted transition-colors"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                {tr("View")}
+                              </a>
+                            )}
+                            {inv.invoice_pdf && (
+                              <a
+                                href={inv.invoice_pdf}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={tr("Download PDF")}
+                                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <FileDown className="w-3.5 h-3.5" />
+                                {tr("PDF")}
+                              </a>
+                            )}
+                            {!inv.hosted_invoice_url && !inv.invoice_pdf && (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </div>
                         </td>
                       </tr>

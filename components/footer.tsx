@@ -15,6 +15,7 @@ export function Footer() {
     pathname === "/consent" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
+    pathname === "/refund" ||
     pathname?.startsWith("/gateway-quiz")
   ) {
     return null
@@ -40,6 +41,12 @@ export function Footer() {
               className="text-sm text-muted-foreground hover:text-gold transition-colors"
             >
               {tr("Terms of Service")}
+            </Link>
+            <Link
+              href="/refund"
+              className="text-sm text-muted-foreground hover:text-gold transition-colors"
+            >
+              {tr("Refund Policy")}
             </Link>
             <a
               href="mailto:support@evonaire.ai"
