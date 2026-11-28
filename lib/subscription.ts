@@ -30,6 +30,7 @@ export interface SubscriptionDetails {
   status: string
   current_period_end: string | null
   cancel_at_period_end: boolean
+  portal_url?: string | null
 }
 
 export interface Invoice {
@@ -38,9 +39,9 @@ export interface Invoice {
   currency: string
   status: string
   created: number
-  period_end: number
-  hosted_invoice_url: string
-  invoice_pdf: string
+  period_end: number | null
+  hosted_invoice_url: string | null
+  invoice_pdf: string | null
 }
 
 function getAuthHeaders(): Record<string, string> {
